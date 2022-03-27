@@ -21,7 +21,7 @@
 
 ## Projects Board
 
-* 깃허브에서 제공하는 Projects 보드 활용하기
+* 깃허브에서 제공하는 Projects 보드 활용하기 (ex: [DB Board](https://github.com/Dayplan-it/Dayplan.it/projects/1))
 
 ## Commit Message 전략
 
