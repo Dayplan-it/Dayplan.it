@@ -8,5 +8,5 @@ class ScheduleAdmin(admin.ModelAdmin):
     """ Schedules Admin Definition """
 
     list_display = (
-        "title",
+        "schedule_title",
     )
