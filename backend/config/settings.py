@@ -50,7 +50,6 @@ PROJECT_APPS = [
     'users.apps.UsersConfig',
     'tastes.apps.TastesConfig',
     'schedules.apps.SchedulesConfig',
-    'routes.apps.RoutesConfig'
 ]
 
 THIRD_PARTY_APPS = []
