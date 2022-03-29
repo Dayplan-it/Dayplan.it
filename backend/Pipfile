@@ -9,6 +9,8 @@ psycopg2 = "*"
 django-dotenv = "*"
 install = "*"
 djangorestframework = "*"
+jwt = "*"
+bcrypt = "*"
 
 [dev-packages]
 
