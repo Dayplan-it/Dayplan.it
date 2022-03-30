@@ -10,3 +10,14 @@ class TimeStampedModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class StartEndTimeModel(models.Model):
+
+    """ Start-End Time Model """
+
+    starts_at = models.TimeField(null=False)
+    ends_at = models.TimeField(null=False)
+
+    class Meta:
+        abstract = True
