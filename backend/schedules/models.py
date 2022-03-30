@@ -9,6 +9,7 @@ class Schedule(core_models.TimeStampedModel):
 
     schedule_title = models.CharField(null=False, max_length=50)
     date = models.DateField(null=False)
+    memo = models.TextField(null=True)
     user = models.ForeignKey(
         "users.User", related_name="schedules", on_delete=models.CASCADE)
 

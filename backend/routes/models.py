@@ -4,7 +4,7 @@ from colorfield.fields import ColorField
 from core import models as core_models
 
 
-class Route(core_models.StartEndTimeModel):
+class Route(core_models.TravelCoreModel):
 
     """ Route Model Definition """
 
@@ -13,23 +13,10 @@ class Route(core_models.StartEndTimeModel):
     상세한 경로는 Step 릴레이션에 담기며, Route은 여러개의 Step을 가지게 됨
     '''
 
-    # core_models.StartEndTimeModel에서
-    # starts_at / ends_at 각각 출발시간 도착시간
-
-    distance = models.FloatField(null=False)
-    # duration = models.DurationField(null=False)
-    # 걸리는 시간 (duration)은 도착시간-출발시간이므로 DB에 넣지 않아도 되지만
-    # Google Maps Directions API에서 제공하므로 연산량을 줄이기 위해 넣어도 될 것 같음
-    # 토의 필요
-
     start_addr = models.TextField(null=False)
-    start_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
     start_name = models.CharField(null=False, max_length=20)
 
     end_addr = models.TextField(null=False)
-    end_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
     end_name = models.CharField(null=False, max_length=20)
 
     schedule_order = models.ForeignKey(
@@ -39,7 +26,7 @@ class Route(core_models.StartEndTimeModel):
         return f'{self.schedule_order.schedule.user.username}의 {self.schedule_order.schedule.date} {self.schedule_order.serial}번째 일정 - {self.start_name}에서 {self.end_name}으로'
 
 
-class Step(core_models.TimeStampedModel):
+class Step(core_models.TravelModel):
 
     """ Route_Step Model Definition """
 
@@ -48,14 +35,11 @@ class Step(core_models.TimeStampedModel):
     도보이동, 버스, 지하철 등의 상세 이동 경로를 담게 되며
     각 Step이 모여 Route가 됨
 
-    또한, 각 Step도 도보 이동일 경우 sub-Step을 여러개 가질 수 있으나,
-    (ex: 시조사삼거리까지 도보(Step) = 편의점까지 이동(sub-Step) + 건널목까지 이동(sub-Step) + ...)
-    이 부분까지는 일단 저장하지는 않도록 하겠음 (토의 필요)
+    도보이동의 경우 "WalkingDetail", 대중교통 이동의 경우 "TransitDetail"을 가짐
     '''
 
     route = models.ForeignKey(
         "Route", related_name="steps", on_delete=models.CASCADE)
-    serial = models.IntegerField(null=False)
 
     TRANSIT = 'TR'
     WALKING = 'WK'
@@ -68,20 +52,19 @@ class Step(core_models.TimeStampedModel):
     travel_mode = models.CharField(
         null=False, max_length=2, choices=TRAVEL_MODE_CHOICES)
 
-    distance = models.FloatField(null=False)
-    duration = models.DurationField(null=False)
-    # Route의 duration과는 다르게 여기는 꼭 필요함
-
-    start_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
-    end_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
-
-    poly_line = geom_models.LineStringField(
-        null=False, srid=900913)  # Google Maps Global Mercator
-
     def __str__(self):
         return f'RouteId {self.route.id} Serial {self.serial} - {self.travel_mode}'
+
+
+class WalkingDetail(core_models.TravelModel):
+
+    """ Route_Walking Model Definition """
+
+    walking_step = models.ForeignKey(
+        "Step", related_name="walking_details", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'StepId {self.walking_step.id} Serial {self.serial} Walking Details'
 
 
 class TransitDetail(core_models.TimeStampedModel):
@@ -132,9 +115,6 @@ class Place(core_models.StartEndTimeModel):
     place_id = models.CharField(null=False, max_length=50)
     place_geom = geom_models.PointField(
         null=False, srid=900913)  # Google Maps Global Mercator
-
-    # core_models.StartEndTimeModel에서
-    # starts_at / ends_at 각각 시작시간 종료시간
 
     def __str__(self):
         return self.place_id
