@@ -45,15 +45,14 @@ DJANGO_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-
-
 ]
 
 PROJECT_APPS = [
     'users.apps.UsersConfig',
     'tastes.apps.TastesConfig',
     'schedules.apps.SchedulesConfig',
-    'routes.apps.RoutesConfig'
+    'routes.apps.RoutesConfig',
+    'api.apps.ApiConfig',
 ]
 
 THIRD_PARTY_APPS = [
