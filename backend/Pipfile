@@ -8,6 +8,10 @@ django = "*"
 psycopg2 = "*"
 django-dotenv = "*"
 django-colorfield = "*"
+install = "*"
+djangorestframework = "*"
+jwt = "*"
+bcrypt = "*"
 
 [dev-packages]
 
