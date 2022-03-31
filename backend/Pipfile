@@ -12,6 +12,8 @@ install = "*"
 djangorestframework = "*"
 jwt = "*"
 bcrypt = "*"
+django-seed = "*"
+faker = "*"
 
 [dev-packages]
 
