@@ -1,12 +1,3 @@
-from django.contrib.sites.shortcuts import get_current_site
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
-from django.http import HttpResponse, JsonResponse
-from .models import User
-from rest_framework.parsers import JSONParser
-from rest_framework.views import APIView
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.core.mail import EmailMessage
 import jwt
 # 비밀번호 해쉬함수로 암호화
 import bcrypt
@@ -15,9 +6,18 @@ from .token import account_activation_token
 # 이메일 텍스트를 저장한 함수
 from .text import message
 # 이메일 유효성 검사
+from django.contrib.sites.shortcuts import get_current_site
+from django.http import HttpResponse, JsonResponse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK, HTTP_401_UNAUTHORIZED
+from rest_framework.parsers import JSONParser
+from rest_framework.views import APIView
 
+from .models import User
 from config.settings import SECRET_KEY
 # =====================로그인============================
 
@@ -37,8 +37,8 @@ class SignIn(APIView):
                         {'user': user.id}, SECRET_KEY, algorithm='HS256')
                     return JsonResponse({"token": token}, status=HTTP_200_OK)
 
-                return HttpResponse(status=401)
-            return HttpResponse(status=400)
+                return HttpResponse(status=HTTP_401_UNAUTHORIZED)
+            return HttpResponse(status=HTTP_400_BAD_REQUEST)
         except KeyError:
             return JsonResponse({'message': 'INVALID_KEYS'}, status=HTTP_400_BAD_REQUEST)
 
