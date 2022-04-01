@@ -175,3 +175,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
+
+# SRID for geoms
+SRID = 900913
+
+# API Key for GOOGLE MAPS
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")

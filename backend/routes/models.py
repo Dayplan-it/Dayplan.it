@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models as geom_models
+from django.conf import settings
 from colorfield.fields import ColorField
 from core import models as core_models
 
@@ -14,10 +15,15 @@ class Route(core_models.TravelCoreModel):
     '''
 
     start_addr = models.TextField(null=False)
-    start_name = models.CharField(null=False, max_length=20)
+    start_name = models.CharField(null=False, max_length=50)
+    # start_place = models.ForeignKey(
+    #     "Place", related_name="routes_start", on_delete=models.CASCADE)
+    # Place를 직접 참조하는게 더 좋아보이긴 함 고민중
 
     end_addr = models.TextField(null=False)
-    end_name = models.CharField(null=False, max_length=20)
+    end_name = models.CharField(null=False, max_length=50)
+    # end_place = models.ForeignKey(
+    #     "Place", related_name="routes_end", on_delete=models.CASCADE)
 
     schedule_order = models.ForeignKey(
         "schedules.Order", related_name="routes", on_delete=models.CASCADE)
@@ -40,6 +46,8 @@ class Step(core_models.TravelModel):
 
     route = models.ForeignKey(
         "Route", related_name="steps", on_delete=models.CASCADE)
+
+    instruction = models.TextField()
 
     TRANSIT = 'TR'
     WALKING = 'WK'
@@ -71,7 +79,7 @@ class TransitDetail(core_models.TimeStampedModel):
 
     """ Route_TransitDetail Model Definition """
 
-    step = models.ForeignKey(
+    transit_step = models.ForeignKey(
         "Step", related_name="transit_details", on_delete=models.CASCADE)
 
     BUS = 'BUS'
@@ -87,12 +95,12 @@ class TransitDetail(core_models.TimeStampedModel):
 
     departure_stop_name = models.CharField(null=False, max_length=50)
     departure_stop_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
+        null=False, srid=settings.SRID)
     departure_time = models.TimeField(null=False)
 
     arrival_stop_name = models.CharField(null=False, max_length=50)
     arrival_stop_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
+        null=False, srid=settings.SRID)
     arrival_time = models.TimeField(null=False)
 
     num_stops = models.IntegerField(null=False)
@@ -108,13 +116,15 @@ class Place(core_models.StartEndTimeModel):
 
     """ Place Model Definition """
 
-    order = models.ForeignKey(
+    schedule_order = models.ForeignKey(
         "schedules.Order", related_name="places", on_delete=models.CASCADE)
 
     place_name = models.CharField(null=False, max_length=50)
     place_id = models.CharField(null=False, max_length=50)
+    place_type = models.CharField(
+        null=False, max_length=50)  # 추후 choices를 정할 예정
     place_geom = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
+        null=False, srid=settings.SRID)
 
     def __str__(self):
         return self.place_id

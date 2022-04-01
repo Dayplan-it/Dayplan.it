@@ -1,5 +1,6 @@
+from calendar import month
 import random
-from datetime import date
+import datetime
 from faker import Faker
 from django.core.management.base import BaseCommand
 from django_seed import Seed
@@ -27,7 +28,7 @@ class Command(BaseCommand):
         seeder.add_entity(
             schedule_models.Schedule, number, {
                 'schedule_title': lambda x: fake_ko.catch_phrase(),
-                'date': lambda x: fake_ko.date_between(start_date=date(2022, 1, 1), end_date=date(2022, 6, 8)),
+                'date': lambda x: fake_ko.date_between(start_date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(), end_date=(datetime.datetime.now() + datetime.timedelta(days=30)).date()),
                 'memo': lambda x: fake_ko.bs(),
                 'user': lambda x: random.choice(all_users)
             })

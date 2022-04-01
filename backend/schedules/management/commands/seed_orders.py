@@ -11,18 +11,11 @@ class Command(BaseCommand):
 
     help = f'Create {NAME}'
 
-    def add_arguments(self, parser):
-        parser.add_argument("--number", default=1, type=int,
-                            help=f"How Many {NAME} to Create")
-
     def handle(self, *args, **options):
-        number = options.get("number")
         seeder = Seed.seeder()
         all_schedules = schedule_models.Schedule.objects.all()
 
-        for i in range(0, number + 1):
-            choosen_schedule = random.choice(all_schedules)
-            all_schedules = all_schedules.exclude(id=choosen_schedule.id)
+        for choosen_schedule in all_schedules:
             node_count = random.randint(4, 7)  # 이번에 생성할 스케쥴은 몇 군데를 다닐것인지
 
             for j in range(0, 2 * node_count):  # node_count + (node_count - 1) + 1
@@ -34,4 +27,4 @@ class Command(BaseCommand):
                     })
 
         seeder.execute()
-        self.stdout.write(self.style.SUCCESS(f"{number} {NAME} created!"))
+        self.stdout.write(self.style.SUCCESS(f"{NAME} created!"))
