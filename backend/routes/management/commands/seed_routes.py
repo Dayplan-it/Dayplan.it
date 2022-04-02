@@ -8,12 +8,11 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point, LineString
 from django.conf import settings
-from django_seed import Seed
 from routes import models as route_models
 from schedules import models as schedule_models
 
 
-NAME = "Places"
+NAME = "Routes"
 
 
 class Command(BaseCommand):
@@ -21,7 +20,6 @@ class Command(BaseCommand):
     help = f'Create {NAME} for all schedules'
 
     def handle(self, *args, **options):
-        seeder = Seed.seeder()
         all_schedules = schedule_models.Schedule.objects.all()
 
         with open(Path(Path(__file__).parent.parent, 'data/FAKE_DATA/data_seoul.json')) as f:
@@ -42,11 +40,11 @@ class Command(BaseCommand):
                         order_for_dummy_places.append(order)
                         # 아직 다음 일정 시작시간은
                         # Route의 duration을 모르므로 Place 릴레이션에는 저장할 수 없음
-                # print(selected_dummy_places)
 
                 # 위에서 고른 selected_dummy_places 기준으로 경로 검색 후
                 # Route, Step, WalkingDetail, TransitDetail 저장
                 previous_ends_at = datetime.time()
+                created_Route = ""
                 for i in range(0, len(selected_dummy_places)):
                     duration = datetime.timedelta(
                         hours=random.randint(1, 3))  # 1~3시간
@@ -60,17 +58,22 @@ class Command(BaseCommand):
                     ends_at = (datetime.datetime.combine(
                         schedule.date, starts_at) + duration).time()
 
-                    seeder.add_entity(
-                        route_models.Place, 1, {
-                            'schedule_order': order_for_dummy_places[i],
-                            'starts_at': starts_at,
-                            'ends_at': ends_at,
-                            'duration': duration,
-                            'place_name': selected_dummy_places[i]["name"],
-                            'place_id': selected_dummy_places[i]["place_id"],
-                            'place_type': selected_dummy_places[i]["place_type"],
-                            'place_geom': Point(x=selected_dummy_places[i]["lng"], y=selected_dummy_places[i]["lat"], srid=settings.SRID)
-                        })
+                    # Place 생성
+                    created_Place = route_models.Place.objects.create(
+                        schedule_order=order_for_dummy_places[i],
+                        starts_at=starts_at,
+                        ends_at=ends_at,
+                        duration=duration,
+                        place_name=selected_dummy_places[i]["name"],
+                        place_id=selected_dummy_places[i]["place_id"],
+                        place_type=selected_dummy_places[i]["place_type"],
+                        place_geom=Point(
+                            x=selected_dummy_places[i]["lng"], y=selected_dummy_places[i]["lat"], srid=settings.SRID)
+                    )
+
+                    if i > 0:
+                        created_Route.end_place = created_Place
+                        created_Route.save()
 
                     if i != len(selected_dummy_places)-1:
                         """
@@ -83,19 +86,18 @@ class Command(BaseCommand):
                         destination = selected_dummy_places[i+1]["place_id"]
                         departure_time = int(round(datetime.datetime.combine(
                             schedule.date, ends_at).timestamp()))  # Schedule의 날짜와 이전 일정의 끝나는 시간을 합쳐 DateTime
-                        # print(departure_time)
-                        directions_url = f"https://maps.googleapis.com/maps/api/directions/json?origin=place_id:{origin}&destination=place_id:{destination}&mode=transit&departure_time={departure_time}&language=ko&key=AIzaSyD8Eitq2H8Nlxo6DafpniL6kKWPr-glc1E"
-                        # print(directions_url)
+                        directions_url = f"https://maps.googleapis.com/maps/api/directions/json?origin=place_id:{origin}&destination=place_id:{destination}&mode=transit&departure_time={departure_time}&language=ko&key={settings.GOOGLE_API_KEY}"
                         response = requests.get(url=directions_url)
-                        # print(response.text)
-                        # print(selected_dummy_places[i])
-                        # print(selected_dummy_places[i+1])
-                        sleep(0.5)
+
+                        sleep(0.5)  # API 호출은 1초에 두번
 
                         if json.loads(response.text)["status"] == "ZERO_RESULTS":
                             directions_url = f"https://maps.googleapis.com/maps/api/directions/json?origin=place_id:{origin}&destination=place_id:{destination}&mode=walking&departure_time={departure_time}&language=ko&key={settings.GOOGLE_API_KEY}"
                             response = requests.get(url=directions_url)
                             sleep(0.5)
+
+                        if json.loads(response.text)["status"] == "ZERO_RESULTS":
+                            continue  # 시간이 새벽시간 등인 이유로 Directions API로는 경로를 찾을수가 없는 경우이므로 continue, Route 생성 안함
 
                         routes_legs = json.loads(
                             response.text)["routes"][0]["legs"][0]
@@ -113,12 +115,16 @@ class Command(BaseCommand):
                         created_Route = route_models.Route.objects.create(
                             schedule_order=orders_selected_by_schedule[i+1],
                             starts_at=ends_at,
-                            start_addr=routes_legs["start_address"],
-                            start_name=selected_dummy_places[i]['name'],
-                            end_addr=routes_legs["end_address"],
-                            end_name=selected_dummy_places[i+1]['name'],
                             ends_at=datetime.datetime.fromtimestamp(
                                 routes_legs["arrival_time"]["value"]).time(),
+
+                            start_addr=routes_legs["start_address"],
+                            start_name=selected_dummy_places[i]['name'],
+                            start_place=created_Place,
+                            end_addr=routes_legs["end_address"],
+                            end_name=selected_dummy_places[i+1]['name'],
+                            end_place=created_Place,  # 임시로 이렇게 집어넣고, 다음 Place 생성시에 Update로 정정
+
                             duration=duration,
                             distance=float(
                                 routes_legs["distance"]["value"] / 1000),
@@ -213,7 +219,6 @@ class Command(BaseCommand):
                                     transit_color=current_substep["line"]["color"]
                                 )
 
-        seeder.execute()
         self.stdout.write(self.style.SUCCESS(f"{NAME} created!"))
 
 

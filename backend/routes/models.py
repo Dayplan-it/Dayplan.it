@@ -16,14 +16,13 @@ class Route(core_models.TravelCoreModel):
 
     start_addr = models.TextField(null=False)
     start_name = models.CharField(null=False, max_length=50)
-    # start_place = models.ForeignKey(
-    #     "Place", related_name="routes_start", on_delete=models.CASCADE)
-    # Place를 직접 참조하는게 더 좋아보이긴 함 고민중
+    start_place = models.ForeignKey(
+        "Place", related_name="routes_start", on_delete=models.CASCADE)
 
     end_addr = models.TextField(null=False)
     end_name = models.CharField(null=False, max_length=50)
-    # end_place = models.ForeignKey(
-    #     "Place", related_name="routes_end", on_delete=models.CASCADE)
+    end_place = models.ForeignKey(
+        "Place", related_name="routes_end", on_delete=models.CASCADE)
 
     schedule_order = models.ForeignKey(
         "schedules.Order", related_name="routes", on_delete=models.CASCADE)
