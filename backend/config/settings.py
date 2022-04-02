@@ -54,12 +54,14 @@ PROJECT_APPS = [
     'tastes.apps.TastesConfig',
     'schedules.apps.SchedulesConfig',
     'routes.apps.RoutesConfig',
+    'apis.apps.ApisConfig',
 ]
 
 THIRD_PARTY_APPS = [
     'colorfield',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_seed'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
@@ -110,18 +112,6 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "HOST": "localhost",
-#         "NAME": "dayplan.it",
-#         "USER": "postgres",
-#         "PASSWORD": "007007",
-#         "PORT": "5432",
-#     }
-# }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
@@ -142,9 +132,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
+    'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-    )
+    ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    # ]
 }
 
 
@@ -182,3 +175,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
+
+# SRID for geoms
+SRID = 900913
+
+# API Key for GOOGLE MAPS
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models as geom_models
+from django.conf import settings
 
 
 class TimeStampedModel(models.Model):
@@ -29,21 +30,41 @@ class TravelCoreModel(StartEndTimeModel):
 
     """ Travel-Core Model """
 
-    distance = models.FloatField(null=False)
+    distance = models.FloatField(null=False)  # 단위 KM
 
     start_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
+        null=False, srid=settings.SRID)
     end_loc = geom_models.PointField(
-        null=False, srid=900913)  # Google Maps Global Mercator
+        null=False, srid=settings.SRID)
 
-    poly_line = geom_models.LineStringField(
-        null=False, srid=900913)  # Google Maps Global Mercator
+    poly_line = geom_models.GeometryField(
+        null=False, srid=settings.SRID)
 
     class Meta:
         abstract = True
 
 
-class TravelModel(TravelCoreModel):
+class TravelCoreModelForSubSteps(TimeStampedModel):
+
+    """ Travel-Core Model for sub-Steps """
+
+    duration = models.DurationField(null=False)
+
+    distance = models.FloatField(null=False)  # 단위 KM
+
+    start_loc = geom_models.PointField(
+        null=False, srid=settings.SRID)
+    end_loc = geom_models.PointField(
+        null=False, srid=settings.SRID)
+
+    poly_line = geom_models.GeometryField(
+        null=False, srid=settings.SRID)
+
+    class Meta:
+        abstract = True
+
+
+class TravelModel(TravelCoreModelForSubSteps):
 
     """ Travel Model """
 
