@@ -24,11 +24,11 @@ class Route(core_models.TravelCoreModel):
     end_place = models.ForeignKey(
         "Place", related_name="routes_end", on_delete=models.CASCADE)
 
-    schedule_order = models.ForeignKey(
+    schedule_order = models.OneToOneField(
         "schedules.Order", related_name="routes", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.schedule_order.schedule.user.username}의 {self.schedule_order.schedule.date} {self.schedule_order.serial}번째 일정 - {self.start_name}에서 {self.end_name}으로'
+        return f'{self.schedule_order.schedule.user.username}의 {self.schedule_order.schedule.date} {self.schedule_order.serial + 1}번째 일정 - {self.start_name}에서 {self.end_name}으로 {self.duration}간 이동'
 
 
 class Step(core_models.TravelModel):
@@ -78,8 +78,8 @@ class TransitDetail(core_models.TimeStampedModel):
 
     """ Route_TransitDetail Model Definition """
 
-    transit_step = models.ForeignKey(
-        "Step", related_name="transit_details", on_delete=models.CASCADE)
+    transit_step = models.OneToOneField(
+        "Step", related_name="transit_detail", on_delete=models.CASCADE)
 
     BUS = 'BUS'
     SUBWAY = 'SUB'
@@ -115,8 +115,8 @@ class Place(core_models.StartEndTimeModel):
 
     """ Place Model Definition """
 
-    schedule_order = models.ForeignKey(
-        "schedules.Order", related_name="places", on_delete=models.CASCADE)
+    schedule_order = models.OneToOneField(
+        "schedules.Order", related_name="place", on_delete=models.CASCADE)
 
     place_name = models.CharField(null=False, max_length=50)
     place_id = models.CharField(null=False, max_length=50)
@@ -126,4 +126,4 @@ class Place(core_models.StartEndTimeModel):
         null=False, srid=settings.SRID)
 
     def __str__(self):
-        return self.place_id
+        return f'{self.schedule_order.schedule.user.username}의 {self.schedule_order.schedule.date} {self.schedule_order.serial + 1}번째 일정 - {self.place_name}에서 {self.starts_at}부터 {self.ends_at}까지 {self.duration}동안 일정'

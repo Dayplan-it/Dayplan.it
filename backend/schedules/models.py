@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.gis.db import models as geom_models
 from core import models as core_models
 
 
@@ -26,5 +25,5 @@ class Order(core_models.TimeStampedModel):
     schedule = models.ForeignKey(
         "Schedule", related_name="schedule_orders", on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f'ScheduleId {self.schedule.id} - {self.serial}. {self.places.place_name if self.is_place else self.routes.distance + " 이동"}'
+    # def __str__(self):
+    #    return f'ScheduleId {self.schedule.id} - {self.serial}. {"장소: " + self.place.place_name if self.is_place else "경로: " + self.routes.first().start_name + " 이동"}'
