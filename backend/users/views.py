@@ -1,20 +1,3 @@
-from django.contrib.sites.shortcuts import get_current_site
-from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
-from django.http import HttpResponse, JsonResponse
-from .models import User
-from rest_framework.parsers import JSONParser
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
-from django.contrib.auth import authenticate, login
-from rest_framework.authtoken.models import Token
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.views import APIView
-from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.core.mail import EmailMessage
-import json
 import jwt
 # 비밀번호 해쉬함수로 암호화
 import bcrypt
@@ -23,9 +6,18 @@ from .token import account_activation_token
 # 이메일 텍스트를 저장한 함수
 from .text import message
 # 이메일 유효성 검사
+from django.contrib.sites.shortcuts import get_current_site
+from django.http import HttpResponse, JsonResponse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK, HTTP_401_UNAUTHORIZED
+from rest_framework.parsers import JSONParser
+from rest_framework.views import APIView
 
+from .models import User
 from config.settings import SECRET_KEY
 # =====================로그인============================
 
@@ -43,12 +35,12 @@ class SignIn(APIView):
                 if bcrypt.checkpw(data['password'].encode('UTF-8'), user.password.encode('UTF-8')):
                     token = jwt.encode(
                         {'user': user.id}, SECRET_KEY, algorithm='HS256')
-                    return JsonResponse({"token": token}, status=200)
+                    return JsonResponse({"token": token}, status=HTTP_200_OK)
 
-                return HttpResponse(status=401)
-            return HttpResponse(status=400)
+                return HttpResponse(status=HTTP_401_UNAUTHORIZED)
+            return HttpResponse(status=HTTP_400_BAD_REQUEST)
         except KeyError:
-            return JsonResponse({'message': 'INVALID_KEYS'}, status=400)
+            return JsonResponse({'message': 'INVALID_KEYS'}, status=HTTP_400_BAD_REQUEST)
 
 # =====================회원가입============================
 
@@ -68,11 +60,11 @@ class Signup(APIView):
 
             # 이메일 존재하는지 여부
             if User.objects.filter(email=emaill).exists():
-                return JsonResponse({"message": "이미 이메일이 존재합니다."}, status=400)
+                return JsonResponse({"message": "이미 이메일이 존재합니다."}, status=HTTP_400_BAD_REQUEST)
 
             # 비밀번호재확인의 통과 여부
             if password1 != password2:
-                return JsonResponse({"message": "비밀번호가 다릅니다."}, status=400)
+                return JsonResponse({"message": "비밀번호가 다릅니다."}, status=HTTP_400_BAD_REQUEST)
 
             # 유저 저장
             user = User.objects.create(
@@ -101,13 +93,13 @@ class Signup(APIView):
             email = EmailMessage(mail_title, message_data, to=[mail_to])
             email.send()
 
-            return JsonResponse({"message": "SUCCESS"}, status=200)
+            return JsonResponse({"message": "SUCCESS"}, status=HTTP_200_OK)
         except KeyError:
-            return JsonResponse({"message": "INVALID_KEY"}, status=400)
+            return JsonResponse({"message": "INVALID_KEY"}, status=HTTP_400_BAD_REQUEST)
         except TypeError:
-            return JsonResponse({"message": "INVALID_TYPE"}, status=400)
+            return JsonResponse({"message": "INVALID_TYPE"}, status=HTTP_400_BAD_REQUEST)
         except ValidationError:
-            return JsonResponse({"message": "VALIDATION_ERROR"}, status=400)
+            return JsonResponse({"message": "VALIDATION_ERROR"}, status=HTTP_400_BAD_REQUEST)
 
 # =======================이메일 인증================================
 
@@ -121,10 +113,10 @@ class Activate(APIView):
             if account_activation_token.check_token(user, token):
                 user.is_active = True
                 user.save()
-                return JsonResponse({"message": "SUCCESS"}, status=200)
-            return JsonResponse({"message": "AUTH FAIL"}, status=400)
+                return JsonResponse({"message": "SUCCESS"}, status=HTTP_200_OK)
+            return JsonResponse({"message": "AUTH FAIL"}, status=HTTP_400_BAD_REQUEST)
 
         except ValidationError:
-            return JsonResponse({"message": "TYPE_ERROR"}, status=400)
+            return JsonResponse({"message": "TYPE_ERROR"}, status=HTTP_400_BAD_REQUEST)
         except KeyError:
-            return JsonResponse({"message": "INVALID_KEY"}, status=400)
+            return JsonResponse({"message": "INVALID_KEY"}, status=HTTP_400_BAD_REQUEST)
