@@ -16,6 +16,7 @@ django-seed = "*"
 faker = "*"
 requests = "*"
 polyline = "*"
+drf-extra-fields = "*"
 
 [dev-packages]
 

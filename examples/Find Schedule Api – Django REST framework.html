@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)http://127.0.0.1:8000/schedules/find?user_id=25&date=1651244400 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+
+      
+        
+        <meta name="robots" content="NONE,NOARCHIVE">
+      
+
+      <title>Find Schedule Api – Django REST framework</title>
+
+      
+        
+          <link rel="stylesheet" type="text/css" href="./Find Schedule Api – Django REST framework_files/bootstrap.min.css">
+          <link rel="stylesheet" type="text/css" href="./Find Schedule Api – Django REST framework_files/bootstrap-tweaks.css">
+        
+
+        <link rel="stylesheet" type="text/css" href="./Find Schedule Api – Django REST framework_files/prettify.css">
+        <link rel="stylesheet" type="text/css" href="./Find Schedule Api – Django REST framework_files/default.css">
+        
+      
+
+    
+  </head>
+
+  
+  <body class="" style="" cz-shortcut-listen="true">
+
+    <div class="wrapper">
+      
+        <div class="navbar navbar-static-top navbar-inverse" role="navigation" aria-label="navbar">
+          <div class="container">
+            <span>
+              
+                <a class="navbar-brand" rel="nofollow" href="https://www.django-rest-framework.org/">
+                    Django REST framework
+                </a>
+              
+            </span>
+            <ul class="nav navbar-nav pull-right">
+              
+                
+                  <li><a href="http://127.0.0.1:8000/users/authlogin/?next=/schedules/find">Log in</a></li>
+                
+              
+            </ul>
+          </div>
+        </div>
+      
+
+      <div class="container">
+        
+          <ul class="breadcrumb">
+            
+              
+                <li class="active"><a href="http://127.0.0.1:8000/schedules/find">Find Schedule Api</a></li>
+              
+            
+          </ul>
+        
+
+        <!-- Content -->
+        <div id="content" role="main" aria-label="content">
+          
+
+          <div class="region" aria-label="request form">
+          
+
+          
+            <form id="get-form" class="pull-right">
+              <fieldset>
+                
+                  <div class="btn-group format-selection">
+                    <a class="btn btn-primary js-tooltip" href="http://127.0.0.1:8000/schedules/find?user_id=25&amp;date=1651244400" rel="nofollow" title="" data-original-title="Make a GET request on the Find Schedule Api resource">GET</a>
+
+                    <button class="btn btn-primary dropdown-toggle js-tooltip" data-toggle="dropdown" title="" data-original-title="Specify a format for the GET request">
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      
+                        <li>
+                          <a class="js-tooltip format-option" href="http://127.0.0.1:8000/schedules/find?date=1651244400&amp;format=json&amp;user_id=25" rel="nofollow" title="" data-original-title="Make a GET request on the Find Schedule Api resource with the format set to `json`">json</a>
+                        </li>
+                      
+                        <li>
+                          <a class="js-tooltip format-option" href="http://127.0.0.1:8000/schedules/find?date=1651244400&amp;format=api&amp;user_id=25" rel="nofollow" title="" data-original-title="Make a GET request on the Find Schedule Api resource with the format set to `api`">api</a>
+                        </li>
+                      
+                    </ul>
+                  </div>
+                
+              </fieldset>
+            </form>
+          
+
+          
+            <form class="button-form" action="http://127.0.0.1:8000/schedules/find?user_id=25&amp;date=1651244400" data-method="OPTIONS">
+              <button class="btn btn-primary js-tooltip" title="" data-original-title="Make an OPTIONS request on the Find Schedule Api resource">OPTIONS</button>
+            </form>
+          
+
+          
+
+          
+
+          
+
+          
+          </div>
+
+            <div class="content-main" role="main" aria-label="main content">
+              <div class="page-header">
+                <h1>Find Schedule Api</h1>
+              </div>
+              <div style="float:left">
+                
+                  <p>user_id와 date를 parameter로 받아 해당 유저의 해당 날짜의 스케쥴을 JSON 형식으로 리턴합니다.<br>date는 Timestamp값으로 주어야 합니다.<br><br>- 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함</p>
+                
+              </div>
+
+              
+
+              <div class="request-info" style="clear: both" aria-label="request info">
+                <pre class="prettyprint"><b><span class="pln">GET</span></b><span class="pln"> </span><span class="pun">/</span><span class="pln">schedules</span><span class="pun">/</span><span class="pln">find</span><span class="pun">?</span><span class="pln">user_id</span><span class="pun">=</span><span class="lit">25</span><span class="pun">&amp;</span><span class="pln">date</span><span class="pun">=</span><span class="lit">1651244400</span></pre>
+              </div>
+
+              <div class="response-info" aria-label="response info">
+                <pre class="prettyprint"><span class="meta nocode"><b>HTTP 200 OK</b>
+<b>Allow:</b> <span class="lit">GET, HEAD, OPTIONS</span>
+<b>Content-Type:</b> <span class="lit">application/json</span>
+<b>Vary:</b> <span class="lit">Accept</span>
+
+</span><span class="pun">{</span><span class="pln">
+    </span><span class="str">"created"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"1984-11-20T22:35:33+09:00"</span><span class="pun">,</span><span class="pln">
+    </span><span class="str">"updated"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"1985-07-24T19:23:58+09:00"</span><span class="pun">,</span><span class="pln">
+    </span><span class="str">"schedule_title"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"줄어든 문맥 기반 지원"</span><span class="pun">,</span><span class="pln">
+    </span><span class="str">"date"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"2022-04-30"</span><span class="pun">,</span><span class="pln">
+    </span><span class="str">"memo"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"신속한 바이러스성 웹서비스"</span><span class="pun">,</span><span class="pln">
+    </span><span class="str">"order"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"PL"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"09:42:06"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"10:42:06"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"01:00:00"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"미니스톱 동부이촌점"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"convenience_store"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"point"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"latitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">37.5180433</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"longitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">126.9810835</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="str">"place_id"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ChIJTQ5uHIqhfDURXDPdRu61PpA"</span><span class="pln">
+            </span><span class="pun">}</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">1</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"RO"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"10:42:06"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"10:55:56"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:13:50"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.705</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"wv~cFw~_fWC`Ay@`HgExR}AfHqDL"</span><span class="pln">
+            </span><span class="pun">},</span><span class="pln">
+            </span><span class="str">"step"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:30"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.029</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"이촌동현대아파트까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"wv~cFw~_fW?`A"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:30"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.029</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"wv~cFw~_fW?`A"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"TR"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:36"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.576</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"버스 하계동행"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"wv~cFu|_fWC?e@lESrAw@rDq@zCA@{AfH}AdH?@@?"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"transit_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                        </span><span class="str">"transit_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"BUS"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"서울 간선버스"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"이촌동현대아파트"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"10:52:39"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"신용산초등학교"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"10:54:15"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"num_stops"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">2</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_color"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"#374ff2"</span><span class="pln">
+                    </span><span class="pun">}</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:41"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.1</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"대한민국 서울특별시 용산구 이촌동 301-153까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ya_dFqv~eWsDL"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:41"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.1</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ya_dFqv~eWsDL"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">}</span><span class="pln">
+            </span><span class="pun">]</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">2</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"PL"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"10:55:56"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"12:55:56"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"02:00:00"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"교촌치킨 동부이촌점"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"restaurant"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"point"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"latitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">37.520713</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"longitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">126.9745762</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="str">"place_id"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ChIJ7Wj0Q_WhfDUR_YiSi1YlO94"</span><span class="pln">
+            </span><span class="pun">}</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">3</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"RO"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"12:55:56"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"13:20:24"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:23:07"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">3.078</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"mg_dFcv~eWoHbF[m@q@WUdAeApGy@pHQbA_@fAc@fAgCjFeBzDu@jAo@t@y@h@aA`@o@LuAFiAIgA]gAs@oG}Fs@y@cA_AkLuKaO_N`AOjf@mc@"</span><span class="pln">
+            </span><span class="pun">},</span><span class="pln">
+            </span><span class="str">"step"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:03:43"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.221</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"이촌역까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"mg_dFcv~eWoHbF[m@"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:03:17"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.196</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"mg_dFcv~eWoHbF"</span><span class="pln">
+                        </span><span class="pun">},</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:26"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.0</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="kwd">null</span><span class="pln">
+                        </span><span class="pun">},</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:00"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.0</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="kwd">null</span><span class="pln">
+                        </span><span class="pun">},</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:00"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.0</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="kwd">null</span><span class="pln">
+                        </span><span class="pun">},</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:00"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.025</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"}p_dF_o~eW[m@"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"TR"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:04:00"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">1.952</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"지하철 409행"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"yq_dFmp~eWq@WUdAWhBm@fDe@nES`BQbA_@fAc@fAgCjFeBzDu@jAo@t@y@h@aA`@o@L_@Du@@iAIgA]]Si@_@oG}Fs@y@cA_A_CyBkH{GsDiDmIuH"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"transit_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                        </span><span class="str">"transit_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"SUB"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"서울지하철"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"이촌역"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"13:01:00"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"삼각지"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"13:05:00"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"num_stops"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">2</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_color"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"#1d8ac7"</span><span class="pln">
+                    </span><span class="pun">}</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:15:08"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.905</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"대한민국 서울특별시 용산구 한강로동 9까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"}}adFel~eW`AOjf@mc@"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:08"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.0</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="kwd">null</span><span class="pln">
+                        </span><span class="pun">},</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:00"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.0</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="kwd">null</span><span class="pln">
+                        </span><span class="pun">},</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:00:30"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.036</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"}}adFel~eW`AO"</span><span class="pln">
+                        </span><span class="pun">},</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:14:30"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.869</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"{{adFul~eWjf@mc@"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">}</span><span class="pln">
+            </span><span class="pun">]</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">4</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"PL"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"13:20:24"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"14:20:24"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"01:00:00"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"laundry"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"laundry"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"point"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"latitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">37.52792009999999</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"longitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">126.9788978</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="str">"place_id"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ChIJbZTZs7OjfDURsEjIotU_GF0"</span><span class="pln">
+            </span><span class="pun">}</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">5</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"RO"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"14:20:24"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"14:54:33"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:34:09"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">2.574</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ot`dFcq_fWzj@v@dAaFfD{ORqBBcEEoEq@gLKsGKqCSuA?aDN_A^sF@aGQgDe@mCOg@sDyLWrD"</span><span class="pln">
+            </span><span class="pun">},</span><span class="pln">
+            </span><span class="str">"step"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:13:03"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.782</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"국립중앙박물관용산가족공원까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ot`dFcq_fW~j@v@"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:13:03"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.782</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ot`dFcq_fW~j@v@"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"TR"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:04:45"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">1.712</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"버스 염곡동행"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"oh_dFko_fWC?@AbA_F|@aEhByIRqBBcEEoEq@gLKsGKqC?CSqA?_A?aBN_A^sF@}F?CEcAKcBe@mCOg@]kAuCmJ"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"transit_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                        </span><span class="str">"transit_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"BUS"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"서울 간선버스"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"국립중앙박물관용산가족공원"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"14:48:27"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"동빙고동"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"14:53:12"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"num_stops"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">3</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_color"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"#374ff2"</span><span class="pln">
+                    </span><span class="pun">}</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:21"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.08</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"대한민국 서울특별시 용산구 서빙고로 297까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"{i_dFcdcfWWrD"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:21"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.08</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"{i_dFcdcfWWrD"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">}</span><span class="pln">
+            </span><span class="pun">]</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">6</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"PL"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"14:54:33"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"17:54:33"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"03:00:00"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"순심이네 단팥빵"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"bakery"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"point"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"latitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">37.52122309999999</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"longitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">126.9964015</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="str">"place_id"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ChIJhVMxIC-jfDUR3j412Li67jA"</span><span class="pln">
+            </span><span class="pun">}</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">7</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"RO"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"17:54:33"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"18:18:23"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:23:50"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">1.315</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"sj_dFo~bfWkWrWAC_CnAy@R_DZsOz@{ATgAf@?BrGuB"</span><span class="pln">
+            </span><span class="pun">},</span><span class="pln">
+            </span><span class="str">"step"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:09:16"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.555</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"한강중학교까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"sj_dFo~bfWkWrW"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:09:16"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.555</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"sj_dFo~bfWkWrW"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"TR"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:35"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.599</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"버스 정릉행"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"_c`dF{ebfWAC_CnAy@R_DZsOz@k@Jo@HgAf@?B"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"transit_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                        </span><span class="str">"transit_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"BUS"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"서울 간선버스"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"한강중학교"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"18:13:49"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"용산구청.크라운호텔"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"18:15:24"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"num_stops"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">1</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_color"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"#374ff2"</span><span class="pln">
+                    </span><span class="pun">}</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:02:42"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.161</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"대한민국 서울특별시 용산구 이태원1동 장문로 12까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"scadFa~afWrGuB"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:02:42"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.161</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"scadFa~afWrGuB"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">}</span><span class="pln">
+            </span><span class="pun">]</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">8</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"PL"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"18:18:23"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"21:18:23"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"03:00:00"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"스타벅스 동빙고점"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"cafe"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"point"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"latitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">37.52896399999999</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"longitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">126.991805</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="str">"place_id"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ChIJbZsk_jOifDURMpqal2_w3XQ"</span><span class="pln">
+            </span><span class="pun">}</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">9</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"RO"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"21:18:23"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"21:42:43"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:24:20"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">4.069</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"_{`dFwabfWoChCAClUqAnA[rC`AbH`CxDF~BBnBGt@BbBFXb@@tA@pCAvETnFH`A`@TXAVWDw@YiLE_@QsA?cA?aBN}@^oF?wADg@TO^K\\@nFlHbAbBt@bBb@pA^~Ad@zDp@pOGHeDNc@\\Oj@?f@BvAJVDnOS^ItBMnAy@`HiBnI{DpQeE{@"</span><span class="pln">
+            </span><span class="pun">},</span><span class="pln">
+            </span><span class="str">"step"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:41"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.1</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"용산구청.크라운호텔까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"_{`dFwabfWoChC"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:41"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.1</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"_{`dFwabfWoChC"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"TR"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:10:44"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">3.855</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"버스 하계동행"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"o_adFm}afWAClUqAnA[~@ZrAd@B@~G~BvDF@?~BBnBGr@@@@bBFXb@@pA?B@b@?lB?`@AtDF`BLlCH`A`@TXAVWDw@YiL?CE[QsA?cA?aBN}@^oF?wADg@TO^K\\@nFlHbAbBt@bBb@pA^~Ad@zDp@pOGHuBJo@Bc@\\Oj@?b@?BBvAJVDnOS^G`BARKlAA@e@lESrAw@rDq@zCA@{AfH}AdH?@@?"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"transit_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                        </span><span class="str">"transit_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"BUS"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"서울 간선버스"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"용산구청.크라운호텔"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"departure_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"21:30:04"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_stop_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"신용산초등학교"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"arrival_time"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"21:40:48"</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"num_stops"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">9</span><span class="pun">,</span><span class="pln">
+                        </span><span class="str">"transit_color"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"#374ff2"</span><span class="pln">
+                    </span><span class="pun">}</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"travel_mode"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"WK"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:55"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.114</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"instruction"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"대한민국 서울특별시 이촌동 301-18번지 3층 301호 용산구 서울특별시 KR까지 도보"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ya_dFqv~eWgE{@"</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"walking_detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">[</span><span class="pln">
+                        </span><span class="pun">{</span><span class="pln">
+                            </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"00:01:55"</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"distance"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">0.114</span><span class="pun">,</span><span class="pln">
+                            </span><span class="str">"polyline"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ya_dFqv~eWgE{@"</span><span class="pln">
+                        </span><span class="pun">}</span><span class="pln">
+                    </span><span class="pun">]</span><span class="pln">
+                </span><span class="pun">}</span><span class="pln">
+            </span><span class="pun">]</span><span class="pln">
+        </span><span class="pun">},</span><span class="pln">
+        </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"order_serial"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">10</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"PL"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"detail"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                </span><span class="str">"starts_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"21:42:43"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"ends_at"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"23:42:43"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"duration"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"02:00:00"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_name"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"바디케어운동센터"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"place_type"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"gym"</span><span class="pun">,</span><span class="pln">
+                </span><span class="str">"point"</span><span class="pun">:</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+                    </span><span class="str">"latitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">37.5208118</span><span class="pun">,</span><span class="pln">
+                    </span><span class="str">"longitude"</span><span class="pun">:</span><span class="pln"> </span><span class="lit">126.9749493</span><span class="pln">
+                </span><span class="pun">},</span><span class="pln">
+                </span><span class="str">"place_id"</span><span class="pun">:</span><span class="pln"> </span><span class="str">"ChIJvxgCUPWhfDURpCGfZKpBkLY"</span><span class="pln">
+            </span><span class="pun">}</span><span class="pln">
+        </span><span class="pun">}</span><span class="pln">
+    </span><span class="pun">]</span><span class="pln">
+</span><span class="pun">}</span></pre>
+              </div>
+            </div>
+
+            
+              
+
+              
+            
+          
+        </div><!-- /.content -->
+      </div><!-- /.container -->
+    </div><!-- ./wrapper -->
+
+    
+
+    
+      <script>
+        window.drf = {
+          csrfHeaderName: "X-CSRFTOKEN",
+          csrfToken: "odskgreBRl7Uyr3xcYUDXifoZStDRVcnCV3FUCqD6zRhexkHJDtE3JtSEg7vfmWz"
+        };
+      </script>
+      <script src="./Find Schedule Api – Django REST framework_files/jquery-3.5.1.min.js"></script>
+      <script src="./Find Schedule Api – Django REST framework_files/ajax-form.js"></script>
+      <script src="./Find Schedule Api – Django REST framework_files/csrf.js"></script>
+      <script src="./Find Schedule Api – Django REST framework_files/bootstrap.min.js"></script>
+      <script src="./Find Schedule Api – Django REST framework_files/prettify-min.js"></script>
+      <script src="./Find Schedule Api – Django REST framework_files/default.js"></script>
+      <script>
+        $(document).ready(function() {
+          $('form').ajaxForm();
+        });
+      </script>
+    
+
+  
+  
+
+</body></html>

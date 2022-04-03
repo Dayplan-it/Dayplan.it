@@ -61,7 +61,8 @@ THIRD_PARTY_APPS = [
     'colorfield',
     'rest_framework',
     'rest_framework.authtoken',
-    'django_seed'
+    'django_seed',
+    'drf_extra_fields'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
@@ -134,10 +135,8 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    # ]
 }
 
 

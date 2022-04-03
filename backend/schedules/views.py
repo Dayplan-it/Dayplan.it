@@ -1,13 +1,9 @@
 from datetime import datetime
 from django.core.exceptions import ValidationError
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from rest_framework.views import APIView
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK, HTTP_401_UNAUTHORIZED
-from config.settings import SECRET_KEY
-from users.token import account_activation_token
-from .api.serializers import ScheduleSerializer
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from .api.find_schedule import find_schedule
 
 # Define Param Names
