@@ -1,23 +1,39 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
+from datetime import datetime
+from django.core.exceptions import ValidationError
+from django.http import HttpResponse, JsonResponse
+from rest_framework.views import APIView
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from . import models as schedule_models
-from .serializers import ScheduleSerializer
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK, HTTP_401_UNAUTHORIZED
+from config.settings import SECRET_KEY
+from users.token import account_activation_token
+from .api.serializers import ScheduleSerializer
+from .api.find_schedule import find_schedule
+
+# Define Param Names
+PARAM_USER_ID = 'user_id'
+PARAM_DATE = 'date'
 
 
-@api_view(['GET', 'POST'])
-def get_schedule(request):
+class FindScheduleAPIView(APIView):
     """
-    List all code snippets, or create a new snippet.
-    """
-    if request.method == 'GET':
-        snippets = Snippet.objects.all()
-        serializer = SnippetSerializer(snippets, many=True)
-        return Response(serializer.data)
+    user_id와 date를 parameter로 받아 해당 유저의 해당 날짜의 스케쥴을 JSON 형식으로 리턴합니다.
+    date는 Timestamp값으로 주어야 합니다.
 
-    elif request.method == 'POST':
-        serializer = SnippetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    - 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함
+    """
+
+    def get(self, request):
+        try:
+            user_id = int(request.query_params[PARAM_USER_ID])
+            date = datetime.fromtimestamp(
+                int(request.query_params[PARAM_DATE])).date()
+
+            return Response(find_schedule(user_id=user_id, date=date), status=HTTP_200_OK)
+
+        except ValidationError:
+            return JsonResponse({"message": "TYPE_ERROR"}, status=HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return JsonResponse({"message": f"INVALID_PARAMETER, you must pass {PARAM_USER_ID}(Integer) and {PARAM_DATE}(Integer)"}, status=HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return JsonResponse({"message": "INVALID_VALUE"}, status=HTTP_400_BAD_REQUEST)

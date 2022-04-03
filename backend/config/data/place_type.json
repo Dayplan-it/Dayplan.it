@@ -1,0 +1,18 @@
+[
+  { "type_eng": "bowling_alley", "type_kor": "볼링장" },
+  { "type_eng": "cafe", "type_kor": "카페" },
+  { "type_eng": "car_repair", "type_kor": "자동차수리" },
+  { "type_eng": "car_wash", "type_kor": "세차장" },
+  { "type_eng": "church", "type_kor": "교회" },
+  { "type_eng": "department_store", "type_kor": "백화점" },
+  { "type_eng": "drugstore", "type_kor": "약국1" },
+  { "type_eng": "gym", "type_kor": "헬스장" },
+  { "type_eng": "hospital", "type_kor": "병원" },
+  { "type_eng": "laundry", "type_kor": "세탁소" },
+  { "type_eng": "pharmacy", "type_kor": "약국2" },
+  { "type_eng": "police", "type_kor": "경찰서" },
+  { "type_eng": "post_office", "type_kor": "우체국" },
+  { "type_eng": "restaurant", "type_kor": "식당" },
+  { "type_eng": "convenience_store", "type_kor": "편의점" },
+  { "type_eng": "supermarket", "type_kor": "마트" }
+]
