@@ -32,6 +32,7 @@ class Command(BaseCommand):
                 # 무작위로 Place 고르기
                 selected_dummy_places = []
                 order_for_dummy_places = []
+                order_for_dummy_routes = []
 
                 for order in orders_selected_by_schedule:
                     if order.is_place:
@@ -40,6 +41,8 @@ class Command(BaseCommand):
                         order_for_dummy_places.append(order)
                         # 아직 다음 일정 시작시간은
                         # Route의 duration을 모르므로 Place 릴레이션에는 저장할 수 없음
+                    else:
+                        order_for_dummy_routes.append(order)
 
                 # 위에서 고른 selected_dummy_places 기준으로 경로 검색 후
                 # Route, Step, WalkingDetail, TransitDetail 저장
@@ -113,7 +116,7 @@ class Command(BaseCommand):
                         # 1. Route 생성
 
                         created_Route = route_models.Route.objects.create(
-                            schedule_order=orders_selected_by_schedule[i+1],
+                            schedule_order=order_for_dummy_routes[i],
                             starts_at=ends_at,
                             ends_at=datetime.datetime.fromtimestamp(
                                 routes_legs["arrival_time"]["value"]).time(),
