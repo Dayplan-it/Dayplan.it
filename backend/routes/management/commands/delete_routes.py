@@ -18,6 +18,11 @@ class Command(BaseCommand):
         route_models.Place.objects.all().delete()
         self.stdout.write(self.style.SUCCESS(f"{number} Places DELETED!"))
 
+        number = route_models.Step.objects.count()
+        route_models.Step.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS(
+            f"{number} Steps DELETED!"))
+
         number = route_models.TransitDetail.objects.count()
         route_models.TransitDetail.objects.all().delete()
         self.stdout.write(self.style.SUCCESS(
@@ -27,8 +32,3 @@ class Command(BaseCommand):
         route_models.WalkingDetail.objects.all().delete()
         self.stdout.write(self.style.SUCCESS(
             f"{number} WalkingDetails DELETED!"))
-
-        number = route_models.Step.objects.count()
-        route_models.Step.objects.all().delete()
-        self.stdout.write(self.style.SUCCESS(
-            f"{number} Steps DELETED!"))
