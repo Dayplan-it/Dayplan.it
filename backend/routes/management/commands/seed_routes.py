@@ -25,7 +25,7 @@ class Command(BaseCommand):
         with open(Path(Path(__file__).parent.parent, 'data/FAKE_DATA/data_seoul.json')) as f:
             dummy_places = json.load(f)
 
-            for schedule in all_schedules:
+            for schedule in all_schedules.iterator():
                 orders_selected_by_schedule = schedule_models.Order.objects.filter(
                     schedule_id=schedule.id).order_by("serial")
 
@@ -34,7 +34,7 @@ class Command(BaseCommand):
                 order_for_dummy_places = []
                 order_for_dummy_routes = []
 
-                for order in orders_selected_by_schedule:
+                for order in orders_selected_by_schedule.iterator():
                     if order.is_place:
                         while True:
                             random_place = random.choice(dummy_places)
@@ -53,7 +53,7 @@ class Command(BaseCommand):
                 created_Route = ""
                 for i in range(0, len(selected_dummy_places)):
                     duration = datetime.timedelta(
-                        hours=random.randint(1, 3))  # 1~3시간
+                        hours=random.randint(1, 2))  # 1~2시간
                     if i == 0:
                         starts_at = datetime.time(random.randint(9, 10), random.randint(0, 59), random.randint(0, 59), 0, tzinfo=datetime.timezone(
                             datetime.timedelta(hours=9)))  # 9시 ~ 10시 59분 사이 시작
