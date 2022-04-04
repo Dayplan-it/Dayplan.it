@@ -4,7 +4,7 @@ import pandas as pd
 import geopandas as gpd
 from django.db import connection
 from django.conf import settings
-
+from urllib import parse
 
 def extract_closest_node(lng, lat):
     """
@@ -163,11 +163,57 @@ def get_nearby_place(lng, lat, type, distance=3000):
     # main branch settings에 SRID가 있음
     return gdf
 
-def place_detail(place_id):
 
+
+
+
+
+def place_detail(place_id):
     
-    nearbystr = 'https://maps.googleapis.com/maps/api/place/details/json'\
-        + f'?location={str(lat)},{str(lng)}'\
-        + '&type='+type\
-        + '&radius='+str(distance)\
+    detail_str = 'https://maps.googleapis.com/maps/api/place/details/json'\
+        + '?place_id='+str(place_id)\
+        + '&fields=formatted_address,name,geometry,review,photo,rating,user_ratings_total,international_phone_number'\
         + '&key='+settings.GOOGLE_API_KEY
+    response = requests.get(detail_str)
+    data = json.loads(response.text)
+    results = data['result']
+    #EPSG : 900913
+    lng=results['geometry']['location']['lng']
+    lat=results['geometry']['location']['lat']
+    name = results['name']
+    rating = results['rating']
+    user_ratings_total = results['user_ratings_total']
+    photo = []
+    for i in results['photos'][:2]:
+        photo_str = 'https://maps.googleapis.com/maps/api/place/photo'\
+        + f'?maxwidth={600}'\
+        +'&photo_reference='+i['photo_reference']\
+        +'&key='+settings.GOOGLE_API_KEY
+        photo.append(photo_str)
+
+    reviews = []
+    for i in results['reviews']:
+        temp = {}
+        temp['rating'] = i['rating']
+        temp['text'] = i['text']
+        temp['relative_time_description'] = i['relative_time_description']
+        reviews.append(temp)
+    
+    #insta
+    insta_str = f'https://www.instagram.com/explore/tags/{parse.quote(name)}/'
+
+    #naver
+    naver_str = f'https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query={parse.quote(name)}'
+
+
+    detail_all = {}
+    detail_all['lng'] = lng
+    detail_all['lat'] = lat
+    detail_all['name'] =name
+    detail_all['rating'] = rating
+    detail_all['user_ratings_total'] = user_ratings_total
+    detail_all['photo'] = photo
+    detail_all['reviews'] = reviews
+    detail_all['insta_url'] = insta_str
+    detail_all['naver_url'] =naver_str
+    return detail_all
