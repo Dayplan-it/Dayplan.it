@@ -1,6 +1,7 @@
 # Dayplan.it
 
 **Frontend, Backend에 각각 README 있으니 참고하기**
+[Backend README](/backend/README.md)
 
 # 협업전략
 
@@ -9,8 +10,10 @@
 ## Branch 전략 - Feature Branch Workflow
 
 1. `Github`에서 이슈 생성, 번호 확인
-2. 로컬에서 `issue/#이슈번호` 형식으로 새로운 브랜치를 생성하고, 새 작업 브랜치를 원격 저장소로 push 
-  * 이 때 가능하다면 이슈에 적절한 라벨 붙이기
+2. 로컬에서 `issue/#이슈번호` 형식으로 새로운 브랜치를 생성하고, 새 작업 브랜치를 원격 저장소로 push
+
+- 이 때 가능하다면 이슈에 적절한 라벨 붙이기
+
 3. 이슈에 적은 목표를 달성
 4. 로컬에서 테스트
 5. 수정 사항을 commit하고 원격 저장소로 push
@@ -21,7 +24,7 @@
 
 ## Projects Board
 
-* 깃허브에서 제공하는 Projects 보드 활용하기 (ex: [DB Board](https://github.com/Dayplan-it/Dayplan.it/projects/1))
+- 깃허브에서 제공하는 Projects 보드 활용하기 (ex: [DB Board](https://github.com/Dayplan-it/Dayplan.it/projects/1))
 
 ## Commit Message 전략
 

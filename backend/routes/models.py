@@ -1,3 +1,4 @@
+import polyline
 from django.db import models
 from django.contrib.gis.db import models as geom_models
 from django.conf import settings
@@ -25,10 +26,13 @@ class Route(core_models.TravelCoreModel):
         "Place", related_name="routes_end", on_delete=models.CASCADE)
 
     schedule_order = models.OneToOneField(
-        "schedules.Order", related_name="routes", on_delete=models.CASCADE)
+        "schedules.Order", related_name="route", on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.schedule_order.schedule.user.username}의 {self.schedule_order.schedule.date} {self.schedule_order.serial + 1}번째 일정 - {self.start_name}에서 {self.end_name}으로 {self.duration}간 이동'
+
+    def lineStr2polyLine(self):
+        return polyline.encode(self.poly_line)
 
 
 class Step(core_models.TravelModel):
@@ -62,6 +66,9 @@ class Step(core_models.TravelModel):
     def __str__(self):
         return f'RouteId {self.route.id} Serial {self.serial} - {self.travel_mode}'
 
+    def lineStr2polyLine(self):
+        return polyline.encode(self.poly_line)
+
 
 class WalkingDetail(core_models.TravelModel):
 
@@ -72,6 +79,22 @@ class WalkingDetail(core_models.TravelModel):
 
     def __str__(self):
         return f'StepId {self.walking_step.id} Serial {self.serial} Walking Details'
+
+    def lineStr2polyLine(self):
+        try:
+            polyline_encoded = polyline.encode(self.poly_line)
+        except:
+            """
+            이상하게 Line이 아니고 Point가 들어가 있는 경우가 있는데
+            Point일경우 polyline encoding이 안돼서 예외처리로 무시하도록 함
+
+            Point인데 duration이 있는 경우도 아주 드물게 있는 것 같은데
+            이 오류는 아마 seed_routes에서 아직 찾지 못한 버그가 있기때문이 아닐까 추측함
+
+            추후 FrontEnd 작업하면서 원인을 찾아봐야 할듯
+            """
+            return
+        return polyline_encoded
 
 
 class TransitDetail(core_models.TimeStampedModel):
