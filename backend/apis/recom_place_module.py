@@ -162,3 +162,12 @@ def get_nearby_place(lng, lat, type, distance=3000):
     gdf.set_crs(epsg=settings.SRID, inplace=True)
     # main branch settings에 SRID가 있음
     return gdf
+
+def place_detail(place_id):
+
+    
+    nearbystr = 'https://maps.googleapis.com/maps/api/place/details/json'\
+        + f'?location={str(lat)},{str(lng)}'\
+        + '&type='+type\
+        + '&radius='+str(distance)\
+        + '&key='+settings.GOOGLE_API_KEY
