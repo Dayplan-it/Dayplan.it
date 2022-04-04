@@ -36,8 +36,11 @@ class Command(BaseCommand):
 
                 for order in orders_selected_by_schedule:
                     if order.is_place:
-                        random_place = random.choice(dummy_places)
-                        selected_dummy_places.append(random_place)
+                        while True:
+                            random_place = random.choice(dummy_places)
+                            if random_place not in selected_dummy_places:
+                                selected_dummy_places.append(random_place)
+                                break
                         order_for_dummy_places.append(order)
                         # 아직 다음 일정 시작시간은
                         # Route의 duration을 모르므로 Place 릴레이션에는 저장할 수 없음
@@ -141,10 +144,10 @@ class Command(BaseCommand):
 
                         # 2. Step 생성
 
-                        for i in range(0, len(routes_legs["steps"])):
-                            travel_mode = 'WK' if routes_legs["steps"][i]["travel_mode"] == 'WALKING' else (
-                                'TR' if routes_legs["steps"][i]["travel_mode"] == 'TRANSIT' else 'DR')
-                            current_step = routes_legs["steps"][i]
+                        for j in range(0, len(routes_legs["steps"])):
+                            travel_mode = 'WK' if routes_legs["steps"][j]["travel_mode"] == 'WALKING' else (
+                                'TR' if routes_legs["steps"][j]["travel_mode"] == 'TRANSIT' else 'DR')
+                            current_step = routes_legs["steps"][j]
                             created_step = route_models.Step.objects.create(
                                 duration=datetime.timedelta(
                                     seconds=current_step["duration"]["value"]),
@@ -156,7 +159,7 @@ class Command(BaseCommand):
                                     x=current_step["end_location"]["lng"], y=current_step["end_location"]["lat"], srid=settings.SRID),
                                 poly_line=LineString(
                                     polyline.decode(current_step["polyline"]["points"])),
-                                serial=i,
+                                serial=j,
                                 route=created_Route,
                                 instruction=current_step["html_instructions"],
                                 travel_mode=travel_mode
@@ -164,8 +167,8 @@ class Command(BaseCommand):
 
                             # sub-Step 생성
                             if travel_mode == 'WK':  # create WalkingDetail as sub-Step Relation
-                                for j in range(0, len(routes_legs["steps"][i]["steps"])):
-                                    current_substep = routes_legs["steps"][i]["steps"][j]
+                                for k in range(0, len(routes_legs["steps"][j]["steps"])):
+                                    current_substep = routes_legs["steps"][j]["steps"][k]
 
                                     try:
                                         route_models.WalkingDetail.objects.create(
@@ -179,7 +182,7 @@ class Command(BaseCommand):
                                                 x=current_substep["end_location"]["lng"], y=current_substep["end_location"]["lat"], srid=settings.SRID),
                                             poly_line=LineString(
                                                 polyline.decode(current_substep["polyline"]["points"])),
-                                            serial=j,
+                                            serial=k,
                                             walking_step=created_step
                                         )
                                     except ValueError:
@@ -194,12 +197,12 @@ class Command(BaseCommand):
                                                 x=current_substep["end_location"]["lng"], y=current_substep["end_location"]["lat"], srid=settings.SRID),
                                             poly_line=Point(
                                                 polyline.decode(current_substep["polyline"]["points"])[0]),
-                                            serial=j,
+                                            serial=k,
                                             walking_step=created_step
                                         )
 
                             elif travel_mode == 'TR':
-                                current_substep = routes_legs["steps"][i]["transit_details"]
+                                current_substep = routes_legs["steps"][j]["transit_details"]
                                 route_models.TransitDetail.objects.create(
                                     transit_step=created_step,
                                     transit_type='SUB' if current_substep["line"][

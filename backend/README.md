@@ -103,3 +103,11 @@
    - **‼️ 주의 ‼️ 이 명령어의 `--number`에 너무 큰 값을 넣으면 추후 경로 생성시 Directions API 호출이 지나치게 많아집니다.**
 5. `python manage.py seed_orders`
 6. `python manage.py seed_routes`
+
+## APIS
+
+### DB 관련 API
+
+- [Find Schedule API](./schedules/api/README.md)
+
+### DB 관련 없는 API
