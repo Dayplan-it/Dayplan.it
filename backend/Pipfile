@@ -12,6 +12,7 @@ install = "*"
 djangorestframework = "*"
 jwt = "*"
 bcrypt = "*"
+geopandas = "*"
 
 [dev-packages]
 
