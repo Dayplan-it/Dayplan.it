@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.gis.db import models as geom_models
 from core import models as core_models
 
 

@@ -18,11 +18,11 @@ class Command(BaseCommand):
         for choosen_schedule in all_schedules:
             node_count = random.randint(4, 7)  # 이번에 생성할 스케쥴은 몇 군데를 다닐것인지
 
-            for j in range(0, 2 * node_count):  # node_count + (node_count - 1) + 1
+            for i in range(0, 2 * node_count - 1):  # node_count + (node_count - 1)
                 seeder.add_entity(
                     schedule_models.Order, 1, {
-                        'serial': j,
-                        'is_place': True if j % 2 == 0 else False,  # 짝수번째라면 장소, 아니면 경로일 것임
+                        'serial': i,
+                        'is_place': True if i % 2 == 0 else False,  # 짝수번째라면 장소, 아니면 경로일 것임
                         'schedule': choosen_schedule
                     })
 
