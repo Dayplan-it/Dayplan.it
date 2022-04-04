@@ -18,11 +18,7 @@ class Command(BaseCommand):
         for choosen_schedule in all_schedules:
             node_count = random.randint(3, 5)  # 이번에 생성할 스케쥴은 몇 군데를 다닐것인지
 
-<<<<<<< Updated upstream
             for i in range(0, 2 * node_count - 1):  # node_count + (node_count - 1)
-=======
-            for i in range(0, 2 * node_count - 1):  # node_count + (node_count - 1) + 1
->>>>>>> Stashed changes
                 seeder.add_entity(
                     schedule_models.Order, 1, {
                         'serial': i,
