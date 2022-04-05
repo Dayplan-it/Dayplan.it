@@ -20,8 +20,8 @@ class PlaceRecommand(APIView):
 
     def get(self, request):
         # 예시데이터
-        #lng = 126.99446459234908
-        #lat = 37.534638765751424
+        # lng = 126.99446459234908
+        # lat = 37.534638765751424
         lng = request.query_params[PARAM_PLACE_LNG]
         lat = request.query_params[PARAM_PLACE_LAT]
         place_type = request.query_params[PARAM_PLACE_TYPE]
@@ -33,10 +33,11 @@ class PlaceRecommand(APIView):
         convex_gdf = get_convexhull(closest_node, S)
         # 데이터프레임에 distnace정보 삽입
 
-        for minutes in [20, 15, 10, 5]:
-            for i in range(len(places_gdf)):
-                if places_gdf['geometry'].iloc[i].within(convex_gdf.loc[convex_gdf['minute'] == minutes, 'geometry'].iloc[0]):
-                    places_gdf['minute'].iloc[i] = minutes
+        with pd.option_context('mode.chained_assignment', None):
+            for minutes in [20, 15, 10, 5]:
+                for i in range(len(places_gdf)):
+                    if places_gdf['geometry'].iloc[i].within(convex_gdf.loc[convex_gdf['minute'] == minutes, 'geometry'].iloc[0]):
+                        places_gdf['minute'].iloc[i] = minutes
         places_gdf = places_gdf.fillna(25).to_wkt()
 
         # Dataframe을 바로 JSON으로 렌더링하면 dict로 바뀌는 과정에서 key별로 생성이 돼버림
