@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import PlaceRecommand, PlaceDetail
+from .views import PlaceRecommend, PlaceDetail
 urlpatterns = [
-    path('placerecommend/', PlaceRecommand.as_view()),
+    path('placerecommend/', PlaceRecommend.as_view()),
     path('placedetail/', PlaceDetail.as_view())
 ]
