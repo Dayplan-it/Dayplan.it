@@ -47,16 +47,16 @@ class StepSerializer(serializers.ModelSerializer):
         ]
 
 
-class WalkingDetailSerializer(serializers.ModelSerializer):
-    polyline = serializers.CharField(source='lineStr2polyLine')
+# class WalkingDetailSerializer(serializers.ModelSerializer):
+#     polyline = serializers.CharField(source='lineStr2polyLine')
 
-    class Meta:
-        model = route_models.WalkingDetail
-        fields = [
-            'duration',
-            'distance',
-            'polyline',
-        ]
+#     class Meta:
+#         model = route_models.WalkingDetail
+#         fields = [
+#             'duration',
+#             'distance',
+#             'polyline',
+#         ]
 
 
 class TransitDetailSerializer(serializers.ModelSerializer):

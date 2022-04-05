@@ -166,42 +166,45 @@ class Command(BaseCommand):
                             )
 
                             # sub-Step 생성
-                            if travel_mode == 'WK':  # create WalkingDetail as sub-Step Relation
-                                for k in range(0, len(routes_legs["steps"][j]["steps"])):
-                                    current_substep = routes_legs["steps"][j]["steps"][k]
+                            """
+                                WalkingDetail은 삭제됨
+                            """
+                            # if travel_mode == 'WK':  # create WalkingDetail as sub-Step Relation
+                            #     for k in range(0, len(routes_legs["steps"][j]["steps"])):
+                            #         current_substep = routes_legs["steps"][j]["steps"][k]
 
-                                    try:
-                                        route_models.WalkingDetail.objects.create(
-                                            duration=datetime.timedelta(
-                                                seconds=current_substep["duration"]["value"]),
-                                            distance=float(
-                                                current_substep["distance"]["value"] / 1000),
-                                            start_loc=Point(
-                                                x=current_substep["start_location"]["lng"], y=current_substep["start_location"]["lat"], srid=settings.SRID),
-                                            end_loc=Point(
-                                                x=current_substep["end_location"]["lng"], y=current_substep["end_location"]["lat"], srid=settings.SRID),
-                                            poly_line=LineString(
-                                                polyline.decode(current_substep["polyline"]["points"])),
-                                            serial=k,
-                                            walking_step=created_step
-                                        )
-                                    except ValueError:
-                                        route_models.WalkingDetail.objects.create(
-                                            duration=datetime.timedelta(
-                                                seconds=current_substep["duration"]["value"]),
-                                            distance=float(
-                                                current_substep["distance"]["value"] / 1000),
-                                            start_loc=Point(
-                                                x=current_substep["start_location"]["lng"], y=current_substep["start_location"]["lat"], srid=settings.SRID),
-                                            end_loc=Point(
-                                                x=current_substep["end_location"]["lng"], y=current_substep["end_location"]["lat"], srid=settings.SRID),
-                                            poly_line=Point(
-                                                polyline.decode(current_substep["polyline"]["points"])[0]),
-                                            serial=k,
-                                            walking_step=created_step
-                                        )
+                            #         try:
+                            #             route_models.WalkingDetail.objects.create(
+                            #                 duration=datetime.timedelta(
+                            #                     seconds=current_substep["duration"]["value"]),
+                            #                 distance=float(
+                            #                     current_substep["distance"]["value"] / 1000),
+                            #                 start_loc=Point(
+                            #                     x=current_substep["start_location"]["lng"], y=current_substep["start_location"]["lat"], srid=settings.SRID),
+                            #                 end_loc=Point(
+                            #                     x=current_substep["end_location"]["lng"], y=current_substep["end_location"]["lat"], srid=settings.SRID),
+                            #                 poly_line=LineString(
+                            #                     polyline.decode(current_substep["polyline"]["points"])),
+                            #                 serial=k,
+                            #                 walking_step=created_step
+                            #             )
+                            #         except ValueError:
+                            #             route_models.WalkingDetail.objects.create(
+                            #                 duration=datetime.timedelta(
+                            #                     seconds=current_substep["duration"]["value"]),
+                            #                 distance=float(
+                            #                     current_substep["distance"]["value"] / 1000),
+                            #                 start_loc=Point(
+                            #                     x=current_substep["start_location"]["lng"], y=current_substep["start_location"]["lat"], srid=settings.SRID),
+                            #                 end_loc=Point(
+                            #                     x=current_substep["end_location"]["lng"], y=current_substep["end_location"]["lat"], srid=settings.SRID),
+                            #                 poly_line=Point(
+                            #                     polyline.decode(current_substep["polyline"]["points"])[0]),
+                            #                 serial=k,
+                            #                 walking_step=created_step
+                            #             )
 
-                            elif travel_mode == 'TR':
+                            if travel_mode == 'TR':
                                 current_substep = routes_legs["steps"][j]["transit_details"]
                                 route_models.TransitDetail.objects.create(
                                     transit_step=created_step,

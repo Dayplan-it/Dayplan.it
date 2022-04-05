@@ -70,31 +70,36 @@ class Step(core_models.TravelModel):
         return polyline.encode(self.poly_line)
 
 
-class WalkingDetail(core_models.TravelModel):
+"""
+    이하  WalkingDetail 모델은 sub-Step 모델 중 하나였으나
+    모델에서 제외하기로 함
+"""
 
-    """ Route_Walking Model Definition """
+# class WalkingDetail(core_models.TravelModel):
 
-    walking_step = models.ForeignKey(
-        "Step", related_name="walking_details", on_delete=models.CASCADE)
+#     """ Route_Walking Model Definition """
 
-    def __str__(self):
-        return f'StepId {self.walking_step.id} Serial {self.serial} Walking Details'
+#     walking_step = models.ForeignKey(
+#         "Step", related_name="walking_details", on_delete=models.CASCADE)
 
-    def lineStr2polyLine(self):
-        try:
-            polyline_encoded = polyline.encode(self.poly_line)
-        except:
-            """
-            이상하게 Line이 아니고 Point가 들어가 있는 경우가 있는데
-            Point일경우 polyline encoding이 안돼서 예외처리로 무시하도록 함
+#     def __str__(self):
+#         return f'StepId {self.walking_step.id} Serial {self.serial} Walking Details'
 
-            Point인데 duration이 있는 경우도 아주 드물게 있는 것 같은데
-            이 오류는 아마 seed_routes에서 아직 찾지 못한 버그가 있기때문이 아닐까 추측함
+#     def lineStr2polyLine(self):
+#         try:
+#             polyline_encoded = polyline.encode(self.poly_line)
+#         except:
+#             """
+#             이상하게 Line이 아니고 Point가 들어가 있는 경우가 있는데
+#             Point일경우 polyline encoding이 안돼서 예외처리로 무시하도록 함
 
-            추후 FrontEnd 작업하면서 원인을 찾아봐야 할듯
-            """
-            return
-        return polyline_encoded
+#             Point인데 duration이 있는 경우도 아주 드물게 있는 것 같은데
+#             이 오류는 아마 seed_routes에서 아직 찾지 못한 버그가 있기때문이 아닐까 추측함
+
+#             추후 FrontEnd 작업하면서 원인을 찾아봐야 할듯
+#             """
+#             return
+#         return polyline_encoded
 
 
 class TransitDetail(core_models.TimeStampedModel):

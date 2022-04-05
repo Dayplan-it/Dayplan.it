@@ -50,6 +50,7 @@ DJANGO_APPS = [
 ]
 
 PROJECT_APPS = [
+    'core.apps.CoreConfig',
     'users.apps.UsersConfig',
     'tastes.apps.TastesConfig',
     'schedules.apps.SchedulesConfig',
