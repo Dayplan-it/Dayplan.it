@@ -34,10 +34,11 @@ class PlaceRecommand(APIView):
         # 데이터프레임에 distnace정보 삽입
 
         for minutes in [20, 15, 10, 5]:
-            for i in range(len(places_gdf)):
-                if places_gdf['geometry'].iloc[i].within(convex_gdf.loc[convex_gdf['minute'] == minutes, 'geometry'].iloc[0]):
-                    places_gdf['minute'].iloc[i] = minutes
+            for index, row in places_gdf.iterrows():
+                if row['geometry'].within(convex_gdf.loc[convex_gdf['minute'] == minutes, 'geometry'].iloc[0]):
+                    row['minute'] = minutes
         places_gdf = places_gdf.fillna(25).to_wkt()
+        print(places_gdf.keys())
 
         # Dataframe을 바로 JSON으로 렌더링하면 dict로 바뀌는 과정에서 key별로 생성이 돼버림
         # 따라서, row별로 dict들의 array로 바꿔주는 과정이 필요
