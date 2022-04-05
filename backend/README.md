@@ -23,6 +23,8 @@
   - ![wakatime](../img/wakatime.png){:style="display:block; margin:auto;" width="70%"}
     이런식으로 통계내주는데 보고 있으면 재밌는듯. VSC 말고 다른 IDE에서도(이클립스 포함) 사용 가능해서 통계를 전체적으로 내줌
 
+---
+
 # Django Docs
 
 문제가 생기면 [Django Docs](https://docs.djangoproject.com/en/4.0/) 참고하기
@@ -56,6 +58,8 @@
   ![core_app.png](../img/core_app.png){:style="display:block; margin:auto;" width="70%"}
   이런 식으로 저장이 됨
 
+---
+
 ## Guidelines
 
 - 가능하다면 `admin.py` 작성
@@ -65,6 +69,8 @@
 - 항상 `main` branch는 남기고, 본인이 개발할 내용을 담은 branch를 새로 만들어 작업 후 `PR`을 남기도록 하기
   - reviewer가 한 명 이상이여야 merge되도록 git 설정할 예정
   - 가능하다면 최소한 commit명이라도 영어로 남기기!
+
+---
 
 ## 더미 데이터 생성하기
 
@@ -103,6 +109,38 @@
    - **‼️ 주의 ‼️ 이 명령어의 `--number`에 너무 큰 값을 넣으면 추후 경로 생성시 Directions API 호출이 지나치게 많아집니다.**
 5. `python manage.py seed_orders`
 6. `python manage.py seed_routes`
+
+---
+
+## PostGIS용 `polyline` Decoder
+
+Google의 polyline string을 postgis에 들어갈 알맞는 point tuple array로 바꿔주는 class를 추가했습니다.
+
+### 자세한 설명
+
+기존에 사용하던 `polyline` 패키지를 사용해 polyline을 decode하면 x, y (위도, 경도) 순으로 point가 들어간 tuple로 이루어진 array가 나오는데, PostGIS에서는 y, x(경도, 위도) 순으로 Point을 넣어줘야 LineString이 제대로 들어간다고 합니다.
+
+따라서, 기존에 사용하던 `polyline.decode()`와 같은 역할을 하지만 PostGIS용으로 y, x 순으로 각 point의 좌표를 바꾸어 리턴하는 `class`를 만들었습니다.
+
+**해당 파일은 아래의 경로에 있습니다.**
+
+```
+core/functions/polyline4postgis.py
+```
+
+### 사용법
+
+```python
+from core.functions.polyline4postgis import PolylineDecoderForPostGIS
+# class를 import합니다.
+
+polyline_before_decoded = '여기에 polyline 형식의 string'
+polyline_deocoded = PolylineDecoderForPostGIS(polyline_before_decoded).get() # 꼭 .get()을 붙이도록 합니다.
+# 결과 예시: [(126.97359, 37.52277), (126.97338, 37.5226), (126.97367, 37.52237)]
+
+```
+
+---
 
 ## APIS
 
