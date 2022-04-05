@@ -241,7 +241,9 @@ def place_detail(place_id):
 # ===========================================
 
 
-def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='walking', depart_time='now'):
+def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='transit', depart_time='now'):
+    mode_toggle = {'walking': 'transit', 'transit': 'walking'}
+
     URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
         'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
         'destination='+str(des_lat)+','+str(des_lng)+'&'\
@@ -252,6 +254,7 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='walking', depart_time='
 
     # 기본값은 도보이지만 도보로 못가는 경우는 transit으로 검색
     if data['status'] == 'ZERO_RESULTS':
+        mode = mode_toggle[mode]
         URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
             'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
             'destination='+str(des_lat)+','+str(des_lng)+'&'\

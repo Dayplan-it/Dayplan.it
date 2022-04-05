@@ -94,7 +94,7 @@ class MakeRoute(APIView):
         lat_dest = request.query_params[PARAM_ROUTE_LAT_DEST]
 
         # 쿼리에서 이동타입을 입력해줘도되고 안해줘도 가능
-        if request.query_params in ['route_type']:
+        if 'route_type' in request.query_params:
             route_type = request.query_params[PARAM_ROUTE_TYPE]
             result = pointroute(lng_ori, lat_ori, lng_dest,
                                 lat_dest, mode=route_type)
