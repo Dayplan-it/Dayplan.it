@@ -6,38 +6,37 @@ from django.db import connection
 from django.conf import settings
 from urllib import parse
 
+
 def extract_closest_node(lng, lat):
     """
     가장 가까운 노드를 찾는 함수
     가장 가까운 노드의 번호를 리턴
     """
 
-    query_extract_node = f"select strt_node_\
-                    from(\
-                    SELECT \
-                        strt_node_,\
-                        ST_DISTANCE(\
-                            geom,\
-                            'SRID={4326};POINT({lng} {lat})'::geometry\
-                        ) AS distance\
-                    FROM \
-                        link2\
-                    ORDER BY\
-                        distance\
-                    LIMIT 1\
-                    ) as a"
+    query = f"select link_len as len,distance,strt_node_,ST_LineLocatePoint(ab.geom, 'SRID={4326};POINT({lng} {lat})'::geometry) as split\
+            from (select ST_LineMerge(geom) as geom,link_len,distance,strt_node_\
+            from(SELECT link_len,geom,strt_node_,ST_DISTANCE(ST_Transform(geom,2097),ST_Transform(ST_GeomFromText('SRID={4326};POINT({lng} {lat})', 4326), 2097)) AS distance\
+            FROM link2\
+            ORDER BY distance\
+            LIMIT 1) as a) as ab"
     with connection.cursor() as cursor:
-        cursor.execute(query_extract_node)
-        row = cursor.fetchone()
-    result = row[0]
-    return int(result)
+        cursor.execute(query)
+        row = cursor.fetchall()
+    len = float(row[0][0])
+    strt_node = int(row[0][2])
+    seg = float(row[0][3])
+    dist = float(row[0][1])
+    # 점에서 가장가까운 링크까지의 거리와 링크분할점에서 출발노드까지의 거리 보정상수
+    S = len*seg-dist
+
+    return strt_node, S
 
 
-def get_convexhull(node):
+def get_convexhull(node, S):
     """
     Travel Time 기준으로 convexhull을 찾는 함수
     """
-
+    # 링크까지거리 보정
     query_extract_convexhull = f"(select 20::INTEGER as minute, ST_AsText(st_convexhull(st_union(geom))) as geom\
                                     from\
                                     (SELECT (SELECT geom FROM node2 b where b.node_id=a.node::bigint) as geom\
@@ -49,7 +48,7 @@ def get_convexhull(node):
                                         link_len::float8 AS reverse_cost\
                                         FROM link2',\
                                     {node},\
-                                    1000) a) c) \
+                                    {1000+S}) a) c) \
                                     UNION\
                                     (select 15::INTEGER as gid, ST_AsText(st_convexhull(st_union(geom))) as geom\
                                     from\
@@ -62,7 +61,7 @@ def get_convexhull(node):
                                         link_len::float8 AS reverse_cost\
                                         FROM link2',\
                                     {node},\
-                                    667) a) c)\
+                                    {667+S}) a) c)\
                                     UNION\
                                     (select 10::INTEGER as gid, ST_AsText(st_convexhull(st_union(geom))) as geom\
                                     from\
@@ -75,7 +74,7 @@ def get_convexhull(node):
                                         link_len::float8 AS reverse_cost\
                                         FROM link2',\
                                     {node},\
-                                    333) a) c)\
+                                    {333+S}) a) c)\
                                     UNION\
                                     (select 5::INTEGER as gid, ST_AsText(st_convexhull(st_union(geom))) as geom\
                                     from\
@@ -88,7 +87,7 @@ def get_convexhull(node):
                                         link_len::float8 AS reverse_cost\
                                         FROM link2',\
                                     {node},\
-                                    132) a) c)"
+                                    {140+S}) a) c)"
     with connection.cursor() as cursor:
         cursor.execute(query_extract_convexhull)
         row = cursor.fetchall()
@@ -108,7 +107,7 @@ def get_convexhull(node):
     return convex_gdf
 
 
-def get_nearby_place(lng, lat, type, distance=3000):
+def get_nearby_place(lng, lat, type, distance=1800):
     # 구글 place_type 참고하여 만듬
     # place_type = [
     #     (0, 'bowling_alley', '볼링장'),
@@ -128,12 +127,14 @@ def get_nearby_place(lng, lat, type, distance=3000):
     #     (14, 'convenience_store', '편의점'),
     #     (15, 'supermarket', '마트')
     # ]
+
     nearbystr = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'\
         + f'?location={str(lat)},{str(lng)}'\
         + '&type='+type\
         + '&radius='+str(distance)\
         + '&key='+settings.GOOGLE_API_KEY
     # main branch settings에 GOOGLE_API_KEY가 있음
+
     response = requests.get(nearbystr)
     data = json.loads(response.text)
 
@@ -160,16 +161,12 @@ def get_nearby_place(lng, lat, type, distance=3000):
             'rating', 'user_ratings_total', 'minute']],
         geometry=gpd.points_from_xy(df.lng, df.lat))
     gdf.set_crs(epsg=settings.SRID, inplace=True)
+    geometry_temp2 = gdf.to_crs(epsg=4326)
     # main branch settings에 SRID가 있음
-    return gdf
-
-
-
-
+    return geometry_temp2
 
 
 def place_detail(place_id):
-    
     detail_str = 'https://maps.googleapis.com/maps/api/place/details/json'\
         + '?place_id='+str(place_id)\
         + '&fields=formatted_address,name,geometry,review,photo,rating,user_ratings_total,international_phone_number'\
@@ -178,17 +175,17 @@ def place_detail(place_id):
     data = json.loads(response.text)
     results = data['result']
     #EPSG : 900913
-    lng=results['geometry']['location']['lng']
-    lat=results['geometry']['location']['lat']
+    lng = results['geometry']['location']['lng']
+    lat = results['geometry']['location']['lat']
     name = results['name']
     rating = results['rating']
     user_ratings_total = results['user_ratings_total']
     photo = []
     for i in results['photos'][:2]:
         photo_str = 'https://maps.googleapis.com/maps/api/place/photo'\
-        + f'?maxwidth={600}'\
-        +'&photo_reference='+i['photo_reference']\
-        +'&key='+settings.GOOGLE_API_KEY
+            + f'?maxwidth={600}'\
+            + '&photo_reference='+i['photo_reference']\
+            + '&key='+settings.GOOGLE_API_KEY
         photo.append(photo_str)
 
     reviews = []
@@ -198,22 +195,32 @@ def place_detail(place_id):
         temp['text'] = i['text']
         temp['relative_time_description'] = i['relative_time_description']
         reviews.append(temp)
-    
-    #insta
+
+    # insta
     insta_str = f'https://www.instagram.com/explore/tags/{parse.quote(name)}/'
 
-    #naver
+    # naver
     naver_str = f'https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query={parse.quote(name)}'
-
 
     detail_all = {}
     detail_all['lng'] = lng
     detail_all['lat'] = lat
-    detail_all['name'] =name
+    detail_all['name'] = name
     detail_all['rating'] = rating
     detail_all['user_ratings_total'] = user_ratings_total
     detail_all['photo'] = photo
     detail_all['reviews'] = reviews
     detail_all['insta_url'] = insta_str
-    detail_all['naver_url'] =naver_str
+    detail_all['naver_url'] = naver_str
     return detail_all
+
+
+def coor_trans_point_3857to4326(lng, lat):
+    wkt = [f'POINT ({lng} {lat})']
+    geometry_temp1 = gpd.GeoSeries.from_wkt(wkt)
+    geometry_temp1.set_crs(epsg=3857, inplace=True)
+    geometry_temp2 = geometry_temp1.to_crs(epsg=4326)
+    geometry_temp3 = geometry_temp2.to_wkt()
+    lng_ = geometry_temp3[0].split(' ')[1][1:]
+    lat_ = geometry_temp3[0].split(' ')[2][:-1]
+    return lng_, lat_
