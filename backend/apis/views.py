@@ -10,7 +10,7 @@ PARAM_PLACE_LAT = 'lat'
 PARAM_PLACE_ID = 'place_id'
 
 
-class PlaceRecommand(APIView):
+class PlaceRecommend(APIView):
 
     """
     lng, lat값과 place_type을 받아
