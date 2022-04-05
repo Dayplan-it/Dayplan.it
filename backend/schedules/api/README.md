@@ -62,15 +62,16 @@ http://127.0.0.1:8000/schedules/find?user_id=25&date=1651244400
                                 "distance": Step 이동 거리(KM단위)       float,
                                 "instruction": Step 이동 안내(구글제공)  text,
                                 "polyline": Step 이동 경로(polyline형식)    text,
-                                "walking_detail":
-                                    [
-                                        {
-                                            "duration": WalkingDetail 소요시간(초단위)   bigint,
-                                            "distance": WalkingDetail 이동 거리(KM단위)       float,
-                                            "polyline": Step 이동 경로(polyline형식)    text,
-                                        },
-                                        ...
-                                    ]
+                                // walking_detail은 삭제됨
+                                // "walking_detail":
+                                //     [
+                                //         {
+                                //             "duration": WalkingDetail 소요시간(초단위)   bigint,
+                                //             "distance": WalkingDetail 이동 거리(KM단위)       float,
+                                //             "polyline": Step 이동 경로(polyline형식)    text,
+                                //         },
+                                //         ...
+                                //     ]
                             },
                             {
                                 "travel_mode": 이동 수단(대중교통:"TR") char(2),

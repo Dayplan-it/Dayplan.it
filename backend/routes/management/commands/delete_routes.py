@@ -28,7 +28,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"{number} TransitDetails DELETED!"))
 
-        number = route_models.WalkingDetail.objects.count()
-        route_models.WalkingDetail.objects.all().delete()
-        self.stdout.write(self.style.SUCCESS(
-            f"{number} WalkingDetails DELETED!"))
+        # number = route_models.WalkingDetail.objects.count()
+        # route_models.WalkingDetail.objects.all().delete()
+        # self.stdout.write(self.style.SUCCESS(
+        #     f"{number} WalkingDetails DELETED!"))

@@ -1,4 +1,4 @@
-from routes.api.serializers import RouteSerializer, StepSerializer, WalkingDetailSerializer, TransitDetailSerializer
+from routes.api.serializers import RouteSerializer, StepSerializer, TransitDetailSerializer
 
 
 def find_route(order):
@@ -12,12 +12,12 @@ def find_steps(order):
     for iter_step in route.steps.iterator():
         step = StepSerializer(iter_step).data
 
-        if step["travel_mode"] == "WK":
-            step["walking_detail"] = []
-            for walking_detail in iter_step.walking_details.iterator():
-                step["walking_detail"].append(
-                    WalkingDetailSerializer(walking_detail).data)
-        elif step["travel_mode"] == "TR":
+        # if step["travel_mode"] == "WK":
+        #     step["walking_detail"] = []
+        #     for walking_detail in iter_step.walking_details.iterator():
+        #         step["walking_detail"].append(
+        #             WalkingDetailSerializer(walking_detail).data)
+        if step["travel_mode"] == "TR":
             step["transit_detail"] = TransitDetailSerializer(
                 iter_step.transit_detail).data
 
