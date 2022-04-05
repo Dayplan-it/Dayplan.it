@@ -7,15 +7,18 @@ from django.conf import settings
 from urllib import parse
 
 
+MAX_PHOTO_WIDTH = 600
+
+
 def extract_closest_node(lng, lat):
     """
     가장 가까운 노드를 찾는 함수
     가장 가까운 노드의 번호를 리턴
     """
 
-    query = f"select link_len as len,distance,strt_node_,ST_LineLocatePoint(ab.geom, 'SRID={4326};POINT({lng} {lat})'::geometry) as split\
+    query = f"select link_len as len,distance,strt_node_,ST_LineLocatePoint(ab.geom, 'SRID={settings.SRID};POINT({lng} {lat})'::geometry) as split\
             from (select ST_LineMerge(geom) as geom,link_len,distance,strt_node_\
-            from(SELECT link_len,geom,strt_node_,ST_DISTANCE(ST_Transform(geom,2097),ST_Transform(ST_GeomFromText('SRID={4326};POINT({lng} {lat})', 4326), 2097)) AS distance\
+            from(SELECT link_len,geom,strt_node_,ST_DISTANCE(ST_Transform(geom,2097),ST_Transform(ST_GeomFromText('SRID={settings.SRID};POINT({lng} {lat})', {settings.SRID}), 2097)) AS distance\
             FROM link2\
             ORDER BY distance\
             LIMIT 1) as a) as ab"
@@ -102,8 +105,8 @@ def get_convexhull(node, S):
         'minute': minute_temp,
         'geometry': geometry_temp2
     }
-    convex_gdf = gpd.GeoDataFrame(data, geometry='geometry')
-    convex_gdf.set_crs(epsg=4326, inplace=True)
+    convex_gdf = gpd.GeoDataFrame(
+        data, geometry='geometry').set_crs(epsg=settings.SRID, inplace=True)
     return convex_gdf
 
 
@@ -161,9 +164,8 @@ def get_nearby_place(lng, lat, type, distance=1800):
             'rating', 'user_ratings_total', 'minute']],
         geometry=gpd.points_from_xy(df.lng, df.lat))
     gdf.set_crs(epsg=settings.SRID, inplace=True)
-    geometry_temp2 = gdf.to_crs(epsg=4326)
-    # main branch settings에 SRID가 있음
-    return geometry_temp2
+
+    return gdf
 
 
 def place_detail(place_id):
@@ -183,7 +185,7 @@ def place_detail(place_id):
     photo = []
     for i in results['photos'][:2]:
         photo_str = 'https://maps.googleapis.com/maps/api/place/photo'\
-            + f'?maxwidth={600}'\
+            + f'?maxwidth={MAX_PHOTO_WIDTH}'\
             + '&photo_reference='+i['photo_reference']\
             + '&key='+settings.GOOGLE_API_KEY
         photo.append(photo_str)
@@ -216,11 +218,5 @@ def place_detail(place_id):
 
 
 def coor_trans_point_3857to4326(lng, lat):
-    wkt = [f'POINT ({lng} {lat})']
-    geometry_temp1 = gpd.GeoSeries.from_wkt(wkt)
-    geometry_temp1.set_crs(epsg=3857, inplace=True)
-    geometry_temp2 = geometry_temp1.to_crs(epsg=4326)
-    geometry_temp3 = geometry_temp2.to_wkt()
-    lng_ = geometry_temp3[0].split(' ')[1][1:]
-    lat_ = geometry_temp3[0].split(' ')[2][:-1]
-    return lng_, lat_
+    point = gpd.points_from_xy(lng, lat, crs='EPSG:3857').to_crs(epsg=4326)
+    return point.x, point.y
