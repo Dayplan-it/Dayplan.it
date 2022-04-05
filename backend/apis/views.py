@@ -1,67 +1,63 @@
-from django.http import JsonResponse
-from api import calmodule
-from rest_framework.response import Response
 from rest_framework.views import APIView
-import json
-from . import calmodule
-import geopandas as gpd
-import requests
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
+from .recom_place_module import *
 
-# 장소유형을 리스트로 만들기
-# 구글 place_type 참고하여 만듬
-place_type = [
-    (0, 'bowling_alley', '볼링장'),
-    (1, 'cafe', '카페'),
-    (2, 'car_repair', '자동차수리'),
-    (3, 'car_wash', '세차장'),
-    (4, 'church', '교회'),
-    (5, 'department_store', '백화점'),
-    (6, 'drugstore', '약국1'),
-    (7, 'gym', '헬스장'),
-    (8, 'hospital', '병원'),
-    (9, 'laundry', '세탁소'),
-    (10, 'pharmacy', '약국2'),
-    (11, 'police', '경찰'),
-    (12, 'post_office', '우체국'),
-    (13, 'restaurant', '식당'),
-    (14, 'convenience_store', '편의점'),
-    (15, 'supermarket', '마트')
-]
+# Define Param Names
+PARAM_PLACE_TYPE = 'place_type'
+PARAM_PLACE_LNG = 'lng'
+PARAM_PLACE_LAT = 'lat'
+PARAM_PLACE_ID = 'place_id'
 
 
-'''
-=================
-input
-1. 추천 기준 위치    -   
-2. 장소타입
-3. 
-'''
+class PlaceRecommand(APIView):
+
+    """
+    lng, lat값과 place_type을 받아
+    convex_hull을 5분, 10분, 15분, 20분 단위로 생성,
+    각 장소별로 convex_hull값을 부여하는 API
+    """
+
+    def get(self, request):
+        # 예시데이터
+        #lng = 126.99446459234908
+        #lat = 37.534638765751424
+        lng = request.query_params[PARAM_PLACE_LNG]
+        lat = request.query_params[PARAM_PLACE_LAT]
+        place_type = request.query_params[PARAM_PLACE_TYPE]
+        # 기준위치와 가장 가까운 노드를 결정한다.
+        closest_node, S = extract_closest_node(lng, lat)
+        # nearby로 장소를 가져온다.(타입입력가능)
+        places_gdf = get_nearby_place(lng, lat, place_type)
+        # 노드를 기준으로 20분,15분거리, 10분거리, 5분거리 컨벡스홀을 반환한다.
+        convex_gdf = get_convexhull(closest_node, S)
+        # 데이터프레임에 distnace정보 삽입
+
+        for minutes in [20, 15, 10, 5]:
+            for index, row in places_gdf.iterrows():
+                if row['geometry'].within(convex_gdf.loc[convex_gdf['minute'] == minutes, 'geometry'].iloc[0]):
+                    row['minute'] = minutes
+        places_gdf = places_gdf.fillna(25).to_wkt()
+        print(places_gdf.keys())
+
+        # Dataframe을 바로 JSON으로 렌더링하면 dict로 바뀌는 과정에서 key별로 생성이 돼버림
+        # 따라서, row별로 dict들의 array로 바꿔주는 과정이 필요
+
+        places_ordered = [row.to_dict()
+                          for index, row in places_gdf.iterrows()]
+
+        return Response(places_ordered, status=HTTP_200_OK)
 
 
-class recommandplaceAPI(APIView):
-    def post(self, request):
+class PlaceDetail(APIView):
 
-        # (전 일정의 위치) + (현재일정 type)을 기준으로 2km nearbyAPI
-        # ==================================================
-        nearbystr = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'\
-            + '?location=' + str(위도)+','+str(경도)\
-            + '&radius='+str(2000)\
-            + '&type='+place_type[13][1]\
-            + '&key=YOUR_API_KEY'
-        response = requests.get(nearbystr)
-        data = json.loads(response.text)
-        # 맛집목록 리스트
-        result = data['result']
-        # 보행로 데이터를 이용한 걷는 거리와 시간 분류
-        # ==================================================
-        # 서울 도로구간데이터 불러오기
-        link_data = gpd.read_file(
-            'api/shp/Z_KAIS_TL_SPRD_MANAGE_11000.shp', encoding='utf-8')
+    """
+    place_id를 받아 장소의 자세한 정보를 주는 API
+    """
 
-        # 사용자 취향을 반영
-        # ===================================================
+    def get(self, request):
+        # 예시데이터
+        # ChIJKbC0o06ifDURYATbX7adyKg
+        place_id = request.query_params[PARAM_PLACE_ID]
 
-        # response전에 dictionary형태로 변환하고 JsonResponse
-        # ==================================================
-        M = dict(zip(range(1, len(all_result) + 1), all_result))
-        return JsonResponse(M, status=200)
+        return Response(place_detail(place_id), status=HTTP_200_OK)
