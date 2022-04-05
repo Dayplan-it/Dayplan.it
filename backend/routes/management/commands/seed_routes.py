@@ -65,17 +65,20 @@ class Command(BaseCommand):
                         schedule.date, starts_at) + duration).time()
 
                     # Place 생성
-                    created_Place = route_models.Place.objects.create(
-                        schedule_order=order_for_dummy_places[i],
-                        starts_at=starts_at,
-                        ends_at=ends_at,
-                        duration=duration,
-                        place_name=selected_dummy_places[i]["name"],
-                        place_id=selected_dummy_places[i]["place_id"],
-                        place_type=selected_dummy_places[i]["place_type"],
-                        place_geom=Point(
-                            x=selected_dummy_places[i]["lng"], y=selected_dummy_places[i]["lat"], srid=settings.SRID)
-                    )
+                    try:
+                        created_Place = route_models.Place.objects.create(
+                            schedule_order=order_for_dummy_places[i],
+                            starts_at=starts_at,
+                            ends_at=ends_at,
+                            duration=duration,
+                            place_name=selected_dummy_places[i]["name"],
+                            place_id=selected_dummy_places[i]["place_id"],
+                            place_type=selected_dummy_places[i]["place_type"],
+                            place_geom=Point(
+                                x=selected_dummy_places[i]["lng"], y=selected_dummy_places[i]["lat"], srid=settings.SRID)
+                        )
+                    except:
+                        return self.stdout.write(self.style.ERROR('ERROR : 이미 생성된 스케쥴이 있습니다.'))
 
                     if i > 0:
                         created_Route.end_place = created_Place
@@ -103,7 +106,8 @@ class Command(BaseCommand):
                             sleep(0.5)
 
                         if json.loads(response.text)["status"] == "ZERO_RESULTS":
-                            continue  # 시간이 새벽시간 등인 이유로 Directions API로는 경로를 찾을수가 없는 경우이므로 continue, Route 생성 안함
+                            print(directions_url)
+                            return self.stdout.write(self.style.ERROR('ERROR : 아직까지 못잡은 버그 발생 (ZERO_RESULTS) 위 내용 공유바랍니다.'))
 
                         routes_legs = json.loads(
                             response.text)["routes"][0]["legs"][0]
