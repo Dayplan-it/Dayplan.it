@@ -185,11 +185,11 @@ CREATE TABLE node
 
 ```sql
 create table link2 as
-select link_id,end_node_id as end_node_i, strt_node_id as strt_node_, link_len,ST_GeomFromText(link_wkt,4326)
+select link_id,end_node_id as end_node_i, strt_node_id as strt_node_, link_len,ST_GeomFromText(link_wkt,4326) as geom
 from link
 
 create table node2 as
-select node_id,ST_GeomFromText(node_wkt,4326)
+select node_id,ST_GeomFromText(node_wkt,4326) as geom
 from node
 ```
 
