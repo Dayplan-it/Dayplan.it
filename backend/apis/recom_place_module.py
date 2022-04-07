@@ -16,9 +16,9 @@ def extract_closest_node(lng, lat):
     가장 가까운 노드의 번호를 리턴
     """
 
-    query = f"select link_len as len,distance,strt_node_,ST_LineLocatePoint(ab.geom, 'SRID={settings.SRID};POINT({lng} {lat})'::geometry) as split\
-            from (select ST_LineMerge(geom) as geom,link_len,distance,strt_node_\
-            from(SELECT link_len,geom,strt_node_,ST_DISTANCE(ST_Transform(geom,2097),ST_Transform(ST_GeomFromText('SRID={settings.SRID};POINT({lng} {lat})', {settings.SRID}), 2097)) AS distance\
+    query = f"select link_len as len,distance,strt_node_,ST_LineLocatePoint(ab.geom, 'SRID={settings.SRID};POINT({lng} {lat})'::geometry) as split,end_node_i\
+            from (select ST_LineMerge(geom) as geom,link_len,distance,strt_node_,end_node_i\
+            from(SELECT link_len,geom,strt_node_,end_node_i,ST_DISTANCE(ST_Transform(geom,2097),ST_Transform(ST_GeomFromText('SRID={settings.SRID};POINT({lng} {lat})', {settings.SRID}), 2097)) AS distance\
             FROM link2\
             ORDER BY distance\
             LIMIT 1) as a) as ab"
@@ -29,10 +29,12 @@ def extract_closest_node(lng, lat):
     strt_node = int(row[0][2])
     seg = float(row[0][3])
     dist = float(row[0][1])
+    end_node = float(row[0][4])
     # 점에서 가장가까운 링크까지의 거리와 링크분할점에서 출발노드까지의 거리 보정상수
-    S = len*seg-dist
-
-    return strt_node, S
+    # 사소한 오차 발견하여 임시적으로 시작노드까지의 거리 오차보정부분 삭제
+    S_start = -dist
+    S_end = -dist
+    return strt_node, S_start, end_node, S_end
 
 
 def get_convexhull(node, S):
@@ -108,6 +110,34 @@ def get_convexhull(node, S):
     convex_gdf = gpd.GeoDataFrame(
         data, geometry='geometry').set_crs(epsg=settings.SRID, inplace=True)
     return convex_gdf
+
+
+def dijkstra_distance(ori_lng, ori_lat, des_lng, des_lat):
+    '''
+    입력 : 출발도착좌표
+    출력 : 둘 사이 다익스트라최단거리, 최단경로(Linestring)
+    '''
+    start_node, S_start, temp1, temp2 = extract_closest_node(ori_lng, ori_lat)
+    temp3, temp4, end_node, S_end = extract_closest_node(des_lng, des_lat)
+    query = f"select sum(cost)::float8 as cost, ST_AsEncodedPolyline(ST_LineMerge(ST_Union(geom))) as geom\
+            from(SELECT cost,(SELECT geom FROM link2 b where b.link_id=a.edge::bigint) as geom\
+            FROM pgr_dijkstra(\
+            'SELECT link_id::int4 AS id,\
+            strt_node_::int4 AS source,\
+            end_node_i::int4 AS target,\
+            link_len::float8 AS cost,\
+            link_len::float8 AS reverse_cost\
+            FROM link2',\
+            {int(start_node)}, {int(end_node)},\
+            FALSE) as a) as t"
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        row = cursor.fetchone()
+    distance = row[0]
+    geom = row[1]
+    # 거리보정
+    corrected_distance = distance-S_start-S_end
+    return corrected_distance, geom
 
 
 def get_nearby_place(lng, lat, type, distance=1800):
@@ -216,50 +246,47 @@ def place_detail(place_id):
     detail_all['naver_url'] = naver_str
     return detail_all
 
-
-# =========================================
-#       두 위치 사이의 경로 정보
-# =========================================
-# INPUT :ori_lng - 출발지 경도
-#       ori_lat - 출발지 위도
-#       des_lng - 도착지 경도
-#       des_lat - 도착지 위도
-#       mode    - 대중교통(transit), 자동차(driving), 도보(walking)
-#       depart_time - 출발시간
-
-# OUTPUT: (dict)
-#       x['arrival_time']     -도착시간
-#       x['departure_time']   -출발시간
-#       x['distance']         -총거리
-#       x['duration']         -소요시간
-#       x['end_address']      -도착장소주소
-#       x['start_address']    -출발장소주소
-#       x['end_location']     -도착장소좌표
-#       x['start_location']   -출발장소위치
-#
-#       x['steps']            -상세경로
-# ===========================================
+# 구글 api오류 수정
+# from : 126.973031 37.523107
+# to : 126.974964 37.521181
+# API 만을 이용하는 함수
 
 
-def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='transit', depart_time='now'):
-    mode_toggle = {'walking': 'transit', 'transit': 'walking'}
+def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='now'):
+    '''
+    최단경로 2500미터 이하 = 다익스트라 도보검색
+    최단경로 2500미터 이상 = 대중교통 검색
+    이동수단, 이동시간 입력가능 
+    '''
 
-    URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
-        'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
-        'destination='+str(des_lat)+','+str(des_lng)+'&'\
-        'mode='+mode+'&'\
-        'departure_time='+depart_time+'&key='+settings.GOOGLE_API_KEY
-    response = requests.get(URL)
-    data = json.loads(response.text)
+    # 이동수단, 이동시간 수동조정시
+    if mode != 'default':
+        URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
+            'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
+            'destination='+str(des_lat)+','+str(des_lng)+'&'\
+            'mode='+mode+'&'\
+            'departure_time='+depart_time+'&key='+settings.GOOGLE_API_KEY
+        response = requests.get(URL)
+        data = json.loads(response.text)['routes'][0]['legs'][0]
+        data["route_type"] = mode
+        return data
 
-    # 기본값은 도보이지만 도보로 못가는 경우는 transit으로 검색
-    if data['status'] == 'ZERO_RESULTS':
-        mode = mode_toggle[mode]
+    route = dijkstra_distance(ori_lng, ori_lat, des_lng, des_lat)
+    distance = route[0]
+    geom_wtk = route[1]
+    # 최단거리가 2500미터 이하일 때 도보검색
+    if distance <= 2500:
+        return {"duration": {"text": f"{distance*0.015} mins"}, "distance": {"text": f"{distance/1000} km"}, "start_location": {"lat": ori_lat, "lng": ori_lng}, "end_location": {"lat": des_lat, "lng": des_lng}, "polyline": {"points": geom_wtk}, "route_type": "walking"}
+    # 최단거리가 2500이상시 대중교통 검색
+    else:
+
         URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
             'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
             'destination='+str(des_lat)+','+str(des_lng)+'&'\
             'mode='+'transit'+'&'\
             'departure_time='+depart_time+'&key='+settings.GOOGLE_API_KEY
         response = requests.get(URL)
-        data = json.loads(response.text)
-    return data['routes'][0]['legs'][0]
+        data = json.loads(response.text)['routes'][0]['legs'][0]
+        data["route_type"] = 'transit'
+        return data
+
