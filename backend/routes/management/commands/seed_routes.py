@@ -3,11 +3,12 @@ import json
 import datetime
 from time import sleep
 import requests
-import polyline  # Google의 PolyLine을 Decode할 때 사용
 from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point, LineString
 from django.conf import settings
+from core.functions.polyline4postgis import PolylineDecoderForPostGIS
+# PostGIS를 위한 polyline decoder
 from routes import models as route_models
 from schedules import models as schedule_models
 
@@ -143,7 +144,7 @@ class Command(BaseCommand):
                             end_loc=Point(
                                 x=selected_dummy_places[i+1]["lng"], y=selected_dummy_places[i+1]["lat"], srid=settings.SRID),
                             poly_line=LineString(
-                                polyline.decode(overview_polyline))
+                                PolylineDecoderForPostGIS(overview_polyline).get(), srid=settings.SRID)
                         )
 
                         # 2. Step 생성
@@ -162,7 +163,7 @@ class Command(BaseCommand):
                                 end_loc=Point(
                                     x=current_step["end_location"]["lng"], y=current_step["end_location"]["lat"], srid=settings.SRID),
                                 poly_line=LineString(
-                                    polyline.decode(current_step["polyline"]["points"])),
+                                    PolylineDecoderForPostGIS(current_step["polyline"]["points"]).get(), srid=settings.SRID),
                                 serial=j,
                                 route=created_Route,
                                 instruction=current_step["html_instructions"],

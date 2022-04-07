@@ -279,6 +279,7 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='
         return {"duration": {"text": f"{distance*0.015} mins"}, "distance": {"text": f"{distance/1000} km"}, "start_location": {"lat": ori_lat, "lng": ori_lng}, "end_location": {"lat": des_lat, "lng": des_lng}, "polyline": {"points": geom_wtk}, "route_type": "walking"}
     # 최단거리가 2500이상시 대중교통 검색
     else:
+
         URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
             'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
             'destination='+str(des_lat)+','+str(des_lng)+'&'\
@@ -288,3 +289,4 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='
         data = json.loads(response.text)['routes'][0]['legs'][0]
         data["route_type"] = 'transit'
         return data
+
