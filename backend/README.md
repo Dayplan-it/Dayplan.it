@@ -17,10 +17,10 @@
 - Prettier: 코드 포매터, 저장 누를때마다 알아서 코드를 이쁘게 보이게 정리해줌. 실수로 보이는 코드는 수정까지 해줌.
 - Formatting Toggle: 코드 포매터를 끄고싶을 때 끌 수 있도록 Toggle을 추가해줌.
 - Material Icon Theme: VSC에서 이쁜 아이콘
-  - ![icon-theme](../img/Icon-Theme.png){:style="display:block; margin:auto;" width="70%"}
+  - <img src="../img/Icon-Theme.png" style="display:block; margin:auto;" width="20%"/>
     이렇게 파일 뿐만 아니라 폴더도 폴더 이름 보고 알아서 이쁜 아이콘을 붙여줌
 - WakaTime: 내가 어떤 언어를 얼마나 코딩했는지 통계내줌
-  - ![wakatime](../img/wakatime.png){:style="display:block; margin:auto;" width="70%"}
+  - <img src="../img/wakatime.png" style="display:block; margin:auto;" width="70%"/>
     이런식으로 통계내주는데 보고 있으면 재밌는듯. VSC 말고 다른 IDE에서도(이클립스 포함) 사용 가능해서 통계를 전체적으로 내줌
 
 ---
@@ -55,7 +55,7 @@
   ```
 
   이런 식으로 Schedule이라는 모델을 만들면
-  ![core_app.png](../img/core_app.png){:style="display:block; margin:auto;" width="70%"}
+  <img src="../img/core_app.png" style="display:block; margin:auto;" width="70%"/>
   이런 식으로 저장이 됨
 
 ---
@@ -139,6 +139,61 @@ polyline_deocoded = PolylineDecoderForPostGIS(polyline_before_decoded).get() # �
 # 결과 예시: [(126.97359, 37.52277), (126.97338, 37.5226), (126.97367, 37.52237)]
 
 ```
+
+---
+
+## `node`, `link` Table
+
+1. pgadmin에서 node,link테이블을 만든다.
+2. 각테이블에서 csv파일을 import한다.
+3. wkt를 geometry로 변환후 link2,node2 새로운 테이블로 저장한다.
+
+### 구체적인 방법
+
+#### 1. 테이블만들기
+
+```sql
+CREATE TABLE link
+(
+    link_id bigint,
+    type character varying(30),
+    end_node_id bigint,
+    link_wkt text,
+    link_len double precision,
+    strt_node_id bigint
+);
+```
+
+```sql
+CREATE TABLE node
+(
+    node_wkt text,
+    type character varying(30),
+    node_id bigint
+);
+```
+
+#### 2. csv입력하기
+
+<img src="https://user-images.githubusercontent.com/98328569/162104796-ce3d897e-4af3-4785-b7d6-67f9cb965d0a.png" style="display:block; margin:auto;" width="50%"/>
+
+<img src="https://user-images.githubusercontent.com/98328569/162104918-141fe581-c958-4a1b-b401-926fb534613c.png" style="display:block; margin:auto;" width="70%"/>
+
+- 위의 과정을 link파일, node파일에 각각 수행
+
+#### 3. geometry변환
+
+```sql
+create table link2 as
+select link_id,end_node_id as end_node_i, strt_node_id as strt_node_, link_len,ST_GeomFromText(link_wkt,4326)
+from link
+
+create table node2 as
+select node_id,ST_GeomFromText(node_wkt,4326)
+from node
+```
+
+[링크노드.zip](https://github.com/Dayplan-it/Dayplan.it/files/8439065/default.zip)
 
 ---
 
