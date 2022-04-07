@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+from users.utils import LoginConfirm
 from .api.find_schedule import find_schedule
 
 # Define Param Names
@@ -19,6 +20,7 @@ class FindScheduleAPIView(APIView):
     - 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함
     """
 
+    @LoginConfirm
     def get(self, request):
         try:
             user_id = int(request.query_params[PARAM_USER_ID])

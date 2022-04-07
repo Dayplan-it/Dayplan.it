@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from .recom_place_module import *
 from users.utils import LoginConfirm
+
 # Define Param Names
 PARAM_PLACE_TYPE = 'place_type'
 PARAM_PLACE_LNG = 'lng'
@@ -60,6 +61,7 @@ class PlaceDetail(APIView):
     place_id를 받아 장소의 자세한 정보를 주는 API
     """
 
+    @LoginConfirm
     def get(self, request):
         # 예시데이터
         # ChIJKbC0o06ifDURYATbX7adyKg
@@ -85,6 +87,7 @@ class MakeRoute(APIView):
     #       x['start_location']   -출발장소위치
     #
     #       x['steps']            -상세경로
+
     @LoginConfirm
     def get(self, request):
         # 두 지점의 위치정보와 이동타입을 를 쿼리로 입력
