@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from .recom_place_module import *
-
+from users.utils import LoginConfirm
 # Define Param Names
 PARAM_PLACE_TYPE = 'place_type'
 PARAM_PLACE_LNG = 'lng'
@@ -22,11 +22,12 @@ class PlaceRecommend(APIView):
     convex_hull을 5분, 10분, 15분, 20분 단위로 생성,
     각 장소별로 convex_hull값을 부여하는 API
     """
-
+    @LoginConfirm
     def get(self, request):
         # 예시데이터
         #lng = 126.99446459234908
         #lat = 37.534638765751424
+
         lng = request.query_params[PARAM_PLACE_LNG]
         lat = request.query_params[PARAM_PLACE_LAT]
         place_type = request.query_params[PARAM_PLACE_TYPE]
@@ -84,7 +85,7 @@ class MakeRoute(APIView):
     #       x['start_location']   -출발장소위치
     #
     #       x['steps']            -상세경로
-
+    @LoginConfirm
     def get(self, request):
         # 두 지점의 위치정보와 이동타입을 를 쿼리로 입력
         lng_ori = request.query_params[PARAM_ROUTE_LNG_ORI]
