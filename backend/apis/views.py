@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from .recom_place_module import *
+from users.utils import LoginConfirm
 
 # Define Param Names
 PARAM_PLACE_TYPE = 'place_type'
@@ -22,20 +23,21 @@ class PlaceRecommend(APIView):
     convex_hull을 5분, 10분, 15분, 20분 단위로 생성,
     각 장소별로 convex_hull값을 부여하는 API
     """
-
+    @LoginConfirm
     def get(self, request):
         # 예시데이터
         #lng = 126.99446459234908
         #lat = 37.534638765751424
+
         lng = request.query_params[PARAM_PLACE_LNG]
         lat = request.query_params[PARAM_PLACE_LAT]
         place_type = request.query_params[PARAM_PLACE_TYPE]
         # 기준위치와 가장 가까운 노드를 결정한다.
-        closest_node, S = extract_closest_node(lng, lat)
+        start_node, S_start, end_node, S_end = extract_closest_node(lng, lat)
         # nearby로 장소를 가져온다.(타입입력가능)
         places_gdf = get_nearby_place(lng, lat, place_type)
         # 노드를 기준으로 20분,15분거리, 10분거리, 5분거리 컨벡스홀을 반환한다.
-        convex_gdf = get_convexhull(closest_node, S)
+        convex_gdf = get_convexhull(start_node, S_start)
         # 데이터프레임에 distnace정보 삽입
 
         for minutes in [20, 15, 10, 5]:
@@ -59,6 +61,7 @@ class PlaceDetail(APIView):
     place_id를 받아 장소의 자세한 정보를 주는 API
     """
 
+    @LoginConfirm
     def get(self, request):
         # 예시데이터
         # ChIJKbC0o06ifDURYATbX7adyKg
@@ -85,6 +88,7 @@ class MakeRoute(APIView):
     #
     #       x['steps']            -상세경로
 
+    @LoginConfirm
     def get(self, request):
         # 두 지점의 위치정보와 이동타입을 를 쿼리로 입력
         lng_ori = request.query_params[PARAM_ROUTE_LNG_ORI]

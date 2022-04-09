@@ -52,6 +52,7 @@ class FindScheduleAPIView(APIView):
     - 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함
     """
 
+    @LoginConfirm
     def get(self, request):
         try:
             user_id = int(request.query_params[PARAM_USER_ID])
