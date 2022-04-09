@@ -17,7 +17,7 @@ class Command(BaseCommand):
             if path.name in APP_NAMES:
                 migration_path = Path(path) / 'migrations'
                 for file_path in migration_path.iterdir():
-                    if file_path.name != '__init__.py':
+                    if file_path.name != '__init__.py' and file_path.name != '__pycache__':
                         os.remove(file_path)
 
         self.stdout.write(self.style.SUCCESS(
