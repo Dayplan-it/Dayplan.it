@@ -201,6 +201,8 @@ from node
 
 ### DB 관련 API
 
-- [Find Schedule API](./schedules/api/README.md)
+- [Find Schedule API](./schedules/api/README.md/#find-schedule-api)
+- [Create Schedule API](./schedules/api/README.md/#create-schedule-api)
+- [Delete Schedule API](./schedules/api/README.md/#delete-schedule-api)
 
 ### DB 관련 없는 API

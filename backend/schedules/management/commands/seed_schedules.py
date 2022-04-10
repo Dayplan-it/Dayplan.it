@@ -1,10 +1,9 @@
-from calendar import month
 import random
 import datetime
 from faker import Faker
+# django_seed에서도 faker를 제공하지만 이상하게 'ko_KR' locale 설정이 안돼서 직접 import해서 씀
 from django.core.management.base import BaseCommand
 from django_seed import Seed
-# django_seed에서도 faker를 제공하지만 이상하게 'ko_KR' locale 설정이 안돼서 직접 import해서 씀
 from schedules import models as schedule_models
 from users import models as user_models
 fake_ko = Faker('ko_KR')

@@ -15,17 +15,17 @@ class Route(core_models.TravelCoreModel):
     상세한 경로는 Step 릴레이션에 담기며, Route은 여러개의 Step을 가지게 됨
     '''
 
-    start_addr = models.TextField(null=False)
+    # start_addr = models.TextField(null=False)
     start_name = models.CharField(null=False, max_length=50)
     start_place = models.ForeignKey(
         "Place", related_name="routes_start", on_delete=models.CASCADE)
 
-    end_addr = models.TextField(null=False)
+    # end_addr = models.TextField(null=False)
     end_name = models.CharField(null=False, max_length=50)
     end_place = models.ForeignKey(
         "Place", related_name="routes_end", on_delete=models.CASCADE)
 
-    schedule_order = models.OneToOneField(
+    schedule_order = models.ForeignKey(
         "schedules.Order", related_name="route", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -106,7 +106,7 @@ class TransitDetail(core_models.TimeStampedModel):
 
     """ Route_TransitDetail Model Definition """
 
-    transit_step = models.OneToOneField(
+    transit_step = models.ForeignKey(
         "Step", related_name="transit_detail", on_delete=models.CASCADE)
 
     BUS = 'BUS'
@@ -143,7 +143,7 @@ class Place(core_models.StartEndTimeModel):
 
     """ Place Model Definition """
 
-    schedule_order = models.OneToOneField(
+    schedule_order = models.ForeignKey(
         "schedules.Order", related_name="place", on_delete=models.CASCADE)
 
     place_name = models.CharField(null=False, max_length=50)

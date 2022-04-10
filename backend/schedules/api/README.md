@@ -1,6 +1,9 @@
 ## Find Schedule API
 
-### request
+본 API 사용에 사용할 데이터는
+`python manage.py get_sample_schedule` 커멘드를 이용해 뽑으면 손쉬운 테스트가 가능합니다.
+
+### request **(GET)**
 
 ```
 https://(Base URL)/schedules/find?**parameters**
@@ -103,3 +106,189 @@ http://127.0.0.1:8000/schedules/find?user_id=25&date=1651244400
 #### Response 예시
 
 [예시 Json 보기 (HTML File이므로 브라우저에서 열어보세요)](../../../examples/Find%20Schedule%20Api%20%E2%80%93%20Django%20REST%20framework.html)
+
+## Create Schedule API
+
+### request **(POST)**
+
+```
+https://(Base URL)/schedules/create
+```
+
+```json
+// Body에 json을 아래 형식으로 넣어주면 됨
+{
+  "user_id": 10,
+  "date": 1677405349,
+  "schedule_title": "테스트 스케쥴",
+  "memo": "Create Schedule이 제대로 작동하는지 확인용",
+  "order": [
+    {
+      "type": "PL",
+      "detail": {
+        "starts_at": "10:18:10",
+        "ends_at": "12:18:10",
+        "duration": "02:00:00",
+        "place_name": "(주)탐네커피",
+        "place_type": "cafe",
+        "point": {
+          "latitude": 37.5228803,
+          "longitude": 126.9931461
+        },
+        "place_id": "ChIJZdlnlS2ifDURkbzVn87QoOA"
+      }
+    },
+    {
+      "type": "RO",
+      "detail": {
+        "starts_at": "12:18:10",
+        "ends_at": "12:45:03",
+        "duration": "00:26:53",
+        "distance": 1.543,
+        "polyline": "ejbfW_u_dFrRbNfQHvLrArIJfAEhQqDo@iL"
+      },
+      "step": [
+        {
+          "travel_mode": "WK",
+          "duration": "00:06:27",
+          "distance": 0.386,
+          "instruction": "서빙고역교차로까지 도보",
+          "polyline": "ejbfW_u_dFrRdN"
+        },
+        {
+          "travel_mode": "TR",
+          "duration": "00:02:26",
+          "distance": 0.918,
+          "instruction": "버스 한국은행.신세계행",
+          "polyline": "qvafWye_dF?AtCBpLDbANrJbArIJfAEfQqD@?@@",
+          "transit_detail": {
+            "transit_type": "BUS",
+            "transit_name": "서울 간선버스",
+            "departure_stop_name": "서빙고역교차로",
+            "departure_time": "12:38:37",
+            "arrival_stop_name": "국립중앙박물관용산가족공원",
+            "arrival_time": "12:41:03",
+            "num_stops": 1,
+            "transit_color": "#374ff2"
+          }
+        },
+        {
+          "travel_mode": "WK",
+          "duration": "00:04:00",
+          "distance": 0.239,
+          "instruction": "대한민국 서울특별시 용산구 용산동6가 168-6까지 도보",
+          "polyline": "iw_fWgh_dFq@kL"
+        }
+      ]
+    },
+    {
+      "type": "PL",
+      "detail": {
+        "starts_at": "12:45:03",
+        "ends_at": "14:45:03",
+        "duration": "02:00:00",
+        "place_name": "거울못 식당",
+        "place_type": "restaurant",
+        "point": {
+          "latitude": 37.5229846,
+          "longitude": 126.9801372
+        },
+        "place_id": "ChIJFa09ASSifDURl-u59-W3kvM"
+      }
+    },
+    {
+      "type": "RO",
+      "detail": {
+        "starts_at": "14:45:03",
+        "ends_at": "15:18:10",
+        "duration": "00:33:07",
+        "distance": 4.719,
+        "polyline": "{x_fWsu_dFpJp[_Ex@uEn@yCVcCJa@IgOGQLcB?a@?QJCl@E~@Iz@]NmLg@{BIuC]u@I{@UyAa@iAa@gDmBuCqBqCsBIi@?QVk@BSTYnDIzBOBQDOfCOrBBpCAtDA`BFnEVRd@@VYTw@FkM]qAUeD?s@NmDNaDJaDA}BMk@QGS@UjAyMj@wCZ_AvD{GnA_CRy@Z_Dz@sOJk@Ho@f@gAB?uBrG"
+      },
+      "step": [
+        {
+          "travel_mode": "WK",
+          "duration": "00:08:56",
+          "distance": 0.535,
+          "instruction": "이촌동점보아파트까지 도보",
+          "polyline": "{x_fWsu_dFpJr["
+        },
+        {
+          "travel_mode": "TR",
+          "duration": "00:11:12",
+          "distance": 4.023,
+          "instruction": "버스 용산구청행",
+          "polyline": "im_fW_y~cF?AA?}Dx@iAPkC\\iAJoAJC?_CJa@IgOGQLcB?a@?QJCj@?@CXAd@Iz@]Nk@CaKc@{BIuC]u@I{@UyAa@iAa@gDmBuCqBqCsBIi@?QVk@BSTY^?nCIzBOBQ@CBKrBMRApAB`@?nBA`@?tDA`BFlCL`AHRd@@VYTw@FiL[a@AC?mAUcA?aB?s@NmDNaDJaDAaAC{@IWGSIGS@UjAyMj@wCZ_AvD{GXi@t@uARy@Z_Dz@sOJk@Ho@f@gAB?",
+          "transit_detail": {
+            "transit_type": "BUS",
+            "transit_name": "서울 간선버스",
+            "departure_stop_name": "이촌동점보아파트",
+            "departure_time": "15:03:59",
+            "arrival_stop_name": "용산구청.크라운호텔",
+            "arrival_time": "15:15:11",
+            "num_stops": 5,
+            "transit_color": "#374ff2"
+          }
+        },
+        {
+          "travel_mode": "WK",
+          "duration": "00:02:42",
+          "distance": 0.161,
+          "instruction": "대한민국 서울특별시 용산구 이태원1동 장문로 12까지 도보",
+          "polyline": "a~afWscadFuBrG"
+        }
+      ]
+    },
+    {
+      "type": "PL",
+      "detail": {
+        "starts_at": "15:18:10",
+        "ends_at": "17:18:10",
+        "duration": "02:00:00",
+        "place_name": "스타벅스 동빙고점",
+        "place_type": "cafe",
+        "point": {
+          "latitude": 37.52896399999999,
+          "longitude": 126.991805
+        },
+        "place_id": "ChIJbZsk_jOifDURMpqal2_w3XQ"
+      }
+    }
+  ]
+}
+```
+
+### response
+
+제대로 생성되었을 경우 생성된 데이터의 id를 아래처럼 반환합니다.
+
+```json
+{
+  "created_schedule_id": 79,
+  "created_order_id": [299, 301, 303],
+  "created_place_id": [425, 426, 427],
+  "created_route_id": [292, 293],
+  "created_step_id": [847, 848, 849, 850, 851, 852],
+  "created_transit_detail_id": [285, 286]
+}
+```
+
+## Delete Schedule API
+
+### requset **(DELETE)**
+
+```
+http://127.0.0.1:8000/schedules/delete
+```
+
+Body에 `user_id`와 `date`(Timestamp)를 넣어주면 됩니다.
+
+### response
+
+제대로 삭제되었을 경우 (아래는 [Create Schedule API 예시](#create-schedule-api)에서 생성한 스케쥴을 지우는 경우)
+
+```json
+{
+  "message": "wilsonrachel의 2023-02-26 스케쥴 '테스트 스케쥴' 삭제"
+}
+```

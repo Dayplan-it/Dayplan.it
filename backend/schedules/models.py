@@ -26,4 +26,4 @@ class Order(core_models.TimeStampedModel):
         "Schedule", related_name="orders", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.schedule.user.username}의 {self.schedule.date} 스케쥴 "{self.schedule.schedule_title}" {self.serial + 1}번째 Order: {self.place.place_name + "에서 일정" if self.is_place else self.routes.distance + "KM 이동"}'
+        return f'{self.schedule.user.username}의 {self.schedule.date} 스케쥴 "{self.schedule.schedule_title}" {self.serial + 1}번째 Order: {str(self.place.get().place_name) + "에서 일정" if self.is_place else str(self.route.get().distance) + "KM 이동"}'
