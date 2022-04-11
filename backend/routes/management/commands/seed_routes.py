@@ -129,10 +129,10 @@ class Command(BaseCommand):
                             ends_at=datetime.datetime.fromtimestamp(
                                 routes_legs["arrival_time"]["value"]).time(),
 
-                            start_addr=routes_legs["start_address"],
+                            # start_addr=routes_legs["start_address"],
                             start_name=selected_dummy_places[i]['name'],
                             start_place=created_Place,
-                            end_addr=routes_legs["end_address"],
+                            # end_addr=routes_legs["end_address"],
                             end_name=selected_dummy_places[i+1]['name'],
                             end_place=created_Place,  # 임시로 이렇게 집어넣고, 다음 Place 생성시에 Update로 정정
 
