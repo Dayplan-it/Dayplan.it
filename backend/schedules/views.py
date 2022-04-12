@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_201_CREATED
-from schedules.api.schedule_modules import findSchedule, createSchedule, createOrders
+from schedules.api.schedule_modules import findSchedule, findAllSchedule, createSchedule, createOrders
 from routes.api.route_modules import createPlace, createRoute, createStep, createTransitDetail
 from schedules import models as schedule_models
 
@@ -52,7 +52,7 @@ class FindScheduleAPIView(APIView):
     - 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함
     """
 
-    @LoginConfirm
+    # @LoginConfirm
     def get(self, request):
         try:
             user_id = int(request.query_params[PARAM_USER_ID])
@@ -60,6 +60,29 @@ class FindScheduleAPIView(APIView):
                 int(request.query_params[PARAM_DATE])).date()
 
             return Response(findSchedule(user_id=user_id, date=date), status=HTTP_200_OK)
+
+        except ValidationError:
+            return JsonResponse({"message": "TYPE_ERROR"}, status=HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return JsonResponse({"message": f"INVALID_PARAMETER, you must pass {PARAM_USER_ID}(Integer) and {PARAM_DATE}(Integer)"}, status=HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return JsonResponse({"message": "INVALID_VALUE"}, status=HTTP_400_BAD_REQUEST)
+
+
+class FindScheduleListAPIView(APIView):
+    """
+    user_id를 parameter로 받아 해당 유저의 모든 스케쥴을 가져오는 API입니다.
+    date 순으로 정렬된 상태로 리턴됩니다. (과거 -> 미래)
+
+    - 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함
+    """
+
+    # @LoginConfirm
+    def get(self, request):
+        try:
+            user_id = int(request.query_params[PARAM_USER_ID])
+
+            return Response(findAllSchedule(user_id=user_id), status=HTTP_200_OK)
 
         except ValidationError:
             return JsonResponse({"message": "TYPE_ERROR"}, status=HTTP_400_BAD_REQUEST)

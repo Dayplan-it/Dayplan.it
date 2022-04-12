@@ -1,3 +1,5 @@
+import datetime
+import time
 from django.core.exceptions import ValidationError
 from schedules import models as schedule_models
 from schedules.api.serializers import ScheduleSerializer
@@ -30,6 +32,24 @@ def findSchedule(user_id, date):
             order["step"] = findSteps(iter_order)
 
         result["order"].append(order)
+
+    return result
+
+
+def findAllSchedule(user_id):
+    """
+    user_id를 받아 스케쥴 리스트를 json 객체로 리턴
+
+    - 범위는 1주일 전 ~ 30일 뒤
+    """
+
+    query_date_range = [(datetime.datetime.now().date() - datetime.timedelta(weeks=1)).strftime("%Y-%m-%d"), (datetime.datetime.now().date() + datetime.timedelta(days=30)).strftime("%Y-%m-%d")]
+
+    schedules = schedule_models.Schedule.objects.filter(user_id=user_id, date__range=query_date_range).order_by("date")#.get()
+
+    result = { "found_schedule_dates": [] }
+    for schedule in schedules:
+        result["found_schedule_dates"].append(int(time.mktime(schedule.date.timetuple())))
 
     return result
 

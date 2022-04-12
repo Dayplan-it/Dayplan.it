@@ -107,6 +107,40 @@ http://127.0.0.1:8000/schedules/find?user_id=25&date=1651244400
 
 [예시 Json 보기 (HTML File이므로 브라우저에서 열어보세요)](../../../examples/Find%20Schedule%20Api%20%E2%80%93%20Django%20REST%20framework.html)
 
+## Find Schedule List API
+
+user_id를 받아 오늘 날짜를 기준으로 1주일 전 ~ 1달 뒤까지의 스케쥴의 날짜를 리턴합니다.
+
+### request **(GET)**
+
+```
+https://(Base URL)/schedules/findlist?**parameters**
+```
+
+#### Required parameters
+
+- `user_id`
+  찾으려는 User의 id, Integer 형식
+
+#### Request URL 예시
+
+```
+http://127.0.0.1:8000/schedules/findlist?user_id=10
+```
+
+### response
+
+아래와 같은 형태로 반환되며, **스케쥴이 없을 경우에도 빈 array형태로 반환**됩니다.
+
+```json
+{
+    "found_schedule_dates": [
+        1650121200,
+        1650812400
+    ]
+}
+```
+
 ## Create Schedule API
 
 ### request **(POST)**
