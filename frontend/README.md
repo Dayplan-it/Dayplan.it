@@ -19,3 +19,24 @@ Dayplan.it 프론트엔드 개발
 - 폰트는 google에서 제공하는 폰트를 사용하는게 좋을듯
   - 메인 폰트 미결정
   - 로고 폰트는 `constraints.dart`에 있음
+
+# 4/13 태훈
+
+### api키 넣을 곳
+
+- ios/Runner/AppDelegate.swift
+- android/app/src/main/AndroidManifest.xml
+
+### 콘솔창에서 라이브러리 다운로드
+
+```
+flutter pub add flutter_polyline_points
+```
+
+```
+flutter pub add google_maps_flutter
+```
+
+```
+flutter pub add calendar_strip
+```
