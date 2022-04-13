@@ -18,6 +18,7 @@ faker = "*"
 requests = "*"
 polyline = "*"
 drf-extra-fields = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 

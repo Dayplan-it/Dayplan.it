@@ -45,8 +45,6 @@ DJANGO_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-
-
 ]
 
 PROJECT_APPS = [
@@ -64,7 +62,7 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_seed',
-    'drf_extra_fields'
+    'drf_extra_fields',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
