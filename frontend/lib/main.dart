@@ -1,14 +1,22 @@
-import 'package:dayplan_it/components/floating_btn.dart';
+import 'package:dayplan_it/provider_th/login_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:dayplan_it/screens/profile/profile_screen.dart';
-
-import 'components/app_bar.dart';
-import 'components/bottom_nav_bar.dart';
+import 'package:dayplan_it/screens/start/landingpage.dart';
+import 'package:dayplan_it/screens/start/signuppage.dart';
+import 'package:dayplan_it/screens/start/loginpage.dart';
+import 'package:dayplan_it/screens/mainpage.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MaterialApp(
-      debugShowCheckedModeBanner: false, title: 'Dayplan.it', home: MyApp()));
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (BuildContext context) => LoginProvider(),
+      )
+    ],
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatefulWidget {
@@ -19,26 +27,17 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  int _selectedIndex = 0;
-  List<Widget> screenList = [HomeScreen(), ProfileScreen()];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: const DayplanitAppBar(),
-      body: screenList[_selectedIndex],
-      bottomNavigationBar: DayplaitBottomNavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
-      floatingActionButton: const DayplanitFloatingBtn(),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Dayplan.it',
+      routes: <String, WidgetBuilder>{
+        '/main': (BuildContext context) => MainPage(),
+        '/login': (BuildContext context) => LoginPage(),
+        '/signup': (BuildContext context) => SignupPage(),
+      },
+      home: LandingPage(),
     );
   }
 }
