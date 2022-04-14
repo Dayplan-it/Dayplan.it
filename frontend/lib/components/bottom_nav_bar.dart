@@ -12,6 +12,7 @@ class DayplaitBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+        elevation: 10,
         showUnselectedLabels: false,
         currentIndex: selectedIndex,
         items: [

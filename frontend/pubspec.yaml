@@ -33,6 +33,8 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+  resizable_widget: ^1.0.5
+  font_awesome_flutter: ^10.1.0
   google_fonts: ^2.3.1 # 구글에서 제공하는 무료 폰트 사용
 
 dev_dependencies:
@@ -72,12 +74,22 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
+  fonts:
+    - family: Noto_Sans_KR
+      fonts:
+        - asset: assets/font/Noto_Sans_KR/NotoSansKR-Black.otf
+          weight: 900
+        - asset: assets/font/Noto_Sans_KR/NotoSansKR-Bold.otf
+          weight: 800
+        - asset: assets/font/Noto_Sans_KR/NotoSansKR-Medium.otf
+          weight: 700
+        - asset: assets/font/Noto_Sans_KR/NotoSansKR-Regular.otf
+        - asset: assets/font/Noto_Sans_KR/NotoSansKR-Light.otf
+          weight: 200
+        - asset: assets/font/Noto_Sans_KR/NotoSansKR-Thin.otf
+          weight: 100
+        # - asset: fonts/Schyler-Italic.ttf
+        #   style: italic
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

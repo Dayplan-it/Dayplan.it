@@ -1,3 +1,4 @@
+import 'package:dayplan_it/components/app_bar.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -5,6 +6,13 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('프로필 스크린');
+    return const Scaffold(
+      appBar: DayplanitAppBar(
+        isHomePage: true,
+      ),
+      body: Center(
+        child: Text('프로필 스크린입니다.'),
+      ),
+    );
   }
 }
