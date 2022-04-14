@@ -37,7 +37,6 @@ class _MyAppState extends State<MyApp> {
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
-      floatingActionButton: const DayplanitFloatingBtn(),
     );
   }
 }
