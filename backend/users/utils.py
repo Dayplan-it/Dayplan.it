@@ -13,7 +13,6 @@ class LoginConfirm:
         token = request.headers.get("Authorization", None)
         token_payload = jwt.decode(
             token, SECRET_KEY, algorithms='HS256')
-        print(token_payload)
         try:
             if token:
                 token_payload = jwt.decode(
