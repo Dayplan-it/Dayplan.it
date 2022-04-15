@@ -1,19 +1,13 @@
 import 'package:dio/dio.dart';
 
 class LoginRepository {
-  Future<String> loadToken(emaill, pass) async {
+  Future<List<String>> loadToken(emaill, pass) async {
     var dio = Dio();
     var token = "null";
     var url = 'http://127.0.0.1:8000/users/login';
     Map data = {'email': emaill, 'password': pass};
-    try {
-      Response response = await dio.post(url, data: data);
-      var token = response.data["token"];
-      return token;
-    } catch (e) {
-      //에러발생시
-    }
-    return token;
+    Response response = await dio.post(url, data: data);
+    return [response.data["token"].toString(), response.statusCode.toString()];
   }
 }
 
