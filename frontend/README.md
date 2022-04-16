@@ -40,3 +40,15 @@ flutter pub add google_maps_flutter
 ```
 flutter pub add calendar_strip
 ```
+
+# 태훈 - 메인화면
+
+### DB의 API적용
+
+- (테스트: 일정을 갖고 있는 회원id가 30)
+- 구글API키 입력해야함
+- 테스트 환경 : IOS만 수행
+
+1. 회원id가 가지고 있는 일정(schedule) 받아와서 일정있는 날에 마크
+2. 캘린더에서 해당날짜를 누르면 일정정보, 지도에 장소, 루트 표시하고 확대
+3. 다른날짜누르면 초기화

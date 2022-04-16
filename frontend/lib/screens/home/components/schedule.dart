@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/home/provider/home_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:dayplan_it/screens/home/repository/home_repository.dart';
 
 class Schedule extends StatefulWidget {
   const Schedule({Key? key}) : super(key: key);
@@ -10,97 +13,91 @@ class Schedule extends StatefulWidget {
 }
 
 class _ScheduleState extends State<Schedule> {
-  final List<String> comments = <String>[
-    '대중교통 1 시간 32 분 이동',
-    '데이플래닛 미팅',
-    '도보 10분 이동',
-    '정식당 점심식사',
-    '대중교통 20분 이동'
-  ];
-
-  final List<IconData> icons = <IconData>[
-    Icons.directions_bus,
-    Icons.location_on,
-    Icons.directions_walk,
-    Icons.restaurant,
-    Icons.directions_bus
-  ];
-
-  final List<String> strat_time = <String>[
-    "09:18",
-    "11:00",
-    "12:30",
-    "12:40",
-    "13:40",
-  ];
-  final List<String> end_time = <String>[
-    "10:50",
-    "12:30",
-    "12:40",
-    "13:40",
-    "14:00",
-  ];
-
+  HomeProvider _homeProvider = new HomeProvider();
+  HomeRepository _homeRepository = HomeRepository();
   @override
   Widget build(BuildContext context) {
     final devicewidth = MediaQuery.of(context).size.width;
     final deviceheight = MediaQuery.of(context).size.height;
-    return Container(
-      width: 0.95 * devicewidth,
-      height: 0.3 * deviceheight,
-      child: ListView.separated(
-        padding: EdgeInsets.all(5),
-        itemCount: comments.length,
-        itemBuilder: (context, index) {
-          return Container(
-              child: Card(
-            child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-              ListTile(
-                onTap: () {
-                  print("ddd");
-                },
-                leading: Icon(
-                  icons[index],
-                  color: Colors.redAccent,
+    return Consumer<HomeProvider>(builder: (context, provider, widget) {
+      //여기서 프로
+      Map<String, List<dynamic>> route =
+          Provider.of<HomeProvider>(context, listen: false).scheduledetail;
+
+      List<dynamic> comments = route["comments"] ?? [];
+      List<dynamic> icon = route["icons"] ?? [];
+      List<IconData> icons = [];
+
+      for (int i = 0; i < icon.length; i++) {
+        if (icon[i] == "walk") {
+          icons.add(Icons.directions_walk);
+        } else if (icon[i] == "transit") {
+          icons.add(Icons.directions_bus);
+        } else {
+          icons.add(Icons.location_on);
+        }
+      }
+      List<dynamic> start_time = route["start_time"] ?? [];
+      List<dynamic> end_time = route["end_time"] ?? [];
+      int len = route["comments"]?.length ?? 0;
+
+      return Container(
+        width: 0.95 * devicewidth,
+        height: 0.3 * deviceheight,
+        child: ListView.separated(
+          padding: EdgeInsets.all(5),
+          itemCount: len,
+          itemBuilder: (context, index) {
+            return Container(
+                child: Card(
+              child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                ListTile(
+                  onTap: () {
+                    print("ddd");
+                  },
+                  leading: Icon(
+                    icons[index],
+                    color: Colors.redAccent,
+                  ),
+                  title: Text(
+                    '${comments[index]}',
+                    style: DayplanitLogoFont(
+                        textStyle: const TextStyle(
+                            color: Color.fromARGB(221, 72, 72, 72)),
+                        fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text(
+                    '${start_time[index].toString().substring(0, 5)}~${end_time[index]..toString().substring(0, 5)}',
+                  ),
                 ),
-                title: Text(
-                  '${comments[index]}',
-                  style: DayplanitLogoFont(
-                      textStyle: const TextStyle(
-                          color: Color.fromARGB(221, 72, 72, 72)),
-                      fontWeight: FontWeight.w700),
-                ),
-                subtitle: Text(
-                  '${strat_time[index]}~${end_time[index]}',
-                ),
-              ),
-            ]),
-          ));
-        },
-        separatorBuilder: (context, index) {
-          return Divider();
-        },
-      ),
-      decoration: BoxDecoration(
-        color: Color.fromARGB(255, 255, 255, 255),
-        borderRadius: BorderRadius.all(
-          Radius.circular(40),
+              ]),
+            ));
+          },
+          separatorBuilder: (context, index) {
+            return Divider();
+          },
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromARGB(71, 158, 158, 158),
-            offset: Offset(4.0, 4.0),
-            blurRadius: 15.0,
-            spreadRadius: 1.0,
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 255, 255, 255),
+          borderRadius: BorderRadius.all(
+            Radius.circular(40),
           ),
-          BoxShadow(
-            color: Colors.white,
-            offset: Offset(-4.0, -4.0),
-            blurRadius: 15.0,
-            spreadRadius: 1.0,
-          ),
-        ],
-      ),
-    );
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromARGB(71, 158, 158, 158),
+              offset: Offset(4.0, 4.0),
+              blurRadius: 15.0,
+              spreadRadius: 1.0,
+            ),
+            BoxShadow(
+              color: Colors.white,
+              offset: Offset(-4.0, -4.0),
+              blurRadius: 15.0,
+              spreadRadius: 1.0,
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
