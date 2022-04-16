@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/create_schedule_screen.dart';
 
 class RecommendedSchedulesGrid extends StatelessWidget {
   const RecommendedSchedulesGrid(
@@ -91,17 +92,4 @@ class RecommendedSchedulesGrid extends StatelessWidget {
       ]),
     );
   }
-}
-
-class Place {
-  Place(
-      {required this.nameKor,
-      required this.nameEng,
-      required this.color,
-      required this.iconData});
-
-  final String nameKor;
-  final String nameEng;
-  final Color color;
-  final IconData iconData;
 }

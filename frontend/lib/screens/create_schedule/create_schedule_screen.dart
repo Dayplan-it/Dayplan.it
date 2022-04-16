@@ -2,9 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
-import 'package:dayplan_it/screens/create_schedule/components/dragNdropAbles.dart';
+import 'package:dayplan_it/screens/create_schedule/components/RecommendedSchedulesGrid.dart';
 import 'package:dayplan_it/screens/create_schedule/components/noSelectedSchedule.dart';
 import 'package:dayplan_it/screens/create_schedule/components/timeline_vertical.dart';
+
+class Place {
+  Place(
+      {required this.nameKor,
+      required this.nameEng,
+      required this.color,
+      required this.iconData});
+
+  final String nameKor;
+  final String nameEng;
+  final Color color;
+  final IconData iconData;
+}
 
 class CreateScheduleScreen extends StatelessWidget {
   const CreateScheduleScreen({Key? key, required this.date}) : super(key: key);
@@ -57,11 +70,7 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
               child: Column(
                 children: [
                   Expanded(
-                      flex: context
-                              .watch<CreateScheduleStore>()
-                              .isRoughScheduleMade
-                          ? 100
-                          : 60,
+                      flex: 60,
                       child: context.watch<CreateScheduleStore>().isDragging
                           ? const DeleteScheduleArea()
                           : RecommendedSchedulesGrid(
@@ -73,20 +82,23 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                   Expanded(
                       flex: context
                               .watch<CreateScheduleStore>()
-                              .isRoughScheduleMade
-                          ? 0
-                          : 40,
+                              .roughSchedule
+                              .isEmpty
+                          ? 40
+                          : 0,
                       child: context
                               .watch<CreateScheduleStore>()
-                              .isRoughScheduleMade
-                          ? Container()
-                          : const NoScheduleText()),
+                              .roughSchedule
+                              .isEmpty
+                          ? const NoScheduleText()
+                          : const SizedBox()),
                   ElevatedButton(
                       onPressed: context
                               .watch<CreateScheduleStore>()
-                              .isRoughScheduleMade
-                          ? () {}
-                          : null,
+                              .roughSchedule
+                              .isEmpty
+                          ? null
+                          : () {},
                       style: ElevatedButton.styleFrom(
                           primary: primaryColor,
                           minimumSize: const Size(double.maxFinite, 40),
@@ -139,7 +151,7 @@ class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: Color.fromARGB(255, 39, 39, 39)),
+                    color: const Color.fromARGB(255, 39, 39, 39)),
                 child: const Icon(
                   Icons.cancel_outlined,
                   color: Colors.white,
@@ -159,6 +171,21 @@ class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
         });
       },
       onAccept: (int scheduleIndex) {
+        // if (context.read<CreateScheduleStore>().roughSchedule.length == 2 &&
+        //     scheduleIndex == 0) {
+        //   List<String> durationArr = context
+        //       .read<CreateScheduleStore>()
+        //       .roughSchedule[1]["detail"]["duration"]
+        //       .split(":");
+        //   double boxHeight = (double.parse(durationArr[0]) +
+        //           double.parse(durationArr[1]) / 60 +
+        //           double.parse(durationArr[2]) / 3600) *
+        //       itemHeight;
+        //   context.read<CreateScheduleStore>().setScheduleStartHeight(
+        //       context.read<CreateScheduleStore>().scheduleStartHeight +
+        //           boxHeight);
+        // }
+
         context
             .read<CreateScheduleStore>()
             .roughSchedule
@@ -171,13 +198,7 @@ class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
 class CreateScheduleStore extends ChangeNotifier {
   late DateTime scheduleDate;
 
-  late double scheduleStartHeight;
-  setScheduleStartHeight(double height) {
-    scheduleStartHeight = height;
-    notifyListeners();
-  }
-
-  bool isRoughScheduleMade = false;
+  double scheduleStartHeight = 0;
   bool isDragging = false;
   Offset droppedBoxOffset = const Offset(0, 0);
   Offset draggingBoxOffset = const Offset(0, 0);
@@ -202,33 +223,31 @@ class CreateScheduleStore extends ChangeNotifier {
   */
 
   addSchedule(Place place) {
-    isRoughScheduleMade = true;
-
-    String starts_at = "", ends_at = "", duration = "01:00:00";
+    String startsAt = "", endsAt = "", duration = "01:00:00";
 
     if (roughSchedule.isNotEmpty) {
-      starts_at = roughSchedule[roughSchedule.length - 1]["detail"]["ends_at"];
+      startsAt = roughSchedule[roughSchedule.length - 1]["detail"]["ends_at"];
       List<String> tempArr = roughSchedule[roughSchedule.length - 1]["detail"]
               ["ends_at"]
           .split(":");
 
-      var ends_at_DateTime = scheduleDate.add(Duration(
+      var endsAtDateTime = scheduleDate.add(Duration(
           hours: int.parse(tempArr[0]) + 1,
           minutes: int.parse(tempArr[1]),
           seconds: int.parse(tempArr[2])));
 
-      ends_at =
-          "${ends_at_DateTime.hour.toString().padLeft(2, '0')}:${ends_at_DateTime.minute.toString().padLeft(2, '0')}:${ends_at_DateTime.second.toString().padLeft(2, '0')}";
+      endsAt =
+          "${endsAtDateTime.hour.toString().padLeft(2, '0')}:${endsAtDateTime.minute.toString().padLeft(2, '0')}:${endsAtDateTime.second.toString().padLeft(2, '0')}";
     } else {
-      starts_at = "08:00:00";
-      ends_at = "09:00:00";
+      startsAt = "08:00:00";
+      endsAt = "09:00:00";
     }
 
     roughSchedule.add({
       "type": "PL",
       "detail": {
-        "starts_at": starts_at,
-        "ends_at": ends_at,
+        "starts_at": startsAt,
+        "ends_at": endsAt,
         "duration": duration,
         "place_type": place.nameEng,
         "place": place
@@ -237,30 +256,14 @@ class CreateScheduleStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  removeSchedule(int oldIndex) {
-    roughSchedule.removeAt(oldIndex);
-    notifyListeners();
-  }
-
-  insertScheduleToNewOrder(int newIndex, Map schedule) {
-    roughSchedule.insert(newIndex, schedule);
+  onDragEnd(Offset? droppedBoxOffset) {
+    isDragging = false;
+    droppedBoxOffset = droppedBoxOffset;
     notifyListeners();
   }
 
   onDragStart() {
     isDragging = true;
-    notifyListeners();
-  }
-
-  onDragEnd(Offset droppedBoxOffset) {
-    isDragging = false;
-    droppedBoxOffset = droppedBoxOffset;
-    print(droppedBoxOffset);
-    notifyListeners();
-  }
-
-  onDragUpdate(Offset draggingBoxOffset) {
-    draggingBoxOffset = draggingBoxOffset;
     notifyListeners();
   }
 }
