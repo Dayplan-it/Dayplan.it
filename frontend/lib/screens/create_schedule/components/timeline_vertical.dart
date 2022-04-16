@@ -19,16 +19,19 @@ class TimeLine extends StatefulWidget {
 class _TimeLineState extends State<TimeLine> {
   final double timeLineFullHeight = itemHeight * hours;
   final double initScrollOffset = itemHeight * 8 - 20;
-  late final ScrollController _scrollController = ScrollController(
-      initialScrollOffset: initScrollOffset, keepScrollOffset: false);
+  final ScrollController _scrollController = ScrollController(
+      initialScrollOffset: (itemHeight * 8 - 20), keepScrollOffset: false);
 
   double scheduleStartHeight = itemHeight * 8;
+
+  double currentTimeLineOffset = itemHeight * 8 - 20;
 
   Widget _buildRoughScheduleBoxColumn() {
     List<Map> roughSchedule =
         context.watch<CreateScheduleStore>().roughSchedule;
 
     if (roughSchedule.isEmpty) {
+      scheduleStartHeight = currentTimeLineOffset + 20;
       return const SizedBox();
     } else {
       return Column(
@@ -54,98 +57,133 @@ class _TimeLineState extends State<TimeLine> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      setState(() {
+        currentTimeLineOffset = _scrollController.offset;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
-      scrollDirection: Axis.vertical,
-      child: Stack(children: [
-        Row(
-          children: [
-            SizedBox(
-                width: 37,
-                child: Column(
-                  children: [
-                    for (int i = 0; i < hours + 1; i++)
-                      SizedBox(
-                        height: i != 0 && i != 24 ? itemHeight : itemHeight / 2,
-                        child: i != 0 && i != 24
-                            ? Align(
-                                alignment: Alignment.centerRight,
-                                child: Text(
-                                  (i.toString() + (i < 12 ? ' AM' : ' PM')),
-                                  style: mainFont(
-                                      color: subTextColor, fontSize: 12),
-                                ))
-                            : null,
-                      )
-                  ],
-                )),
-            const SizedBox(
-              width: 5,
-            ),
-            SizedBox(
-              width: timeLineWidth,
-              child: Container(
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(20)),
-                clipBehavior: Clip.hardEdge,
-                child: Column(
-                  children: [
-                    for (int i = 0; i < hours; i++)
-                      Column(
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            height: itemHeight,
-                            color: skyBlue,
-                          ),
-                          const Divider(
-                            height: 0,
-                            indent: 10,
-                            endIndent: 10,
-                            thickness: 1,
-                            color: Colors.white,
+    return DragTarget(
+      builder: (context, candidateData, rejectedData) {
+        return SingleChildScrollView(
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
+          scrollDirection: Axis.vertical,
+          child: Stack(children: [
+            Row(
+              children: [
+                SizedBox(
+                    width: 37,
+                    child: Column(
+                      children: [
+                        for (int i = 0; i < hours + 1; i++)
+                          SizedBox(
+                            height:
+                                i != 0 && i != 24 ? itemHeight : itemHeight / 2,
+                            child: i != 0 && i != 24
+                                ? Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      (i.toString() + (i < 12 ? ' AM' : ' PM')),
+                                      style: mainFont(
+                                          color: subTextColor, fontSize: 12),
+                                    ))
+                                : null,
                           )
-                        ],
-                      )
-                  ],
+                      ],
+                    )),
+                const SizedBox(
+                  width: 5,
                 ),
+                SizedBox(
+                  width: timeLineWidth,
+                  child: Container(
+                    decoration:
+                        BoxDecoration(borderRadius: BorderRadius.circular(20)),
+                    clipBehavior: Clip.hardEdge,
+                    child: Column(
+                      children: [
+                        for (int i = 0; i < hours; i++)
+                          Column(
+                            children: [
+                              Container(
+                                width: double.infinity,
+                                height: itemHeight,
+                                color: skyBlue,
+                              ),
+                              const Divider(
+                                height: 0,
+                                indent: 10,
+                                endIndent: 10,
+                                thickness: 1,
+                                color: Colors.white,
+                              )
+                            ],
+                          )
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+            Positioned.fill(
+              child: Row(
+                children: [
+                  const SizedBox(width: 37, child: SizedBox()),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  SizedBox(
+                      width: timeLineWidth,
+                      child: _buildRoughScheduleBoxColumn()),
+                ],
               ),
             )
-          ],
-        ),
-        Positioned.fill(
-          child: Row(
-            children: [
-              const SizedBox(width: 37, child: SizedBox()),
-              const SizedBox(
-                width: 5,
-              ),
-              SizedBox(
-                  width: timeLineWidth, child: _buildRoughScheduleBoxColumn()),
-            ],
-          ),
-        )
-      ]),
+          ]),
+        );
+      },
     );
   }
 }
 
 class ScheduleBox extends StatelessWidget {
-  const ScheduleBox(
-      {Key? key, required this.place, required this.roughScheduleIndex})
+  ScheduleBox({Key? key, required this.place, required this.roughScheduleIndex})
       : super(key: key);
 
   final Place place;
   final int roughScheduleIndex;
 
-  _onLongPress(double boxHeight) {
-    print('눌림');
+  Widget _onLongPress(double boxHeight) {
     return Container(
       decoration: BoxDecoration(
           color: place.color.withAlpha(150),
           borderRadius: BorderRadius.circular(20)),
+      height: boxHeight,
+      width: timeLineWidth,
+      alignment: Alignment.center,
+      child: Text(
+        place.nameKor,
+        style: mainFont(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            fontSize: itemHeight / 5,
+            letterSpacing: 1),
+      ),
+    );
+  }
+
+  Widget _childWhenDragging(double boxHeight) {
+    return Container(
+      decoration: BoxDecoration(
+          color: place.color,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: const Color.fromARGB(255, 38, 0, 255), width: 5)),
       height: boxHeight,
       width: timeLineWidth,
       alignment: Alignment.center,
@@ -173,7 +211,19 @@ class ScheduleBox extends StatelessWidget {
 
     return LongPressDraggable(
       feedback: _onLongPress(boxHeight),
-      axis: Axis.vertical,
+      delay: Duration(milliseconds: 100),
+      onDragEnd: (DraggableDetails details) {
+        // print('onDragEnd');
+        // print('wasAccepted: ${details.wasAccepted}');
+        // print('velocity: ${details.velocity}');
+        // print('offset: ${details.offset}');
+        context.read<CreateScheduleStore>().onDragEnd(details.offset);
+      },
+      data: roughScheduleIndex,
+      onDragStarted: context.read<CreateScheduleStore>().onDragStart,
+      onDragUpdate: (DragUpdateDetails details) => context
+          .read<CreateScheduleStore>()
+          .onDragUpdate(details.globalPosition),
       child: Container(
         decoration: BoxDecoration(
             color: place.color, borderRadius: BorderRadius.circular(20)),
@@ -210,6 +260,7 @@ class ScheduleBox extends StatelessWidget {
           ],
         ),
       ),
+      childWhenDragging: _childWhenDragging(boxHeight),
     );
   }
 }

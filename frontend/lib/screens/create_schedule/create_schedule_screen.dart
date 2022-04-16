@@ -62,10 +62,14 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                               .isRoughScheduleMade
                           ? 100
                           : 60,
-                      child: RecommendedSchedulesGrid(
-                          scheduleTypeSelected:
-                              context.read<CreateScheduleStore>().addSchedule,
-                          addCustomBlockBtnClicked: _addCustomBlockBtnClicked)),
+                      child: context.watch<CreateScheduleStore>().isDragging
+                          ? const DeleteScheduleArea()
+                          : RecommendedSchedulesGrid(
+                              scheduleTypeSelected: context
+                                  .read<CreateScheduleStore>()
+                                  .addSchedule,
+                              addCustomBlockBtnClicked:
+                                  _addCustomBlockBtnClicked)),
                   Expanded(
                       flex: context
                               .watch<CreateScheduleStore>()
@@ -100,10 +104,83 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
   }
 }
 
+class DeleteScheduleArea extends StatefulWidget {
+  const DeleteScheduleArea({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<DeleteScheduleArea> createState() => _DeleteScheduleAreaState();
+}
+
+class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
+  bool isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return DragTarget(
+      builder: (
+        BuildContext context,
+        List<dynamic> accepted,
+        List<dynamic> rejected,
+      ) {
+        return isHovered
+            ? Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20), color: pointColor),
+                child: const Icon(
+                  Icons.cancel_outlined,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              )
+            : Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Color.fromARGB(255, 39, 39, 39)),
+                child: const Icon(
+                  Icons.cancel_outlined,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              );
+      },
+      onWillAccept: (data) {
+        setState(() {
+          isHovered = true;
+        });
+        return true;
+      },
+      onLeave: (data) {
+        setState(() {
+          isHovered = false;
+        });
+      },
+      onAccept: (int scheduleIndex) {
+        context
+            .read<CreateScheduleStore>()
+            .roughSchedule
+            .removeAt(scheduleIndex);
+      },
+    );
+  }
+}
+
 class CreateScheduleStore extends ChangeNotifier {
   late DateTime scheduleDate;
 
+  late double scheduleStartHeight;
+  setScheduleStartHeight(double height) {
+    scheduleStartHeight = height;
+    notifyListeners();
+  }
+
   bool isRoughScheduleMade = false;
+  bool isDragging = false;
+  Offset droppedBoxOffset = const Offset(0, 0);
+  Offset draggingBoxOffset = const Offset(0, 0);
   List<Place> selectedSchedulesPlaces = [];
   List<Map> roughSchedule = [];
   /* 
@@ -167,6 +244,23 @@ class CreateScheduleStore extends ChangeNotifier {
 
   insertScheduleToNewOrder(int newIndex, Map schedule) {
     roughSchedule.insert(newIndex, schedule);
+    notifyListeners();
+  }
+
+  onDragStart() {
+    isDragging = true;
+    notifyListeners();
+  }
+
+  onDragEnd(Offset droppedBoxOffset) {
+    isDragging = false;
+    droppedBoxOffset = droppedBoxOffset;
+    print(droppedBoxOffset);
+    notifyListeners();
+  }
+
+  onDragUpdate(Offset draggingBoxOffset) {
+    draggingBoxOffset = draggingBoxOffset;
     notifyListeners();
   }
 }
