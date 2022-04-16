@@ -18,8 +18,8 @@ class _LandingPageState extends State<LandingPage> {
     super.initState();
 
     //이부분에서 로그인체크하고 로그인되어있을 떄 사용자정보 불러옴
-    Timer(Duration(seconds: 2), () {
-      _getToken();
+    Timer(Duration(seconds: 2), () async {
+      await _getToken();
 
       if (_hasToken == "null") {
         Navigator.pushReplacementNamed(context, '/login');
@@ -35,7 +35,6 @@ class _LandingPageState extends State<LandingPage> {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
     setState(() {
       _hasToken = (_prefs.getString('apiToken') ?? "null");
-      Navigator.pushReplacementNamed(context, '/main');
     });
   }
 
