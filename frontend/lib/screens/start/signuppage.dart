@@ -100,6 +100,7 @@ class _SignupPageState extends State<SignupPage> {
                                     )))),
                         SizedBox(height: 12.0),
                         TextField(
+                            obscureText: true,
                             controller: _password1Controller,
                             decoration: InputDecoration(
                                 filled: true,
@@ -112,6 +113,7 @@ class _SignupPageState extends State<SignupPage> {
                                     )))),
                         SizedBox(height: 12.0),
                         TextField(
+                            obscureText: true,
                             controller: _password2Controller,
                             decoration: InputDecoration(
                                 filled: true,

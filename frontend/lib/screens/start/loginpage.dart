@@ -126,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                                         color: Color.fromARGB(255, 5, 93, 164),
                                       ),
                                     )),
-                                obscureText: false,
+                                obscureText: true,
                               ),
                               ButtonBar(
                                 children: <Widget>[
