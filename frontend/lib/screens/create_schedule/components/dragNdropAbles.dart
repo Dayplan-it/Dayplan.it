@@ -3,7 +3,13 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dayplan_it/constants.dart';
 
 class RecommendedSchedulesGrid extends StatelessWidget {
-  const RecommendedSchedulesGrid({Key? key}) : super(key: key);
+  const RecommendedSchedulesGrid(
+      {Key? key,
+      required this.scheduleTypeSelected,
+      required this.addCustomBlockBtnClicked})
+      : super(key: key);
+  final scheduleTypeSelected;
+  final addCustomBlockBtnClicked;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +43,8 @@ class RecommendedSchedulesGrid extends StatelessWidget {
               final Place place = places[index];
 
               return ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () =>
+                    scheduleTypeSelected(place.nameKor, place.nameEng, place),
                 style: ElevatedButton.styleFrom(
                     elevation: 2,
                     primary: Colors.white,
@@ -62,7 +69,9 @@ class RecommendedSchedulesGrid extends StatelessWidget {
           bottom: 2,
           right: 2,
           child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                addCustomBlockBtnClicked();
+              },
               style: ElevatedButton.styleFrom(
                   primary: primaryColor,
                   shape: RoundedRectangleBorder(

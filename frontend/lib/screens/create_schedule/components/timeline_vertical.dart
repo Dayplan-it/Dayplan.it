@@ -41,69 +41,72 @@ class _TimeLineState extends State<TimeLine> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
-      scrollDirection: Axis.vertical,
-      child: Row(
-        children: [
-          Expanded(
-              flex: 20,
-              child: Column(
-                children: [
-                  for (int i = 0; i < HOURS + 1; i++)
-                    SizedBox(
-                      height: i != 0 && i != 24 ? ITEM_HEIGHT : ITEM_HEIGHT / 2,
-                      child: i != 0 && i != 24
-                          ? Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                (i.toString() + (i < 12 ? ' AM' : ' PM')),
-                                style:
-                                    mainFont(color: subTextColor, fontSize: 12),
-                              ))
-                          : null,
-                    )
-                ],
-              )),
-          const SizedBox(
-            width: 5,
-          ),
-          Expanded(
-            flex: 70,
-            child: Container(
-              decoration:
-                  BoxDecoration(borderRadius: BorderRadius.circular(20)),
-              clipBehavior: Clip.hardEdge,
-              child: Column(
-                children: [
-                  for (int i = 0; i < HOURS; i++)
-                    Column(
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: ITEM_HEIGHT,
-                          color: skyBlue,
-                        ),
-                        const Divider(
-                          height: 0,
-                          indent: 10,
-                          endIndent: 10,
-                          thickness: 1,
-                          color: Colors.white,
-                        )
-                      ],
-                    )
-                ],
+    return Stack(children: [
+      SingleChildScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(),
+        scrollDirection: Axis.vertical,
+        child: Row(
+          children: [
+            Expanded(
+                flex: 20,
+                child: Column(
+                  children: [
+                    for (int i = 0; i < HOURS + 1; i++)
+                      SizedBox(
+                        height:
+                            i != 0 && i != 24 ? ITEM_HEIGHT : ITEM_HEIGHT / 2,
+                        child: i != 0 && i != 24
+                            ? Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  (i.toString() + (i < 12 ? ' AM' : ' PM')),
+                                  style: mainFont(
+                                      color: subTextColor, fontSize: 12),
+                                ))
+                            : null,
+                      )
+                  ],
+                )),
+            const SizedBox(
+              width: 5,
+            ),
+            Expanded(
+              flex: 70,
+              child: Container(
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(20)),
+                clipBehavior: Clip.hardEdge,
+                child: Column(
+                  children: [
+                    for (int i = 0; i < HOURS; i++)
+                      Column(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: ITEM_HEIGHT,
+                            color: skyBlue,
+                          ),
+                          const Divider(
+                            height: 0,
+                            indent: 10,
+                            endIndent: 10,
+                            thickness: 1,
+                            color: Colors.white,
+                          )
+                        ],
+                      )
+                  ],
+                ),
               ),
             ),
-          ),
-          const Expanded(
-            flex: 5,
-            child: SizedBox(),
-          )
-        ],
+            const Expanded(
+              flex: 5,
+              child: SizedBox(),
+            )
+          ],
+        ),
       ),
-    );
+    ]);
   }
 }
