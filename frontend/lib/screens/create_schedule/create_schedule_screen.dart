@@ -1,10 +1,10 @@
-import 'package:dayplan_it/screens/create_schedule/components/noSelectedSchedule.dart';
-import 'package:dayplan_it/screens/create_schedule/components/timeline_vertical.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
 import 'package:dayplan_it/screens/create_schedule/components/dragNdropAbles.dart';
+import 'package:dayplan_it/screens/create_schedule/components/noSelectedSchedule.dart';
+import 'package:dayplan_it/screens/create_schedule/components/timeline_vertical.dart';
 
 class CreateScheduleScreen extends StatelessWidget {
   const CreateScheduleScreen({Key? key, required this.date}) : super(key: key);
@@ -37,13 +37,6 @@ class RoughSceduleCreatorBody extends StatefulWidget {
 }
 
 class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
-  _scheduleTypeSelected(
-      String selectedPlaceTypeKor, String selectedPlaceTypeEng, Place place) {
-    context
-        .read<CreateScheduleStore>()
-        .addSchedule(selectedPlaceTypeKor, selectedPlaceTypeEng, place);
-  }
-
   _addCustomBlockBtnClicked() {}
 
   @override
@@ -58,18 +51,27 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
       padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
       child: Row(
         children: [
-          Expanded(flex: 47, child: VerticalTimeLine()),
+          const Expanded(flex: 47, child: TimeLine()),
           Expanded(
               flex: 53,
               child: Column(
                 children: [
                   Expanded(
-                      flex: 50,
+                      flex: context
+                              .watch<CreateScheduleStore>()
+                              .isRoughScheduleMade
+                          ? 100
+                          : 60,
                       child: RecommendedSchedulesGrid(
-                          scheduleTypeSelected: _scheduleTypeSelected,
+                          scheduleTypeSelected:
+                              context.read<CreateScheduleStore>().addSchedule,
                           addCustomBlockBtnClicked: _addCustomBlockBtnClicked)),
                   Expanded(
-                      flex: 50,
+                      flex: context
+                              .watch<CreateScheduleStore>()
+                              .isRoughScheduleMade
+                          ? 0
+                          : 40,
                       child: context
                               .watch<CreateScheduleStore>()
                               .isRoughScheduleMade
@@ -102,8 +104,6 @@ class CreateScheduleStore extends ChangeNotifier {
   late DateTime scheduleDate;
 
   bool isRoughScheduleMade = false;
-  List selectedSchedulesKor = [];
-  List selectedSchedulesEng = [];
   List<Place> selectedSchedulesPlaces = [];
   List<Map> roughSchedule = [];
   /* 
@@ -117,24 +117,19 @@ class CreateScheduleStore extends ChangeNotifier {
           ends_at: "HH:MM:SS",
           duration: "HH:MM:SS",
           place_type: "cafe"
+          place: Widget<Place>
         }
       },
       ...
     ]
-
-    참고로 Dart에서의 TimeOfDay는 초단위는 세지 않음
   */
 
-  addSchedule(
-      String selectedPlaceTypeKor, String selectedPlaceTypeEng, Place place) {
-    selectedSchedulesKor.add(selectedPlaceTypeKor);
-    selectedSchedulesEng.add(selectedPlaceTypeEng);
-    selectedSchedulesPlaces.add(place);
+  addSchedule(Place place) {
     isRoughScheduleMade = true;
 
     String starts_at = "", ends_at = "", duration = "01:00:00";
 
-    if (roughSchedule.length != 0) {
+    if (roughSchedule.isNotEmpty) {
       starts_at = roughSchedule[roughSchedule.length - 1]["detail"]["ends_at"];
       List<String> tempArr = roughSchedule[roughSchedule.length - 1]["detail"]
               ["ends_at"]
@@ -158,129 +153,20 @@ class CreateScheduleStore extends ChangeNotifier {
         "starts_at": starts_at,
         "ends_at": ends_at,
         "duration": duration,
-        "place_type": selectedPlaceTypeEng
+        "place_type": place.nameEng,
+        "place": place
       }
     });
-
     notifyListeners();
   }
-}
 
-// Vertical Timeline
-
-const double ITEM_HEIGHT = 72;
-const int HOURS = 24;
-
-class VerticalTimeLine extends StatefulWidget {
-  const VerticalTimeLine({Key? key}) : super(key: key);
-
-  @override
-  State<VerticalTimeLine> createState() => _VerticalTimeLineState();
-}
-
-class _VerticalTimeLineState extends State<VerticalTimeLine> {
-  final double initScrollOffset = ITEM_HEIGHT * 8 - 20;
-  late final ScrollController _scrollController = ScrollController(
-      initialScrollOffset: initScrollOffset, keepScrollOffset: false);
-
-  Widget _buildRoughScheduleBoxColumn() {
-    List<Place> places =
-        context.watch<CreateScheduleStore>().selectedSchedulesPlaces;
-    List<Map> roughSchedule =
-        context.watch<CreateScheduleStore>().roughSchedule;
-
-    return Column(
-      children: roughSchedule.map(_buildRoughScheduleBoxes).toList(),
-    );
+  removeSchedule(int oldIndex) {
+    roughSchedule.removeAt(oldIndex);
+    notifyListeners();
   }
 
-  Widget _buildRoughScheduleBoxes(Map roughScheduleBox) {
-    return Container(
-      height: 10,
-      child: Text(roughScheduleBox["detail"]["place_type"]),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
-      scrollDirection: Axis.vertical,
-      child: Stack(children: [
-        Row(
-          children: [
-            Expanded(
-                flex: 20,
-                child: Column(
-                  children: [
-                    for (int i = 0; i < HOURS + 1; i++)
-                      SizedBox(
-                        height:
-                            i != 0 && i != 24 ? ITEM_HEIGHT : ITEM_HEIGHT / 2,
-                        child: i != 0 && i != 24
-                            ? Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  (i.toString() + (i < 12 ? ' AM' : ' PM')),
-                                  style: mainFont(
-                                      color: subTextColor, fontSize: 12),
-                                ))
-                            : null,
-                      )
-                  ],
-                )),
-            const SizedBox(
-              width: 5,
-            ),
-            Expanded(
-              flex: 70,
-              child: Container(
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(20)),
-                clipBehavior: Clip.hardEdge,
-                child: Column(
-                  children: [
-                    for (int i = 0; i < HOURS; i++)
-                      Column(
-                        children: [
-                          Container(
-                            width: double.infinity,
-                            height: ITEM_HEIGHT,
-                            color: skyBlue,
-                          ),
-                          const Divider(
-                            height: 0,
-                            indent: 10,
-                            endIndent: 10,
-                            thickness: 1,
-                            color: Colors.white,
-                          )
-                        ],
-                      )
-                  ],
-                ),
-              ),
-            ),
-            const Expanded(
-              flex: 5,
-              child: SizedBox(),
-            ),
-          ],
-        ),
-        Positioned.fill(
-          child: Row(
-            children: [
-              const Expanded(flex: 20, child: SizedBox()),
-              const SizedBox(
-                width: 5,
-              ),
-              Expanded(flex: 70, child: _buildRoughScheduleBoxColumn()),
-              const Expanded(flex: 5, child: SizedBox()),
-            ],
-          ),
-        )
-      ]),
-    );
+  insertScheduleToNewOrder(int newIndex, Map schedule) {
+    roughSchedule.insert(newIndex, schedule);
+    notifyListeners();
   }
 }

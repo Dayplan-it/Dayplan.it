@@ -43,8 +43,7 @@ class RecommendedSchedulesGrid extends StatelessWidget {
               final Place place = places[index];
 
               return ElevatedButton.icon(
-                onPressed: () =>
-                    scheduleTypeSelected(place.nameKor, place.nameEng, place),
+                onPressed: () => scheduleTypeSelected(place),
                 style: ElevatedButton.styleFrom(
                     elevation: 2,
                     primary: Colors.white,
