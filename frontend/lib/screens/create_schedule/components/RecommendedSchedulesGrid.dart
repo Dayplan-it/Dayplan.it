@@ -1,35 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/create_schedule_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/place_rough.dart';
 
 class RecommendedSchedulesGrid extends StatelessWidget {
-  const RecommendedSchedulesGrid(
-      {Key? key,
-      required this.scheduleTypeSelected,
-      required this.addCustomBlockBtnClicked})
-      : super(key: key);
-  final scheduleTypeSelected;
-  final addCustomBlockBtnClicked;
+  const RecommendedSchedulesGrid({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    late List<Place> places = <Place>[];
+    late List<PlaceRough> places = <PlaceRough>[];
+    late List<IconData> placeIcons = <IconData>[];
     for (var place in placeTypes) {
-      places.add(Place(
+      places.add(PlaceRough(
           nameKor: place[1],
           nameEng: place[0],
           color: place[2],
-          iconData: place[3]));
+
+          // 아래는 임시로 부여하는 시간 데이터
+          startsAt: DateTime.now(),
+          endsAt: DateTime.now(),
+          duration: const Duration(seconds: 1)));
+
+      // 아이콘 저장
+      placeIcons.add(place[3]);
     }
+
+    // 박스 사이즈는 Expended로, 직접 결정해줄 필요 없음
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(color: Color.fromARGB(29, 0, 0, 0), blurRadius: 30)
-          ]),
+          borderRadius: defaultBoxRadius,
+          boxShadow: defaultBoxShadow),
       clipBehavior: Clip.hardEdge,
       child: Stack(children: [
         GridView.builder(
@@ -41,17 +46,19 @@ class RecommendedSchedulesGrid extends StatelessWidget {
                 childAspectRatio: 2 / 1),
             itemCount: placeTypes.length,
             itemBuilder: (BuildContext context, int index) {
-              final Place place = places[index];
+              final PlaceRough place = places[index];
+              final IconData placeIcon = placeIcons[index];
 
               return ElevatedButton.icon(
-                onPressed: () => scheduleTypeSelected(place),
+                onPressed: () =>
+                    context.read<CreateScheduleStore>().addRoughSchedule(place),
                 style: ElevatedButton.styleFrom(
                     elevation: 2,
                     primary: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20))),
+                    shape:
+                        RoundedRectangleBorder(borderRadius: defaultBoxRadius)),
                 icon: FaIcon(
-                  place.iconData,
+                  placeIcon,
                   color: place.color,
                   size: 15,
                 ),
@@ -69,13 +76,13 @@ class RecommendedSchedulesGrid extends StatelessWidget {
           bottom: 2,
           right: 2,
           child: ElevatedButton.icon(
-              onPressed: () {
-                addCustomBlockBtnClicked();
-              },
+              onPressed: () => context
+                  .read<CreateScheduleStore>()
+                  .onStartMakingCustomBlock(),
               style: ElevatedButton.styleFrom(
                   primary: primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20))),
+                  shape:
+                      RoundedRectangleBorder(borderRadius: defaultBoxRadius)),
               icon: const Icon(
                 Icons.add_circle_outline,
                 color: Colors.white,

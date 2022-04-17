@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
-import 'package:dayplan_it/screens/create_schedule/create_schedule_screen.dart';
 import 'package:dayplan_it/screens/create_schedule/components/scheduleBox.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/place_rough.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
-const double itemHeight = 85;
-const int hours = 24;
-
-const double timeLineWidth = 120;
-
+/// 타임라인 위젯
+/// 전체적으로 다음과 같은 순서로 진행됨
+/// 1. 타임라인을 그림
+/// 2. 타임라인 위에 올려질 스케줄 블록을 Stack
+///   2-1. isDragging에 따라 모양이 바뀜
 class TimeLine extends StatefulWidget {
   const TimeLine({Key? key}) : super(key: key);
 
@@ -17,35 +19,24 @@ class TimeLine extends StatefulWidget {
 }
 
 class _TimeLineState extends State<TimeLine> {
-  final double timeLineFullHeight = itemHeight * hours;
+  // 처음에는 8시 - 20만큼에서 타임라인바 시작
   final ScrollController _scrollController = ScrollController(
       initialScrollOffset: (itemHeight * 8 - 20), keepScrollOffset: false);
 
-  double _scheduleStartHeight = itemHeight * 8;
-  double currentTimeLineOffset = itemHeight * 8 - 20;
-
-  _setScheduleStartHeight(double scheduleStartHeight) {
-    setState(() {
-      _scheduleStartHeight = scheduleStartHeight;
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      context.read<CreateScheduleStore>().scheduleAddHeight =
+          _scrollController.position.pixels + 20;
     });
   }
 
-  Widget _buildRoughScheduleBoxes(
-      Map roughScheduleBox, int roughScheduleIndex) {
-    Place place = roughScheduleBox["detail"]["place"];
-    return ScheduleBox(
-        place: place,
-        roughScheduleIndex: roughScheduleIndex,
-        scheduleStartHeight: _scheduleStartHeight,
-        setScheduleStartHeight: _setScheduleStartHeight);
-  }
-
   Widget _buildRoughScheduleBoxColumn() {
-    List<Map> roughSchedule =
+    List<PlaceRough> roughSchedule =
         context.watch<CreateScheduleStore>().roughSchedule;
 
     if (roughSchedule.isEmpty) {
-      _setScheduleStartHeight(currentTimeLineOffset + 20);
       return const SizedBox();
     } else {
       return Stack(
@@ -53,10 +44,14 @@ class _TimeLineState extends State<TimeLine> {
           Column(
             children: [
               SizedBox(
-                height: _scheduleStartHeight,
+                height:
+                    context.watch<CreateScheduleStore>().scheduleStartHeight,
               ),
               for (int i = 0; i < roughSchedule.length; i++)
-                _buildRoughScheduleBoxes(roughSchedule[i], i)
+                ScheduleBoxRough(
+                  place: roughSchedule[i],
+                  index: i,
+                )
             ],
           ),
           Positioned.fill(
@@ -65,36 +60,40 @@ class _TimeLineState extends State<TimeLine> {
                       Column(
                         children: [
                           SizedBox(
-                            height: _scheduleStartHeight,
+                            height: context
+                                .watch<CreateScheduleStore>()
+                                .scheduleStartHeight,
                           ),
                           for (int i = 0; i < roughSchedule.length; i++)
                             if (context
                                     .read<CreateScheduleStore>()
                                     .currentlyDragging ==
                                 i)
-                              ScheduleBoxWhenDraggingDummy(
-                                  roughSchedule: roughSchedule,
-                                  roughScheduleIndex: i,
-                                  selected: true)
+                              ScheduleBoxWhenDragging(
+                                  placeRough: roughSchedule[i],
+                                  index: i,
+                                  dragging: true)
                             else
                               ScheduleBoxWhenDragging(
-                                  roughSchedule: roughSchedule,
-                                  roughScheduleIndex: i)
+                                  placeRough: roughSchedule[i], index: i)
                         ],
                       ),
                       Positioned.fill(
                           child: Column(
                         children: [
                           SizedBox(
-                            height: _scheduleStartHeight - itemHeight / 10,
+                            height: context
+                                    .watch<CreateScheduleStore>()
+                                    .scheduleStartHeight -
+                                itemHeight / 10,
                           ),
                           for (int i = 0; i < roughSchedule.length * 2 + 1; i++)
                             if (i % 2 == 0)
                               ScheduleBoxDragTarget(targetId: i)
                             else
                               ScheduleBoxWhenDraggingDummy(
-                                  roughSchedule: roughSchedule,
-                                  roughScheduleIndex: (i / 2).floor())
+                                  placeRough: roughSchedule[(i / 2).floor()],
+                                  index: (i / 2).floor())
                         ],
                       ))
                     ])
@@ -102,18 +101,6 @@ class _TimeLineState extends State<TimeLine> {
         ],
       );
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    //context.read<CreateScheduleStore>().setScheduleStartHeight(itemHeight * 8);
-
-    _scrollController.addListener(() {
-      setState(() {
-        currentTimeLineOffset = _scrollController.position.pixels;
-      });
-    });
   }
 
   @override
@@ -158,8 +145,8 @@ class TimelineBackground extends StatelessWidget {
               children: [
                 for (int i = 0; i < hours + 1; i++)
                   SizedBox(
-                    height: i != 0 && i != 24 ? itemHeight : itemHeight / 2,
-                    child: i != 0 && i != 24
+                    height: i != 0 && i != hours ? itemHeight : itemHeight / 2,
+                    child: i != 0 && i != hours
                         ? Align(
                             alignment: Alignment.centerRight,
                             child: Text(
