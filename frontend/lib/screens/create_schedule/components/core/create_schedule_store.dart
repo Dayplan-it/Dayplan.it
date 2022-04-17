@@ -186,4 +186,10 @@ class CreateScheduleStore extends ChangeNotifier {
     isCustomBlockBeingMade = true;
     notifyListeners();
   }
+
+  /// 커스텀 블록 생성 끝
+  onEndMakingCustomBlock() {
+    isCustomBlockBeingMade = false;
+    notifyListeners();
+  }
 }

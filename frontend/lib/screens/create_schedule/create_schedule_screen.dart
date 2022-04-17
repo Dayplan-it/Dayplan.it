@@ -5,7 +5,7 @@ import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/RecommendedSchedulesGrid.dart';
-import 'package:dayplan_it/screens/create_schedule/components/noSelectedSchedule.dart';
+import 'package:dayplan_it/screens/create_schedule/components/bottom_right_space.dart';
 import 'package:dayplan_it/screens/create_schedule/components/timeline_vertical.dart';
 
 class CreateScheduleScreen extends StatelessWidget {
@@ -71,7 +71,11 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                                   .isCustomBlockBeingMade
                               ? 180
                               : 40)
-                          : 0),
+                          : (context
+                                  .watch<CreateScheduleStore>()
+                                  .isCustomBlockBeingMade
+                              ? 180
+                              : 0)),
                       child: _buildBottomRight(context)),
                   ElevatedButton(
                       onPressed: context
@@ -87,7 +91,10 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                               borderRadius: defaultBoxRadius)),
                       child: Text(
                         "일정 결정",
-                        style: mainFont(),
+                        style: mainFont(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ))
                 ],
               ))
@@ -101,23 +108,10 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
         !context.watch<CreateScheduleStore>().isCustomBlockBeingMade) {
       return const NoScheduleText();
     } else if (context.watch<CreateScheduleStore>().isCustomBlockBeingMade) {
-      return CreateCustomBlock();
+      return const CreateCustomBlock();
     } else {
       return const SizedBox();
     }
-  }
-}
-
-class CreateCustomBlock extends StatelessWidget {
-  const CreateCustomBlock({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.red,
-    );
   }
 }
 

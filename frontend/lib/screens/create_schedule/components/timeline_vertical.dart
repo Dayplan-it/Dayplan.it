@@ -83,9 +83,9 @@ class _TimeLineState extends State<TimeLine> {
                         children: [
                           SizedBox(
                             height: context
-                                    .watch<CreateScheduleStore>()
+                                    .read<CreateScheduleStore>()
                                     .scheduleStartHeight -
-                                itemHeight / 10,
+                                reorderDragTargetHeight / 2,
                           ),
                           for (int i = 0; i < roughSchedule.length * 2 + 1; i++)
                             if (i % 2 == 0)

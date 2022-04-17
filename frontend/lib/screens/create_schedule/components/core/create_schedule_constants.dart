@@ -8,6 +8,9 @@ const double itemHeight = 85;
 /// 타임라인을 몇시간으로 설정할 것인지 (24시간)
 const int hours = 24;
 
+/// 순서 조정시 생기는 DragTarget 높이
+const double reorderDragTargetHeight = itemHeight / 5;
+
 /// 최소한의 스케줄 블록 사이즈를 Duration으로 결정
 const Duration minimumScheduleBoxDuration = Duration(minutes: 30);
 

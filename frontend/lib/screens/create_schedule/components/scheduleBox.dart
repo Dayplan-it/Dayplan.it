@@ -30,13 +30,21 @@ class _ScheduleBoxRoughState extends State<ScheduleBoxRough> {
       height: boxHeight,
       width: timeLineWidth,
       alignment: Alignment.center,
-      child: Text(
-        widget.place.nameKor,
-        style: mainFont(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            fontSize: itemHeight / 5,
-            letterSpacing: 1),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.fitWidth,
+            child: Text(
+              widget.place.nameKor,
+              style: mainFont(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: itemHeight / 5,
+                  letterSpacing: 1),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -84,14 +92,20 @@ class _ScheduleBoxRoughState extends State<ScheduleBoxRough> {
                         .onDragStart(widget.index),
                     onDraggableCanceled: (velocity, offset) =>
                         context.read<CreateScheduleStore>().onDragEnd(),
-                    child: Center(
-                      child: Text(
-                        widget.place.nameKor,
-                        style: mainFont(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            fontSize: itemHeight / 5,
-                            letterSpacing: 1),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: Text(
+                            widget.place.nameKor,
+                            style: mainFont(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                fontSize: itemHeight / 5,
+                                letterSpacing: 1),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -175,13 +189,22 @@ class ScheduleBoxWhenDragging extends StatelessWidget {
       height: durationToHeight(placeRough.duration),
       width: timeLineWidth,
       alignment: Alignment.center,
-      child: Text(
-        placeRough.nameKor,
-        style: mainFont(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            fontSize: itemHeight / 5,
-            letterSpacing: 1),
+      child: Padding(
+        padding:
+            dragging ? const EdgeInsets.all(3.0) : const EdgeInsets.all(8.0),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.fitWidth,
+            child: Text(
+              placeRough.nameKor,
+              style: mainFont(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: itemHeight / 5,
+                  letterSpacing: 1),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -202,17 +225,18 @@ class ScheduleBoxWhenDraggingDummy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double boxHeight = durationToHeight(placeRough.duration);
+    double boxHeight =
+        durationToHeight(placeRough.duration) - reorderDragTargetHeight;
 
-    if ((index == 0 ||
-            index ==
-                context.read<CreateScheduleStore>().roughSchedule.length - 1) &&
-        context.read<CreateScheduleStore>().roughSchedule.length != 1) {
-      boxHeight -= itemHeight / 20;
-    } else if (context.read<CreateScheduleStore>().roughSchedule.length != 1 ||
-        selectedNeighbor) {
-      boxHeight -= itemHeight / 10;
-    }
+    // if ((index == 0 ||
+    //         index ==
+    //             context.read<CreateScheduleStore>().roughSchedule.length - 1) &&
+    //     context.read<CreateScheduleStore>().roughSchedule.length != 1) {
+    //   boxHeight -= reorderDragTargetHeight / 2;
+    // } else if (context.read<CreateScheduleStore>().roughSchedule.length != 1 ||
+    //     selectedNeighbor) {
+    //   boxHeight -= reorderDragTargetHeight;
+    // }
 
     return SizedBox(
       height: boxHeight,
@@ -238,19 +262,19 @@ class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
       builder: (context, candidateData, rejectedData) {
         return isHovered
             ? Container(
-                height: itemHeight / 10,
+                height: reorderDragTargetHeight,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: const Color.fromARGB(255, 129, 197, 253),
+                  color: Color.fromARGB(232, 129, 197, 253),
                 ),
               )
             : Container(
-                height: itemHeight / 10,
+                height: reorderDragTargetHeight,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: Colors.blue,
+                  color: Color.fromARGB(148, 33, 149, 243),
                 ),
               );
       },
