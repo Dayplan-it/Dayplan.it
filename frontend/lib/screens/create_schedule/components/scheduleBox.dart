@@ -79,16 +79,14 @@ class _ScheduleBoxState extends State<ScheduleBox> {
       delay: const Duration(milliseconds: 100),
       data: widget.roughScheduleIndex,
       onDragEnd: (DraggableDetails details) {
-        // print('onDragEnd');
-        // print('wasAccepted: ${details.wasAccepted}');
-        // print('velocity: ${details.velocity}');
-        // print('offset: ${details.offset}');
         context.read<CreateScheduleStore>().onDragEnd(details.offset);
         widget.setScheduleStartHeight(
             context.read<CreateScheduleStore>().scheduleStartHeight);
       },
       onDragStarted: () {
-        context.read<CreateScheduleStore>().onDragStart();
+        context
+            .read<CreateScheduleStore>()
+            .onDragStart(widget.roughScheduleIndex);
         context.read<CreateScheduleStore>().scheduleStartHeight =
             widget.scheduleStartHeight;
       },
@@ -106,11 +104,10 @@ class _ScheduleBoxState extends State<ScheduleBox> {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
-            const Expanded(
+            Expanded(
               flex: 1,
               child: ScheduleBoxUpDown(
-                isUp: true,
-              ),
+                  isUp: true, roughScheduleIndex: widget.roughScheduleIndex),
             ),
             Expanded(
               flex: 4,
@@ -125,11 +122,10 @@ class _ScheduleBoxState extends State<ScheduleBox> {
                 ),
               ),
             ),
-            const Expanded(
+            Expanded(
               flex: 1,
               child: ScheduleBoxUpDown(
-                isUp: false,
-              ),
+                  isUp: false, roughScheduleIndex: widget.roughScheduleIndex),
             ),
           ],
         ),
@@ -140,26 +136,50 @@ class _ScheduleBoxState extends State<ScheduleBox> {
 }
 
 class ScheduleBoxUpDown extends StatelessWidget {
-  const ScheduleBoxUpDown({Key? key, required this.isUp}) : super(key: key);
+  const ScheduleBoxUpDown(
+      {Key? key, required this.isUp, required this.roughScheduleIndex})
+      : super(key: key);
   final bool isUp;
+  final int roughScheduleIndex;
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(0),
-        primary: const Color.fromARGB(71, 255, 255, 255),
-        fixedSize: const Size(double.maxFinite, itemHeight / 6),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        elevation: 0,
+    return Draggable(
+      axis: Axis.vertical,
+      feedback: SizedBox(),
+      child: Container(
+        height: itemHeight / 6,
+        width: double.maxFinite,
+        alignment: Alignment.center,
+        color: const Color.fromARGB(71, 255, 255, 255),
+        child: Icon(
+          isUp ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+          size: itemHeight / 5,
+        ),
       ),
-      child: Icon(
-        isUp ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-        size: itemHeight / 5,
-      ),
-      onPressed: () {},
-      clipBehavior: Clip.hardEdge,
+      onDragStarted: () {
+        print('스케쥴박스 늘린드아');
+      },
     );
+    //   style: ElevatedButton.styleFrom(
+    //     padding: const EdgeInsets.all(0),
+    //     primary: const Color.fromARGB(71, 255, 255, 255),
+    //     fixedSize: const Size(double.maxFinite, itemHeight / 6),
+    //     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    //     elevation: 0,
+    //   ),
+    //   child: Icon(
+    //     isUp ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+    //     size: itemHeight / 5,
+    //   ),
+    //   onPressed: () {},
+    //   onLongPress: () {
+    //     if (isUp) {
+    //       context.read<CreateScheduleStore>().roughSchedule[roughScheduleIndex]
+    //           ["detail"]["duration"];
+    //     }
+    //   },
+    // );
   }
 }
 
@@ -202,10 +222,16 @@ class ScheduleBoxWhenDragging extends StatelessWidget {
 
 class ScheduleBoxWhenDraggingDummy extends StatelessWidget {
   const ScheduleBoxWhenDraggingDummy(
-      {Key? key, required this.roughSchedule, required this.roughScheduleIndex})
+      {Key? key,
+      required this.roughSchedule,
+      required this.roughScheduleIndex,
+      this.selected = false,
+      this.selectedNeighbor = false})
       : super(key: key);
   final List<Map> roughSchedule;
   final int roughScheduleIndex;
+  final bool selected;
+  final bool selectedNeighbor;
 
   @override
   Widget build(BuildContext context) {
@@ -216,12 +242,14 @@ class ScheduleBoxWhenDraggingDummy extends StatelessWidget {
             double.parse(durationArr[2]) / 3600) *
         itemHeight;
 
-    if ((roughScheduleIndex == 0 ||
-            roughScheduleIndex == roughSchedule.length - 1) &&
-        roughSchedule.length != 1) {
-      boxHeight -= itemHeight / 20;
-    } else if (roughSchedule.length != 1) {
-      boxHeight -= itemHeight / 10;
+    if (!selected) {
+      if ((roughScheduleIndex == 0 ||
+              roughScheduleIndex == roughSchedule.length - 1) &&
+          roughSchedule.length != 1) {
+        boxHeight -= itemHeight / 20;
+      } else if (roughSchedule.length != 1 || selectedNeighbor) {
+        boxHeight -= itemHeight / 10;
+      }
     }
 
     return SizedBox(
@@ -231,28 +259,54 @@ class ScheduleBoxWhenDraggingDummy extends StatelessWidget {
 }
 
 class ScheduleBoxDragTarget extends StatefulWidget {
-  const ScheduleBoxDragTarget({Key? key}) : super(key: key);
+  const ScheduleBoxDragTarget({Key? key, required this.targetId})
+      : super(key: key);
+  final int targetId;
 
   @override
   State<ScheduleBoxDragTarget> createState() => _ScheduleBoxDragTargetState();
 }
 
 class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
+  bool isHovered = false;
+
   @override
   Widget build(BuildContext context) {
     return DragTarget(
       builder: (context, candidateData, rejectedData) {
-        return Container(
-          height: itemHeight / 10,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.blue,
-          ),
-        );
+        return isHovered
+            ? Container(
+                height: itemHeight / 10,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: const Color.fromARGB(255, 129, 197, 253),
+                ),
+              )
+            : Container(
+                height: itemHeight / 10,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.blue,
+                ),
+              );
       },
       onWillAccept: (data) {
+        setState(() {
+          isHovered = true;
+        });
         return true;
+      },
+      onLeave: (data) {
+        setState(() {
+          isHovered = false;
+        });
+      },
+      onAcceptWithDetails: (DragTargetDetails details) {
+        context
+            .read<CreateScheduleStore>()
+            .onChangeScheduleOrder(details.data, (widget.targetId / 2).floor());
       },
     );
   }

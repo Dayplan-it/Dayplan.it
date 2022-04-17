@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/screens/create_schedule/create_schedule_screen.dart';
@@ -50,48 +51,59 @@ class _TimeLineState extends State<TimeLine> {
       scheduleStartHeight = currentTimeLineOffset + 20;
       return const SizedBox();
     } else {
-      return Column(children: [
-        SizedBox(
-          height: scheduleStartHeight,
-        ),
-        Stack(
-          children: [
-            Column(
-              children: [
-                for (int i = 0; i < roughSchedule.length; i++)
-                  _buildRoughScheduleBoxes(roughSchedule[i], i)
-              ],
-            ),
-            Positioned.fill(
-                child: context.watch<CreateScheduleStore>().isDragging
-                    ? Stack(children: [
-                        Column(
-                          children: [
-                            for (int i = 0; i < roughSchedule.length; i++)
+      return Stack(
+        children: [
+          Column(
+            children: [
+              SizedBox(
+                height: scheduleStartHeight,
+              ),
+              for (int i = 0; i < roughSchedule.length; i++)
+                _buildRoughScheduleBoxes(roughSchedule[i], i)
+            ],
+          ),
+          Positioned.fill(
+              child: context.watch<CreateScheduleStore>().isDragging
+                  ? Stack(children: [
+                      Column(
+                        children: [
+                          SizedBox(
+                            height: scheduleStartHeight,
+                          ),
+                          for (int i = 0; i < roughSchedule.length; i++)
+                            if (context
+                                    .read<CreateScheduleStore>()
+                                    .currentlyDragging ==
+                                i)
+                              ScheduleBoxWhenDraggingDummy(
+                                  roughSchedule: roughSchedule,
+                                  roughScheduleIndex: i,
+                                  selected: true)
+                            else
                               ScheduleBoxWhenDragging(
                                   roughSchedule: roughSchedule,
                                   roughScheduleIndex: i)
-                          ],
-                        ),
-                        Positioned.fill(
-                            child: Column(
-                          children: [
-                            for (int i = 0;
-                                i < roughSchedule.length * 2 - 1;
-                                i++)
-                              if (i % 2 == 0)
-                                ScheduleBoxWhenDraggingDummy(
-                                    roughSchedule: roughSchedule,
-                                    roughScheduleIndex: (i / 2).round())
-                              else
-                                const ScheduleBoxDragTarget()
-                          ],
-                        ))
-                      ])
-                    : const SizedBox())
-          ],
-        )
-      ]);
+                        ],
+                      ),
+                      Positioned.fill(
+                          child: Column(
+                        children: [
+                          SizedBox(
+                            height: scheduleStartHeight - itemHeight / 10,
+                          ),
+                          for (int i = 0; i < roughSchedule.length * 2 + 1; i++)
+                            if (i % 2 == 0)
+                              ScheduleBoxDragTarget(targetId: i)
+                            else
+                              ScheduleBoxWhenDraggingDummy(
+                                  roughSchedule: roughSchedule,
+                                  roughScheduleIndex: (i / 2).floor())
+                        ],
+                      ))
+                    ])
+                  : const SizedBox())
+        ],
+      );
     }
   }
 
@@ -99,8 +111,10 @@ class _TimeLineState extends State<TimeLine> {
   void initState() {
     super.initState();
     _scrollController.addListener(() {
+      // print(_scrollController.position.pixels);
+
       setState(() {
-        currentTimeLineOffset = _scrollController.offset;
+        currentTimeLineOffset = _scrollController.position.pixels;
       });
     });
   }

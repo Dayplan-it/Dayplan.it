@@ -200,6 +200,9 @@ class CreateScheduleStore extends ChangeNotifier {
 
   double scheduleStartHeight = 0;
   bool isDragging = false;
+
+  int currentlyDragging = 0;
+
   Offset droppedBoxOffset = const Offset(0, 0);
   Offset draggingBoxOffset = const Offset(0, 0);
   List<Place> selectedSchedulesPlaces = [];
@@ -256,14 +259,24 @@ class CreateScheduleStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  onDragEnd(Offset? droppedBoxOffset) {
+  onDragEnd(Offset _droppedBoxOffset) {
     isDragging = false;
-    droppedBoxOffset = droppedBoxOffset;
+    droppedBoxOffset = _droppedBoxOffset;
     notifyListeners();
   }
 
-  onDragStart() {
+  onDragStart(int _currentlyDragging) {
     isDragging = true;
+    currentlyDragging = _currentlyDragging;
+    notifyListeners();
+  }
+
+  onChangeScheduleOrder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) {
+      newIndex = newIndex - 1;
+    }
+    final Map temp = roughSchedule.removeAt(oldIndex);
+    roughSchedule.insert(newIndex, temp);
     notifyListeners();
   }
 }
