@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/screens/create_schedule/create_schedule_screen.dart';
@@ -19,28 +18,26 @@ class TimeLine extends StatefulWidget {
 
 class _TimeLineState extends State<TimeLine> {
   final double timeLineFullHeight = itemHeight * hours;
-  final double initScrollOffset = itemHeight * 8 - 20;
   final ScrollController _scrollController = ScrollController(
       initialScrollOffset: (itemHeight * 8 - 20), keepScrollOffset: false);
 
-  double scheduleStartHeight = itemHeight * 8;
-  _setScheduleStartHeight(double _scheduleStartHeight) {
+  double _scheduleStartHeight = itemHeight * 8;
+  double currentTimeLineOffset = itemHeight * 8 - 20;
+
+  _setScheduleStartHeight(double scheduleStartHeight) {
     setState(() {
-      scheduleStartHeight = _scheduleStartHeight;
+      _scheduleStartHeight = scheduleStartHeight;
     });
   }
-
-  double currentTimeLineOffset = itemHeight * 8 - 20;
 
   Widget _buildRoughScheduleBoxes(
       Map roughScheduleBox, int roughScheduleIndex) {
     Place place = roughScheduleBox["detail"]["place"];
     return ScheduleBox(
-      place: place,
-      roughScheduleIndex: roughScheduleIndex,
-      scheduleStartHeight: scheduleStartHeight,
-      setScheduleStartHeight: _setScheduleStartHeight,
-    );
+        place: place,
+        roughScheduleIndex: roughScheduleIndex,
+        scheduleStartHeight: _scheduleStartHeight,
+        setScheduleStartHeight: _setScheduleStartHeight);
   }
 
   Widget _buildRoughScheduleBoxColumn() {
@@ -48,7 +45,7 @@ class _TimeLineState extends State<TimeLine> {
         context.watch<CreateScheduleStore>().roughSchedule;
 
     if (roughSchedule.isEmpty) {
-      scheduleStartHeight = currentTimeLineOffset + 20;
+      _setScheduleStartHeight(currentTimeLineOffset + 20);
       return const SizedBox();
     } else {
       return Stack(
@@ -56,7 +53,7 @@ class _TimeLineState extends State<TimeLine> {
           Column(
             children: [
               SizedBox(
-                height: scheduleStartHeight,
+                height: _scheduleStartHeight,
               ),
               for (int i = 0; i < roughSchedule.length; i++)
                 _buildRoughScheduleBoxes(roughSchedule[i], i)
@@ -68,7 +65,7 @@ class _TimeLineState extends State<TimeLine> {
                       Column(
                         children: [
                           SizedBox(
-                            height: scheduleStartHeight,
+                            height: _scheduleStartHeight,
                           ),
                           for (int i = 0; i < roughSchedule.length; i++)
                             if (context
@@ -89,7 +86,7 @@ class _TimeLineState extends State<TimeLine> {
                           child: Column(
                         children: [
                           SizedBox(
-                            height: scheduleStartHeight - itemHeight / 10,
+                            height: _scheduleStartHeight - itemHeight / 10,
                           ),
                           for (int i = 0; i < roughSchedule.length * 2 + 1; i++)
                             if (i % 2 == 0)
@@ -110,9 +107,9 @@ class _TimeLineState extends State<TimeLine> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(() {
-      // print(_scrollController.position.pixels);
+    //context.read<CreateScheduleStore>().setScheduleStartHeight(itemHeight * 8);
 
+    _scrollController.addListener(() {
       setState(() {
         currentTimeLineOffset = _scrollController.position.pixels;
       });

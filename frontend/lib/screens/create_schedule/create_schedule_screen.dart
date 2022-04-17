@@ -198,7 +198,7 @@ class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
 class CreateScheduleStore extends ChangeNotifier {
   late DateTime scheduleDate;
 
-  double scheduleStartHeight = 0;
+  double scheduleStartHeight = itemHeight * 8;
   bool isDragging = false;
 
   int currentlyDragging = 0;
@@ -277,6 +277,25 @@ class CreateScheduleStore extends ChangeNotifier {
     }
     final Map temp = roughSchedule.removeAt(oldIndex);
     roughSchedule.insert(newIndex, temp);
+
+    roughSchedule[oldIndex];
+    print(roughSchedule[newIndex]);
+
+    notifyListeners();
+  }
+
+  setScheduleStartHeight(double newHeight) {
+    scheduleStartHeight = newHeight;
+    notifyListeners();
+  }
+
+  changeDurationOfSchedule(int scheduleIndex, String newDuration,
+      String newTime, bool isChangeStart) {
+    roughSchedule[scheduleIndex]["detail"]["duration"] = newDuration;
+
+    if (isChangeStart) {
+      roughSchedule[scheduleIndex]["detail"]["starts_at"] = newTime;
+    }
     notifyListeners();
   }
 }

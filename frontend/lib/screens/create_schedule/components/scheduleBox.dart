@@ -16,7 +16,7 @@ class ScheduleBox extends StatefulWidget {
   final Place place;
   final int roughScheduleIndex;
   final double scheduleStartHeight;
-  late Function setScheduleStartHeight;
+  final Function setScheduleStartHeight;
 
   @override
   State<ScheduleBox> createState() => _ScheduleBoxState();
@@ -74,73 +74,101 @@ class _ScheduleBoxState extends State<ScheduleBox> {
             double.parse(durationArr[2]) / 3600) *
         itemHeight;
 
-    return LongPressDraggable(
-      feedback: _onLongPress(boxHeight),
-      delay: const Duration(milliseconds: 100),
-      data: widget.roughScheduleIndex,
-      onDragEnd: (DraggableDetails details) {
-        context.read<CreateScheduleStore>().onDragEnd(details.offset);
-        widget.setScheduleStartHeight(
-            context.read<CreateScheduleStore>().scheduleStartHeight);
-      },
-      onDragStarted: () {
-        context
-            .read<CreateScheduleStore>()
-            .onDragStart(widget.roughScheduleIndex);
-        context.read<CreateScheduleStore>().scheduleStartHeight =
-            widget.scheduleStartHeight;
-      },
-      onDragUpdate: (DragUpdateDetails details) => context
-          .read<CreateScheduleStore>()
-          .draggingBoxOffset = details.globalPosition,
-      onDraggableCanceled: (velocity, offset) {
-        context.read<CreateScheduleStore>().onDragEnd(offset);
-      },
-      child: Container(
+    return Container(
         decoration: BoxDecoration(
             color: widget.place.color, borderRadius: BorderRadius.circular(20)),
         height: boxHeight,
         width: double.infinity,
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            Expanded(
-              flex: 1,
-              child: ScheduleBoxUpDown(
-                  isUp: true, roughScheduleIndex: widget.roughScheduleIndex),
-            ),
-            Expanded(
-              flex: 4,
-              child: Center(
-                child: Text(
-                  widget.place.nameKor,
-                  style: mainFont(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      fontSize: itemHeight / 5,
-                      letterSpacing: 1),
+        child: Stack(children: [
+          Column(
+            children: [
+              Expanded(
+                flex: 1,
+                child: ScheduleBoxUpDown(
+                  isUp: true,
+                  roughScheduleIndex: widget.roughScheduleIndex,
+                  scheduleStartHeight: widget.scheduleStartHeight,
+                  setScheduleStartHeight: widget.setScheduleStartHeight,
                 ),
               ),
+              const Expanded(flex: 4, child: SizedBox()),
+              Expanded(
+                flex: 1,
+                child: ScheduleBoxUpDown(
+                  isUp: false,
+                  roughScheduleIndex: widget.roughScheduleIndex,
+                  scheduleStartHeight: widget.scheduleStartHeight,
+                  setScheduleStartHeight: widget.setScheduleStartHeight,
+                ),
+              ),
+            ],
+          ),
+          Positioned.fill(
+            child: Column(
+              children: [
+                Expanded(
+                  flex: context.read<CreateScheduleStore>().isDragging ? 0 : 1,
+                  child: const SizedBox(),
+                ),
+                Expanded(
+                  flex: 4,
+                  child: LongPressDraggable(
+                    feedback: _onLongPress(boxHeight),
+                    delay: const Duration(milliseconds: 100),
+                    data: widget.roughScheduleIndex,
+                    onDragEnd: (DraggableDetails details) {
+                      context
+                          .read<CreateScheduleStore>()
+                          .onDragEnd(details.offset);
+                    },
+                    onDragStarted: () {
+                      context
+                          .read<CreateScheduleStore>()
+                          .onDragStart(widget.roughScheduleIndex);
+                    },
+                    onDragUpdate: (DragUpdateDetails details) => context
+                        .read<CreateScheduleStore>()
+                        .draggingBoxOffset = details.globalPosition,
+                    onDraggableCanceled: (velocity, offset) {
+                      context.read<CreateScheduleStore>().onDragEnd(offset);
+                    },
+                    child: Center(
+                      child: Text(
+                        widget.place.nameKor,
+                        style: mainFont(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontSize: itemHeight / 5,
+                            letterSpacing: 1),
+                      ),
+                    ),
+                    childWhenDragging: _childWhenDragging(boxHeight),
+                  ),
+                ),
+                Expanded(
+                    flex:
+                        context.read<CreateScheduleStore>().isDragging ? 0 : 1,
+                    child: const SizedBox())
+              ],
             ),
-            Expanded(
-              flex: 1,
-              child: ScheduleBoxUpDown(
-                  isUp: false, roughScheduleIndex: widget.roughScheduleIndex),
-            ),
-          ],
-        ),
-      ),
-      childWhenDragging: _childWhenDragging(boxHeight),
-    );
+          )
+        ]));
   }
 }
 
 class ScheduleBoxUpDown extends StatelessWidget {
-  const ScheduleBoxUpDown(
-      {Key? key, required this.isUp, required this.roughScheduleIndex})
-      : super(key: key);
+  const ScheduleBoxUpDown({
+    Key? key,
+    required this.isUp,
+    required this.roughScheduleIndex,
+    required this.scheduleStartHeight,
+    required this.setScheduleStartHeight,
+  }) : super(key: key);
   final bool isUp;
   final int roughScheduleIndex;
+  final double scheduleStartHeight;
+  final Function setScheduleStartHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -157,8 +185,58 @@ class ScheduleBoxUpDown extends StatelessWidget {
           size: itemHeight / 5,
         ),
       ),
-      onDragStarted: () {
-        print('스케쥴박스 늘린드아');
+      onDragUpdate: (detail) {
+        String _printDuration(Duration duration) {
+          String twoDigits(int n) => n.toString().padLeft(2, "0");
+          String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+          String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+          return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+        }
+
+        if (isUp) {
+          bool isChangeStart = true;
+          List<String> durationArr = context
+              .read<CreateScheduleStore>()
+              .roughSchedule[roughScheduleIndex]["detail"]["duration"]
+              .split(":");
+          // double hourHeight = itemHeight * hours / 24;
+          // double minuteHeight = itemHeight * hours / 1440;
+          double secoundHeight = itemHeight * hours / 86400;
+          double movedSecounds = detail.delta.dy.abs() / secoundHeight;
+          if (detail.delta.dy > 0) {
+            movedSecounds = -movedSecounds;
+          }
+          Duration duration = Duration(
+              seconds: (double.parse(durationArr[0]) * 3600 +
+                      double.parse(durationArr[1]) * 60 +
+                      double.parse(durationArr[2]) +
+                      movedSecounds.floor())
+                  .round());
+
+          List<String> startsAtArr = context
+              .read<CreateScheduleStore>()
+              .roughSchedule[roughScheduleIndex]["detail"]["starts_at"]
+              .split(":");
+          Duration startsAtDelta = Duration(
+              seconds: (double.parse(startsAtArr[0]) * 3600 +
+                      double.parse(startsAtArr[1]) * 60 +
+                      double.parse(startsAtArr[2]) -
+                      movedSecounds.floor())
+                  .round());
+
+          if (roughScheduleIndex == 0) {
+            context.read<CreateScheduleStore>().setScheduleStartHeight(
+                (startsAtDelta.inSeconds / 3600) * itemHeight);
+            setScheduleStartHeight(
+                (startsAtDelta.inSeconds / 3600) * itemHeight);
+          }
+
+          context.read<CreateScheduleStore>().changeDurationOfSchedule(
+              roughScheduleIndex,
+              _printDuration(duration),
+              _printDuration(startsAtDelta),
+              isChangeStart);
+        }
       },
     );
     //   style: ElevatedButton.styleFrom(
