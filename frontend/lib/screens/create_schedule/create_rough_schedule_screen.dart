@@ -1,36 +1,57 @@
-import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
+import 'package:dayplan_it/screens/create_schedule/create_detail_schedule_screen.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
-import 'package:dayplan_it/screens/create_schedule/components/RecommendedSchedulesGrid.dart';
-import 'package:dayplan_it/screens/create_schedule/components/bottom_right_space.dart';
-import 'package:dayplan_it/screens/create_schedule/components/timeline_vertical.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/RecommendedSchedulesGrid.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/bottom_right_space.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/timeline_vertical.dart';
 
-class CreateScheduleScreen extends StatelessWidget {
-  const CreateScheduleScreen({Key? key, required this.date}) : super(key: key);
+class CreateRoughScheduleScreen extends StatefulWidget {
+  const CreateRoughScheduleScreen({Key? key, required this.date})
+      : super(key: key);
   final DateTime date;
 
   @override
+  State<CreateRoughScheduleScreen> createState() =>
+      _CreateRoughScheduleScreenState();
+}
+
+class _CreateRoughScheduleScreenState extends State<CreateRoughScheduleScreen> {
+  @override
+  void initState() {
+    context.read<CreateScheduleStore>().isDetailBeingMade = false;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: DayplanitAppBar(
-          title: "일정 생성하기",
-          subtitle: "${date.month.toString()}월 ${date.day.toString()}일",
-          isHomePage: false,
-        ),
-        body: ChangeNotifierProvider<CreateScheduleStore>(
-            create: (context) => CreateScheduleStore(),
-            child: RoughSceduleCreatorBody(
-              date: date,
-            )));
+    return WillPopScope(
+      onWillPop: () async {
+        context.read<CreateScheduleStore>().clearSchedule();
+        return true;
+      },
+      child: Scaffold(
+          appBar: DayplanitAppBar(
+            title: "일정 생성하기",
+            subtitle:
+                "${widget.date.month.toString()}월 ${widget.date.day.toString()}일",
+            isHomePage: false,
+          ),
+          body: RoughSceduleCreatorBody(
+            date: widget.date,
+          )),
+    );
   }
 }
 
 class RoughSceduleCreatorBody extends StatefulWidget {
-  const RoughSceduleCreatorBody({Key? key, required this.date})
-      : super(key: key);
+  const RoughSceduleCreatorBody({
+    Key? key,
+    required this.date,
+  }) : super(key: key);
   final DateTime date;
 
   @override
@@ -51,7 +72,11 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
       padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
       child: Row(
         children: [
-          const Expanded(flex: 47, child: TimeLine()),
+          const Expanded(
+              flex: 47,
+              child: TimeLine(
+                timeLineWidth: roughTimeLineWidth,
+              )),
           Expanded(
               flex: 53,
               child: Column(
@@ -77,20 +102,37 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                               ? 180
                               : 0)),
                       child: _buildBottomRight(context)),
+                  if (context
+                      .watch<CreateScheduleStore>()
+                      .roughSchedule
+                      .isNotEmpty)
+                    const SizedBox(
+                      height: 5,
+                    ),
                   ElevatedButton(
                       onPressed: context
                               .watch<CreateScheduleStore>()
                               .roughSchedule
                               .isEmpty
                           ? null
-                          : () {},
+                          : () {
+                              context
+                                  .read<CreateScheduleStore>()
+                                  .toggleIsDetailBeingMade();
+
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const CreateDetailScheduleScreen()));
+                            },
                       style: ElevatedButton.styleFrom(
                           primary: primaryColor,
                           minimumSize: const Size(double.maxFinite, 40),
                           shape: RoundedRectangleBorder(
-                              borderRadius: defaultBoxRadius)),
+                              borderRadius: buttonBoxRadius)),
                       child: Text(
-                        "일정 결정",
+                        "다음 단계",
                         style: mainFont(
                           fontWeight: FontWeight.w600,
                           color: Colors.white,

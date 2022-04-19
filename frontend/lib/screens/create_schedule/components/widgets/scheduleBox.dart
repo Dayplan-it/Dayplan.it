@@ -8,14 +8,18 @@ import 'package:dayplan_it/screens/create_schedule/components/core/place_rough.d
 const double upDownBtnHeight = 14;
 
 class ScheduleBoxRough extends StatefulWidget {
-  ScheduleBoxRough({
-    Key? key,
-    required this.place,
-    required this.index,
-  }) : super(key: key);
+  const ScheduleBoxRough(
+      {Key? key,
+      required this.place,
+      required this.index,
+      required this.itemWidth,
+      this.scrollController})
+      : super(key: key);
 
   final PlaceRough place;
   final int index;
+  final double itemWidth;
+  final ScrollController? scrollController;
 
   @override
   State<ScheduleBoxRough> createState() => _ScheduleBoxRoughState();
@@ -28,7 +32,7 @@ class _ScheduleBoxRoughState extends State<ScheduleBoxRough> {
           color: widget.place.color.withAlpha(150),
           borderRadius: defaultBoxRadius),
       height: boxHeight,
-      width: timeLineWidth,
+      width: widget.itemWidth,
       alignment: Alignment.center,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -57,29 +61,37 @@ class _ScheduleBoxRoughState extends State<ScheduleBoxRough> {
         decoration: BoxDecoration(
             color: widget.place.color, borderRadius: defaultBoxRadius),
         height: boxHeight,
-        width: double.infinity,
+        width: widget.itemWidth,
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
-          Column(
-            children: [
-              RoughScheduleBoxUpDown(
-                isUp: true,
-                index: widget.index,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
+                child: Text(
+                  widget.place.nameKor,
+                  style: mainFont(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      fontSize: itemHeight / 5,
+                      letterSpacing: 1),
+                ),
               ),
-              const Expanded(child: SizedBox()),
-              RoughScheduleBoxUpDown(
-                isUp: false,
-                index: widget.index,
-              ),
-            ],
+            ),
           ),
           Positioned.fill(
             child: Column(
               children: [
-                if (context.read<CreateScheduleStore>().isDragging)
-                  const SizedBox(
-                    height: upDownBtnHeight,
-                  ),
+                widget.index == 0
+                    ? RoughScheduleBoxUpDown(
+                        isUp: true,
+                        index: widget.index,
+                        scrollController: widget.scrollController)
+                    : RoughScheduleBoxUpDown(
+                        isUp: true,
+                        index: widget.index,
+                      ),
                 Expanded(
                   child: LongPressDraggable(
                     feedback: _onLongPress(boxHeight),
@@ -92,28 +104,25 @@ class _ScheduleBoxRoughState extends State<ScheduleBoxRough> {
                         .onDragStart(widget.index),
                     onDraggableCanceled: (velocity, offset) =>
                         context.read<CreateScheduleStore>().onDragEnd(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.fitWidth,
-                          child: Text(
-                            widget.place.nameKor,
-                            style: mainFont(
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                fontSize: itemHeight / 5,
-                                letterSpacing: 1),
-                          ),
-                        ),
-                      ),
+                    child: Container(
+                      color: const Color.fromRGBO(0, 0, 0, 0),
                     ),
                   ),
                 ),
-                if (context.read<CreateScheduleStore>().isDragging)
-                  const SizedBox(
-                    height: upDownBtnHeight,
-                  ),
+                widget.index ==
+                        context
+                                .read<CreateScheduleStore>()
+                                .roughSchedule
+                                .length -
+                            1
+                    ? RoughScheduleBoxUpDown(
+                        isUp: false,
+                        index: widget.index,
+                        scrollController: widget.scrollController)
+                    : RoughScheduleBoxUpDown(
+                        isUp: false,
+                        index: widget.index,
+                      ),
               ],
             ),
           )
@@ -122,24 +131,27 @@ class _ScheduleBoxRoughState extends State<ScheduleBoxRough> {
 }
 
 class RoughScheduleBoxUpDown extends StatelessWidget {
-  const RoughScheduleBoxUpDown({
-    Key? key,
-    required this.isUp,
-    required this.index,
-  }) : super(key: key);
+  const RoughScheduleBoxUpDown(
+      {Key? key,
+      required this.isUp,
+      required this.index,
+      this.scrollController})
+      : super(key: key);
   final bool isUp;
   final int index;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
     return Draggable(
       axis: Axis.vertical,
-      feedback: SizedBox(),
+      feedback: const SizedBox(),
+      data: isUp,
       child: Container(
         height: upDownBtnHeight,
         width: double.maxFinite,
         // alignment: Alignment.center,
-        color: Color.fromARGB(0, 255, 255, 255),
+        color: const Color.fromARGB(0, 255, 255, 255),
         // child: Icon(
         //   isUp ? Icons.arrow_drop_up : Icons.arrow_drop_down,
         //   size: upDownBtnHeight - 2,
@@ -156,9 +168,27 @@ class RoughScheduleBoxUpDown extends StatelessWidget {
         // ),
       ),
       onDragUpdate: (detail) {
+        context.read<CreateScheduleStore>().onBlockResizing();
         context
             .read<CreateScheduleStore>()
             .changeDurationOfScheduleForUpDownBtn(index, detail.delta.dy, isUp);
+
+        if (context.read<CreateScheduleStore>().isAutoScrollAble && isUp) {
+          scrollController!.jumpTo(
+            scrollController!.position.pixels + detail.delta.dy * 2,
+          );
+        } else if (context.read<CreateScheduleStore>().isAutoScrollAble &&
+            !isUp) {
+          scrollController!.jumpTo(
+            scrollController!.position.pixels + detail.delta.dy * 2,
+          );
+        }
+      },
+      onDragEnd: (detail) {
+        context.read<CreateScheduleStore>().onEndBlockResizing();
+      },
+      onDragCompleted: () {
+        context.read<CreateScheduleStore>().onEndBlockResizing();
       },
     );
   }
@@ -169,11 +199,13 @@ class ScheduleBoxWhenDragging extends StatelessWidget {
       {Key? key,
       required this.placeRough,
       required this.index,
+      required this.itemWidth,
       this.dragging = false})
       : super(key: key);
 
   final PlaceRough placeRough;
   final int index;
+  final double itemWidth;
   final bool dragging;
 
   @override
@@ -187,7 +219,7 @@ class ScheduleBoxWhenDragging extends StatelessWidget {
                   color: const Color.fromARGB(255, 38, 0, 255), width: 5)
               : null),
       height: durationToHeight(placeRough.duration),
-      width: timeLineWidth,
+      width: itemWidth,
       alignment: Alignment.center,
       child: Padding(
         padding:
@@ -256,25 +288,49 @@ class ScheduleBoxDragTarget extends StatefulWidget {
 class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
   bool isHovered = false;
 
+  _calHeight() {
+    int scheduleLen = context.read<CreateScheduleStore>().roughSchedule.length;
+
+    if (((context.read<CreateScheduleStore>().scheduleStartHeight == 0) &&
+            (widget.targetId == 0)) ||
+        ((context
+                    .read<CreateScheduleStore>()
+                    .roughSchedule[scheduleLen - 1]
+                    .endsAt
+                    .difference(context
+                        .read<CreateScheduleStore>()
+                        .scheduleDate
+                        .add(const Duration(days: 1)))
+                    .inSeconds <
+                2) &&
+            (widget.targetId == scheduleLen * 2))) {
+      return reorderDragTargetHeight / 2;
+    } else {
+      return reorderDragTargetHeight;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    double _height = _calHeight();
+
     return DragTarget(
       builder: (context, candidateData, rejectedData) {
         return isHovered
             ? Container(
-                height: reorderDragTargetHeight,
+                height: _height,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Color.fromARGB(232, 129, 197, 253),
+                  borderRadius: defaultBoxRadius,
+                  color: const Color.fromARGB(232, 129, 197, 253),
                 ),
               )
             : Container(
-                height: reorderDragTargetHeight,
+                height: _height,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Color.fromARGB(148, 33, 149, 243),
+                  borderRadius: defaultBoxRadius,
+                  color: const Color.fromARGB(148, 33, 149, 243),
                 ),
               );
       },
@@ -295,6 +351,83 @@ class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
             .onChangeScheduleOrder(details.data, (widget.targetId / 2).floor());
         context.read<CreateScheduleStore>().onDragEnd();
       },
+    );
+  }
+}
+
+class ScheduleBoxHandle extends StatelessWidget {
+  const ScheduleBoxHandle(
+      {Key? key, required this.timeLineWidth, required this.index})
+      : super(key: key);
+
+  final double timeLineWidth;
+  final int index;
+
+  Widget _feedback(BuildContext context) {
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        _buildHandle(),
+        Positioned(
+          child: Row(
+            children: [
+              const SizedBox(width: scheduleBoxHandleWidth),
+              ScheduleBoxWhenDragging(
+                  placeRough:
+                      context.read<CreateScheduleStore>().roughSchedule[index],
+                  index: index,
+                  itemWidth: timeLineWidth,
+                  dragging: true)
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Draggable(
+      feedback: _feedback(context),
+      onDragStarted: () =>
+          context.read<CreateScheduleStore>().onDragStart(index),
+      onDragEnd: (detail) => context.read<CreateScheduleStore>().onDragEnd(),
+      onDragCompleted: () => context.read<CreateScheduleStore>().onDragEnd(),
+      onDragUpdate: (detail) => print(detail.globalPosition),
+      axis: Axis.vertical,
+      child: _buildHandle(),
+    );
+  }
+
+  Container _buildHandle() {
+    return Container(
+      height: 40,
+      width: scheduleBoxHandleWidth + timeLineWidth / 2,
+      decoration: BoxDecoration(
+          color: const Color.fromARGB(162, 169, 169, 169),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: defaultBoxShadow),
+      alignment: Alignment.centerLeft,
+      child: SizedBox(
+        width: scheduleBoxHandleWidth,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              Icon(
+                Icons.arrow_drop_up,
+                color: Color.fromARGB(157, 64, 64, 64),
+                size: 20,
+              ),
+              Icon(
+                Icons.arrow_drop_down,
+                color: Color.fromARGB(157, 64, 64, 64),
+                size: 20,
+              )
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

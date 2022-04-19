@@ -14,11 +14,19 @@ const double reorderDragTargetHeight = itemHeight / 5;
 /// 최소한의 스케줄 블록 사이즈를 Duration으로 결정
 const Duration minimumScheduleBoxDuration = Duration(minutes: 30);
 
-/// 타임라인의 너비
-const double timeLineWidth = 120;
+/// 타임라인의 너비 (Rough)
+const double roughTimeLineWidth = 120;
+
+/// 타임라인의 너비 (Detail)
+const double detailTimeLineWidth = 100;
+
+const double scheduleBoxHandleWidth = 22;
 
 /// BorderRadius 기본값
 BorderRadius defaultBoxRadius = BorderRadius.circular(20);
+
+/// 버튼용 BorderRadius
+BorderRadius buttonBoxRadius = BorderRadius.circular(10);
 
 /// 잔잔한 그림자
 const List<BoxShadow> defaultBoxShadow = [

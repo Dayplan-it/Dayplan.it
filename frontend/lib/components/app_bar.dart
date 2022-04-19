@@ -1,10 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 
 class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const DayplanitAppBar(
-      {this.title = "Dayplan.it", this.subtitle = "", this.isHomePage = false});
+  const DayplanitAppBar({
+    this.title = "Dayplan.it",
+    this.subtitle = "",
+    this.isHomePage = false,
+  });
   final String title;
   final String subtitle;
   final bool isHomePage;
@@ -27,6 +32,17 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
               : IconButton(
                   onPressed: () {
                     Navigator.pop(context);
+
+                    if (context.read<CreateScheduleStore>().isDetailBeingMade) {
+                      context
+                          .read<CreateScheduleStore>()
+                          .toggleIsDetailBeingMade();
+                    } else if (context
+                        .read<CreateScheduleStore>()
+                        .roughSchedule
+                        .isNotEmpty) {
+                      context.read<CreateScheduleStore>().clearSchedule();
+                    }
                   },
                   icon: const Icon(
                     Icons.arrow_back_ios,

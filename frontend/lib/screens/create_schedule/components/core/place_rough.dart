@@ -38,7 +38,11 @@ class PlaceRough {
   DateTime endsAt;
   Duration duration;
 
-  getItemHeight() {
-    return;
-  }
+  PlaceRough copy() => PlaceRough(
+      nameKor: nameKor,
+      nameEng: nameEng,
+      color: color,
+      startsAt: startsAt,
+      endsAt: endsAt,
+      duration: duration);
 }

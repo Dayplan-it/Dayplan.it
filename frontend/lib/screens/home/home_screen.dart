@@ -15,7 +15,8 @@ class HomeScreen extends StatelessWidget {
         child: Text('홈스크린입니다.\n플로팅 버튼 눌러 스케쥴 생성 페이지로 이동'),
       ),
       floatingActionButton: DayplanitFloatingBtn(
-        date: DateTime(2023, 4, 20), // 여기에 날짜 집어넣으면 해당 날짜 스케쥴 생성 페이지로 이동
+        date: DateTime(DateTime.now().year, DateTime.now().month,
+            DateTime.now().day), // 여기에 날짜 집어넣으면 해당 날짜 스케쥴 생성 페이지로 이동
       ),
     );
   }

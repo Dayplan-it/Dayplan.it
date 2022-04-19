@@ -76,7 +76,7 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
                 borderRadius: defaultBoxRadius,
                 boxShadow: defaultBoxShadow),
             padding: const EdgeInsets.all(5),
-            width: timeLineWidth + 20,
+            width: roughTimeLineWidth + 20,
             height: itemHeight / 1.5,
             child: TextField(
               autofocus: true,
@@ -123,7 +123,7 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
                     primary: primaryColor,
                     minimumSize: const Size(double.maxFinite, 40),
                     shape:
-                        RoundedRectangleBorder(borderRadius: defaultBoxRadius)),
+                        RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
                 child: Text(
                   "추가하기",
                   style: mainFont(
@@ -139,7 +139,7 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
                     primary: pointColor,
                     minimumSize: const Size(double.maxFinite, 40),
                     shape:
-                        RoundedRectangleBorder(borderRadius: defaultBoxRadius)),
+                        RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
                 child: Text(
                   "취소",
                   style: mainFont(
