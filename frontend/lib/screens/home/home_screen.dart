@@ -1,10 +1,7 @@
+import 'package:dayplan_it/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
-import 'dart:convert';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:dayplan_it/screens/home/components/calender.dart';
 import 'package:dayplan_it/screens/home/components/schedule.dart';
 import 'package:dayplan_it/screens/home/components/googlemap.dart';
@@ -25,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void getScheduleList() async {
     int id = Provider.of<HomeProvider>(context, listen: false).id;
     var dio = Dio();
-    var url = 'http://127.0.0.1:8000/schedules/findlist?user_id=${id}';
+    var url = '${homedir}/schedules/findlist?user_id=${id}';
     try {
       var response = await dio.get(url);
       if (response.statusCode == 200) {
@@ -35,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
         for (int i = 0; i < list.length; i++) {
           datetime.add(DateTime.fromMillisecondsSinceEpoch(list[i] * 1000));
         }
+
         Provider.of<HomeProvider>(context, listen: false)
             .setallschdulelist(datetime);
       }

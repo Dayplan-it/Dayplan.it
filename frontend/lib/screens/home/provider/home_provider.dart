@@ -10,7 +10,7 @@ class HomeProvider extends ChangeNotifier {
   HomeRepository _homeRepository = HomeRepository();
   //id값이 넘어오거나 해서 있다고 가정한다.
   //변수선언
-  int _id = 30;
+  int _id = 10;
   List<DateTime> _allSchedule = [];
   DateTime _nowDate = DateTime.now().add(Duration(days: 0));
   List<DecorationItem> _decoration_list = [];

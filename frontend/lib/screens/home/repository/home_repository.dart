@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dayplan_it/constants.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dio/dio.dart';
@@ -9,7 +10,7 @@ class HomeRepository {
   Future<Map<String, List<dynamic>>> getScheduleDetail(id, date) async {
     //datetime to timestamp
 
-    DateTime date2 = new DateTime(date.year, date.month, date.day);
+    DateTime date2 = DateTime(date.year, date.month, date.day);
 
     final List<String> comments = [];
     final List<String> icons = [];
@@ -21,7 +22,7 @@ class HomeRepository {
     final timestamp1 = date2.millisecondsSinceEpoch;
     var dio = Dio();
     var url =
-        'http://127.0.0.1:8000/schedules/find?user_id=${id}&date=${(timestamp1 / 1000).toInt()}';
+        '${homedir}/schedules/find?user_id=${id}&date=${(timestamp1 / 1000).toInt()}';
     Response response = await dio.get(url);
     var res = response.data;
 

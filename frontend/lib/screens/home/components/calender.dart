@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:flutter_calendar_week/flutter_calendar_week.dart';
 import 'package:dayplan_it/screens/home/provider/home_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/home/repository/home_repository.dart';
-import 'package:dio/dio.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 
@@ -16,24 +14,15 @@ class WeeklyCalander extends StatefulWidget {
 
 class _WeeklyCalanderState extends State<WeeklyCalander> {
   bool showProgress = false;
-  HomeProvider _homeProvider = new HomeProvider();
-  DateTime _selectedDate = DateTime.now().add(Duration(days: 5));
-  List<DecorationItem> decoration_list = [];
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     HomeRepository _homeRepository = HomeRepository();
     Completer<GoogleMapController> _completer = Completer();
 
-    _homeProvider = Provider.of<HomeProvider>(context, listen: false);
-
-    decoration_list = _homeProvider.decoration_list;
-    return Container(
+    List<DecorationItem> decoration_list =
+        Provider.of<HomeProvider>(context, listen: false).decoration_list;
+    return SizedBox(
         height: 120,
         child: CalendarWeek(
           controller: CalendarWeekController(),
@@ -52,10 +41,10 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
               color: Color.fromARGB(255, 68, 68, 68),
               fontWeight: FontWeight.w600),
           minDate: DateTime.now().add(
-            Duration(days: -365),
+            const Duration(days: -30),
           ),
           maxDate: DateTime.now().add(
-            Duration(days: 365),
+            const Duration(days: 30),
           ),
           onDatePressed: (DateTime datetime) async {
             Provider.of<HomeProvider>(context, listen: false)
