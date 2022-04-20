@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButton: DayplanitFloatingBtn(
         date: DateTime(DateTime.now().year, DateTime.now().month,
-            DateTime.now().day), // 여기에 날짜 집어넣으면 해당 날짜 스케쥴 생성 페이지로 이동
+            DateTime.now().day + 1), // 여기에 날짜 집어넣으면 해당 날짜 스케쥴 생성 페이지로 이동
       ),
     );
   }

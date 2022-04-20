@@ -80,52 +80,54 @@ class _ScheduleBoxRoughState extends State<ScheduleBoxRough> {
               ),
             ),
           ),
-          Positioned.fill(
-            child: Column(
-              children: [
-                widget.index == 0
-                    ? RoughScheduleBoxUpDown(
-                        isUp: true,
-                        index: widget.index,
-                        scrollController: widget.scrollController)
-                    : RoughScheduleBoxUpDown(
-                        isUp: true,
-                        index: widget.index,
+          context.read<CreateScheduleStore>().isDetailBeingMade
+              ? const SizedBox()
+              : Positioned.fill(
+                  child: Column(
+                    children: [
+                      widget.index == 0
+                          ? RoughScheduleBoxUpDown(
+                              isUp: true,
+                              index: widget.index,
+                              scrollController: widget.scrollController)
+                          : RoughScheduleBoxUpDown(
+                              isUp: true,
+                              index: widget.index,
+                            ),
+                      Expanded(
+                        child: LongPressDraggable(
+                          feedback: _onLongPress(boxHeight),
+                          delay: const Duration(milliseconds: 100),
+                          data: widget.index,
+                          onDragEnd: (DraggableDetails details) =>
+                              context.read<CreateScheduleStore>().onDragEnd(),
+                          onDragStarted: () => context
+                              .read<CreateScheduleStore>()
+                              .onDragStart(widget.index),
+                          onDraggableCanceled: (velocity, offset) =>
+                              context.read<CreateScheduleStore>().onDragEnd(),
+                          child: Container(
+                            color: const Color.fromRGBO(0, 0, 0, 0),
+                          ),
+                        ),
                       ),
-                Expanded(
-                  child: LongPressDraggable(
-                    feedback: _onLongPress(boxHeight),
-                    delay: const Duration(milliseconds: 100),
-                    data: widget.index,
-                    onDragEnd: (DraggableDetails details) =>
-                        context.read<CreateScheduleStore>().onDragEnd(),
-                    onDragStarted: () => context
-                        .read<CreateScheduleStore>()
-                        .onDragStart(widget.index),
-                    onDraggableCanceled: (velocity, offset) =>
-                        context.read<CreateScheduleStore>().onDragEnd(),
-                    child: Container(
-                      color: const Color.fromRGBO(0, 0, 0, 0),
-                    ),
+                      widget.index ==
+                              context
+                                      .read<CreateScheduleStore>()
+                                      .roughSchedule
+                                      .length -
+                                  1
+                          ? RoughScheduleBoxUpDown(
+                              isUp: false,
+                              index: widget.index,
+                              scrollController: widget.scrollController)
+                          : RoughScheduleBoxUpDown(
+                              isUp: false,
+                              index: widget.index,
+                            ),
+                    ],
                   ),
-                ),
-                widget.index ==
-                        context
-                                .read<CreateScheduleStore>()
-                                .roughSchedule
-                                .length -
-                            1
-                    ? RoughScheduleBoxUpDown(
-                        isUp: false,
-                        index: widget.index,
-                        scrollController: widget.scrollController)
-                    : RoughScheduleBoxUpDown(
-                        isUp: false,
-                        index: widget.index,
-                      ),
-              ],
-            ),
-          )
+                )
         ]));
   }
 }
@@ -173,16 +175,16 @@ class RoughScheduleBoxUpDown extends StatelessWidget {
             .read<CreateScheduleStore>()
             .changeDurationOfScheduleForUpDownBtn(index, detail.delta.dy, isUp);
 
-        if (context.read<CreateScheduleStore>().isAutoScrollAble && isUp) {
-          scrollController!.jumpTo(
-            scrollController!.position.pixels + detail.delta.dy * 2,
-          );
-        } else if (context.read<CreateScheduleStore>().isAutoScrollAble &&
-            !isUp) {
-          scrollController!.jumpTo(
-            scrollController!.position.pixels + detail.delta.dy * 2,
-          );
-        }
+        // if (context.read<CreateScheduleStore>().isAutoScrollAble && isUp) {
+        //   scrollController!.jumpTo(
+        //     scrollController!.position.pixels + detail.delta.dy * 2,
+        //   );
+        // } else if (context.read<CreateScheduleStore>().isAutoScrollAble &&
+        //     !isUp) {
+        //   scrollController!.jumpTo(
+        //     scrollController!.position.pixels + detail.delta.dy * 2,
+        //   );
+        // }
       },
       onDragEnd: (detail) {
         context.read<CreateScheduleStore>().onEndBlockResizing();

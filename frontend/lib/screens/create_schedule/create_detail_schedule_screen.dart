@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/place_rough.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/create_detail_screen_right_side.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/timeline_vertical.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
@@ -42,7 +43,7 @@ class _CreateDetailScheduleScreenState
         body: Padding(
           padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
           child: Row(
-            children: [
+            children: const [
               Expanded(
                   flex: 4,
                   child: TimeLine(
@@ -50,9 +51,7 @@ class _CreateDetailScheduleScreenState
                   )),
               Expanded(
                 flex: 6,
-                child: Container(
-                  color: Colors.red,
-                ),
+                child: CreateDetailScreenRightSide(),
               )
             ],
           ),

@@ -68,36 +68,58 @@ class _TimeLineState extends State<TimeLine> {
                               .scheduleStartHeight,
                         ),
                         for (int i = 0; i < roughSchedule.length; i++)
-                          Stack(children: [
-                            SizedBox(
-                              height:
-                                  durationToHeight(roughSchedule[i].duration),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                          context.read<CreateScheduleStore>().isDetailBeingMade
+                              ? Row(
                                   children: [
                                     const SizedBox(
-                                      width: 42 - scheduleBoxHandleWidth,
+                                      width: 42,
                                     ),
-                                    ScheduleBoxHandle(
-                                        timeLineWidth: widget.timeLineWidth,
-                                        index: i),
-                                  ]),
-                            ),
-                            Positioned.fill(
-                              child: Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 42,
-                                  ),
-                                  ScheduleBoxRough(
-                                      place: roughSchedule[i],
+                                    ScheduleBoxWhenDragging(
+                                      placeRough: roughSchedule[i],
                                       index: i,
                                       itemWidth: widget.timeLineWidth,
-                                      scrollController: _scrollController),
-                                ],
-                              ),
-                            ),
-                          ]),
+                                      dragging: (context
+                                                  .read<CreateScheduleStore>()
+                                                  .indexOfCurrentlyDecidingDetail ==
+                                              i)
+                                          ? true
+                                          : false,
+                                    ),
+                                  ],
+                                )
+                              : Stack(children: [
+                                  SizedBox(
+                                    height: durationToHeight(
+                                        roughSchedule[i].duration),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(
+                                            width: 42 - scheduleBoxHandleWidth,
+                                          ),
+                                          ScheduleBoxHandle(
+                                              timeLineWidth:
+                                                  widget.timeLineWidth,
+                                              index: i),
+                                        ]),
+                                  ),
+                                  Positioned.fill(
+                                    child: Row(
+                                      children: [
+                                        const SizedBox(
+                                          width: 42,
+                                        ),
+                                        ScheduleBoxRough(
+                                            place: roughSchedule[i],
+                                            index: i,
+                                            itemWidth: widget.timeLineWidth,
+                                            scrollController:
+                                                _scrollController),
+                                      ],
+                                    ),
+                                  ),
+                                ]),
                       ],
                     ),
                     Positioned.fill(

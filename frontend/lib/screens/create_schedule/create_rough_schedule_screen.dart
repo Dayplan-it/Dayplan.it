@@ -6,7 +6,7 @@ import 'package:dayplan_it/screens/create_schedule/create_detail_schedule_screen
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/RecommendedSchedulesGrid.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/bottom_right_space.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/create_rough_screen_bottom_right_space.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/timeline_vertical.dart';
 
 class CreateRoughScheduleScreen extends StatefulWidget {
@@ -116,6 +116,9 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                               .isEmpty
                           ? null
                           : () {
+                              context
+                                  .read<CreateScheduleStore>()
+                                  .indexOfCurrentlyDecidingDetail = 0;
                               context
                                   .read<CreateScheduleStore>()
                                   .toggleIsDetailBeingMade();

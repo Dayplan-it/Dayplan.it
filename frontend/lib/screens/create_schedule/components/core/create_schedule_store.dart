@@ -297,4 +297,25 @@ class CreateScheduleStore extends ChangeNotifier {
     isCustomBlockBeingMade = false;
     notifyListeners();
   }
+
+  ///
+  /// 이하는 디테일 스케줄 결정 스크린에 사용
+  ///
+
+  /// 현재 디테일 결정중인 스케줄 확인에 사용
+  /// gotoNextDetail, backtoPrivDetail로 index 조절
+  int indexOfCurrentlyDecidingDetail = 0;
+  gotoNextDetail() {
+    if (indexOfCurrentlyDecidingDetail != roughSchedule.length - 1) {
+      indexOfCurrentlyDecidingDetail++;
+      notifyListeners();
+    }
+  }
+
+  backtoPrivDetail() {
+    if (indexOfCurrentlyDecidingDetail != 0) {
+      indexOfCurrentlyDecidingDetail--;
+      notifyListeners();
+    }
+  }
 }
