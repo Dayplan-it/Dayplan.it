@@ -32,7 +32,7 @@ SECRET_KEY = os.getenv("SECRET")
 DEBUG = True
 # DEBUG = bool(os.environ.get("DEBUG"))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
