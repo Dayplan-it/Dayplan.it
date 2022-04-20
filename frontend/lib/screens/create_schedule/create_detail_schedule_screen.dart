@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/create_detail_screen_right_side.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
