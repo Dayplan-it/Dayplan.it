@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:dayplan_it/screens/profile/profile_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:dayplan_it/screens/home/provider/home_provider.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'components/app_bar.dart';
 import 'components/bottom_nav_bar.dart';
 

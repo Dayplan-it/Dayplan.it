@@ -1,13 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_calendar_week/flutter_calendar_week.dart';
-import 'package:dayplan_it/screens/home/provider/home_provider.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/home/repository/home_repository.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'dart:async';
+import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
 
 class WeeklyCalander extends StatefulWidget {
+  const WeeklyCalander({Key? key}) : super(key: key);
+
   @override
   State<WeeklyCalander> createState() => _WeeklyCalanderState();
 }
@@ -18,15 +19,20 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
   @override
   Widget build(BuildContext context) {
     HomeRepository _homeRepository = HomeRepository();
-    Completer<GoogleMapController> _completer = Completer();
+    List<DecorationItem> decorationList =
+        Provider.of<HomeProvider>(context, listen: false).decorationList;
 
-    List<DecorationItem> decoration_list =
-        Provider.of<HomeProvider>(context, listen: false).decoration_list;
     return SizedBox(
         height: 120,
         child: CalendarWeek(
           controller: CalendarWeekController(),
           showMonth: true,
+          minDate: DateTime.now().add(
+            const Duration(days: -30),
+          ),
+          maxDate: DateTime.now().add(
+            const Duration(days: 30),
+          ),
           dayOfWeekStyle: const TextStyle(
               color: Color.fromARGB(255, 195, 195, 195),
               fontWeight: FontWeight.w600),
@@ -40,47 +46,31 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
           dateStyle: const TextStyle(
               color: Color.fromARGB(255, 68, 68, 68),
               fontWeight: FontWeight.w600),
-          minDate: DateTime.now().add(
-            const Duration(days: -30),
-          ),
-          maxDate: DateTime.now().add(
-            const Duration(days: 30),
-          ),
+
+          ///날짜를 클릭했을 때 해당 날짜 지도, 스케줄, provider 설정
           onDatePressed: (DateTime datetime) async {
+            ///provider 현재날짜설정
             Provider.of<HomeProvider>(context, listen: false)
                 .selectDate(datetime);
+
+            ///provider 기존 지도, 스케줄 초기화
             Provider.of<HomeProvider>(context, listen: false).deleteData();
-            Future<Map<String, List<dynamic>>> response_detail =
+
+            ///선택일정의 일정상세정보 불러오기
+            Future<Map<String, List<dynamic>>> responseDetail =
                 _homeRepository.getScheduleDetail(
                     Provider.of<HomeProvider>(context, listen: false).id,
                     datetime);
-            response_detail.then((value) {
+            responseDetail.then((value) {
               if (value.length > 2) {
                 Provider.of<HomeProvider>(context, listen: false)
                     .setScheduleDetail(value);
-
-//-----------------구글지도 관련 프로바이더 설정하기-------------//
                 Map<dynamic, dynamic> mapdata =
                     _homeRepository.setRouteData(value);
-
                 Provider.of<HomeProvider>(context, listen: false)
                     .setGeom(mapdata);
-                //카메라 이동하기
-
-                Future<void> animateTo(double lat, double lng) async {
-                  final c = await _completer.future;
-                  final p =
-                      CameraPosition(target: LatLng(lat, lng), zoom: 14.4746);
-                  c.animateCamera(CameraUpdate.newCameraPosition(p));
-                }
               } else {}
             }).catchError((onError) {});
-          },
-          onDateLongPressed: (DateTime datetime) {
-            // Do something
-          },
-          onWeekChanged: () {
-            // Do something
           },
           monthViewBuilder: (DateTime time) => Align(
             alignment: FractionalOffset.center,
@@ -96,45 +86,9 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
                       fontWeight: FontWeight.w600),
                 )),
           ),
-          decorations: decoration_list,
-        ));
-  }
 
-  void FlutterDialog() {
-    showDialog(
-        context: context,
-        //barrierDismissible - Dialog를 제외한 다른 화면 터치 x
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            // RoundedRectangleBorder - Dialog 화면 모서리 둥글게 조절
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0)),
-            //Dialog Main Title
-            title: Column(
-              children: <Widget>[
-                new Text("오류"),
-              ],
-            ),
-            //
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  "오류발생",
-                ),
-              ],
-            ),
-            actions: <Widget>[
-              new FlatButton(
-                child: new Text("확인"),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-        });
+          ///프로바이더의 캘린더 마커 불러와서 표시
+          decorations: decorationList,
+        ));
   }
 }

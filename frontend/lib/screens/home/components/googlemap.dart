@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:dayplan_it/screens/home/provider/home_provider.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 
 class Googlemap extends StatefulWidget {
+  const Googlemap({Key? key}) : super(key: key);
   @override
   State<Googlemap> createState() => _GooglemapState();
 }
@@ -33,11 +34,13 @@ class _GooglemapState extends State<Googlemap> {
       try {
         mapController
             .animateCamera(CameraUpdate.newCameraPosition(initlocation));
-      } catch (e) {}
+      } catch (e) {
+        null;
+      }
       return Container(
           width: 0.95 * devicewidth,
           height: 0.3 * deviceheight,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.all(
               Radius.circular(40),
@@ -58,7 +61,7 @@ class _GooglemapState extends State<Googlemap> {
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.only(
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30),
               bottomRight: Radius.circular(30),
@@ -69,6 +72,7 @@ class _GooglemapState extends State<Googlemap> {
               heightFactor: 0.3,
               widthFactor: 2.5,
               child: GoogleMap(
+                padding: const EdgeInsets.only(left: 150),
                 mapType: MapType.normal,
                 myLocationEnabled: true,
                 onMapCreated: (GoogleMapController controller) {

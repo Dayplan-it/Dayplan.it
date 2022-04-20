@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/home/provider/home_provider.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:dayplan_it/screens/home/repository/home_repository.dart';
 
 class Schedule extends StatefulWidget {
   const Schedule({Key? key}) : super(key: key);
@@ -13,8 +11,6 @@ class Schedule extends StatefulWidget {
 }
 
 class _ScheduleState extends State<Schedule> {
-  HomeProvider _homeProvider = new HomeProvider();
-  HomeRepository _homeRepository = HomeRepository();
   @override
   Widget build(BuildContext context) {
     final devicewidth = MediaQuery.of(context).size.width;
@@ -37,23 +33,22 @@ class _ScheduleState extends State<Schedule> {
           icons.add(Icons.location_on);
         }
       }
-      List<dynamic> start_time = route["start_time"] ?? [];
-      List<dynamic> end_time = route["end_time"] ?? [];
+      List<dynamic> startTime = route["start_time"] ?? [];
+      List<dynamic> endTime = route["end_time"] ?? [];
       int len = route["comments"]?.length ?? 0;
 
       return Container(
         width: 0.95 * devicewidth,
         height: 0.3 * deviceheight,
         child: ListView.separated(
-          padding: EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
           itemCount: len,
           itemBuilder: (context, index) {
-            return Container(
-                child: Card(
+            return Card(
               child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
                 ListTile(
                   onTap: () {
-                    print("ddd");
+                    ///스케줄카드를 눌렀을 떄 기능 구현
                   },
                   leading: Icon(
                     icons[index],
@@ -67,17 +62,20 @@ class _ScheduleState extends State<Schedule> {
                         fontWeight: FontWeight.w700),
                   ),
                   subtitle: Text(
-                    '${start_time[index].toString().substring(0, 5)}~${end_time[index]..toString().substring(0, 5)}',
+                    //시작,끝시간 초단위 삭제
+                    '${startTime[index].toString().substring(0, 5)}~${endTime[index]..toString().substring(0, 5)}',
                   ),
                 ),
               ]),
-            ));
+            );
           },
+
+          ///구분선추가
           separatorBuilder: (context, index) {
-            return Divider();
+            return const Divider();
           },
         ),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Color.fromARGB(255, 255, 255, 255),
           borderRadius: BorderRadius.all(
             Radius.circular(40),

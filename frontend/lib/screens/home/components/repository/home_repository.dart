@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:dayplan_it/constants.dart';
 import 'package:flutter/material.dart';
-
 import 'package:dio/dio.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
+import 'package:provider/provider.dart';
 
 class HomeRepository {
   Future<Map<String, List<dynamic>>> getScheduleDetail(id, date) async {
@@ -14,15 +14,15 @@ class HomeRepository {
 
     final List<String> comments = [];
     final List<String> icons = [];
-    final List<String> strat_time = [];
-    final List<String> end_time = [];
+    final List<String> stratTime = [];
+    final List<String> endTime = [];
     final List<dynamic> geom = [];
     final List<dynamic> detail = [];
     final List<String> type = [];
     final timestamp1 = date2.millisecondsSinceEpoch;
     var dio = Dio();
     var url =
-        '${homedir}/schedules/find?user_id=${id}&date=${(timestamp1 / 1000).toInt()}';
+        '$commonUrl/schedules/find?user_id=$id&date=${timestamp1 ~/ 1000}';
     Response response = await dio.get(url);
     var res = response.data;
 
@@ -31,8 +31,8 @@ class HomeRepository {
         comments.add(
             "${res["order"][i]["detail"]["place_name"]} - ${res["order"][i]["detail"]["duration"]} 소요");
         icons.add("loc");
-        strat_time.add("${res["order"][i]["detail"]["starts_at"]}");
-        end_time.add("${res["order"][i]["detail"]["ends_at"]}");
+        stratTime.add("${res["order"][i]["detail"]["starts_at"]}");
+        endTime.add("${res["order"][i]["detail"]["ends_at"]}");
         geom.add([
           res["order"][i]["detail"]["point"]["latitude"],
           res["order"][i]["detail"]["point"]["longitude"]
@@ -43,8 +43,8 @@ class HomeRepository {
         comments.add(
             "${res["order"][i]["detail"]["distance"]} km 이동 ${res["order"][i]["detail"]["duration"]} 소요");
         icons.add("transit");
-        strat_time.add("${res["order"][i]["detail"]["starts_at"]}");
-        end_time.add("${res["order"][i]["detail"]["ends_at"]}");
+        stratTime.add("${res["order"][i]["detail"]["starts_at"]}");
+        endTime.add("${res["order"][i]["detail"]["ends_at"]}");
         geom.add(res["order"][i]["detail"]["polyline"]);
         detail.add(res["order"][i]["step"]);
         type.add("RO");
@@ -53,8 +53,8 @@ class HomeRepository {
     Map<String, List<dynamic>> result = {};
     result['comments'] = comments;
     result['icons'] = icons;
-    result['start_time'] = strat_time;
-    result['end_time'] = end_time;
+    result['start_time'] = stratTime;
+    result['end_time'] = endTime;
     result['type'] = type;
     result['geom'] = geom;
     result['detail'] = detail;
@@ -83,34 +83,49 @@ class HomeRepository {
             Marker(markerId: markerId, icon: descriptor, position: position);
         markers[markerId] = marker;
       } else {
-        //print(mapdata["type"][i]);
         List<PointLatLng> geom =
             polylinePoints.decodePolyline(mapdata["geom"][i]);
 
         PolylineId id = PolylineId(mapdata["geom"][i]);
 
         if (geom.isNotEmpty) {
-          geom.forEach((PointLatLng point) {
-            //왜 값자기 long이랑 lat이랑 바뀐거지???
+          for (var point in geom) {
             LatLng temp = LatLng(point.longitude, point.latitude);
-            print(point.latitude);
             polylineCoordinates.add(temp);
-          });
+          }
         }
         Polyline polyline = Polyline(
             polylineId: id,
-            color: Color.fromARGB(255, 227, 0, 0),
+            color: const Color.fromARGB(255, 227, 0, 0),
             points: polylineCoordinates);
         polylines[id] = polyline;
-        print(polyline);
       }
     }
     Map map = {};
-
     map["PL"] = markers;
     map["RO"] = polylines;
+    //카메라 위치관련 geom
     map["camera_point_lat"] = mapdata["geom"][0][0];
     map["camera_point_lng"] = mapdata["geom"][0][1];
     return map;
+  }
+
+  //userid로 사용자의 일정정보 조회  API 요청
+  getScheduleList(context) async {
+    int id = Provider.of<HomeProvider>(context, listen: false).id;
+    var dio = Dio();
+    var url = '$commonUrl/schedules/findlist?user_id=$id';
+    var response = await dio.get(url);
+    if (response.statusCode == 200) {
+      List<int> list = response.data["found_schedule_dates"].cast<int>();
+
+      List<DateTime> datetime = [];
+      for (int i = 0; i < list.length; i++) {
+        datetime.add(DateTime.fromMillisecondsSinceEpoch(list[i] * 1000));
+      }
+
+      Provider.of<HomeProvider>(context, listen: false)
+          .setallschdulelist(datetime);
+    }
   }
 }
