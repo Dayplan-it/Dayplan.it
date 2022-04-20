@@ -1,7 +1,6 @@
 import 'package:dayplan_it/screens/start/components/signupform.dart';
 import 'package:dayplan_it/screens/start/components/signupheader.dart';
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/constants.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
