@@ -19,6 +19,7 @@ requests = "*"
 polyline = "*"
 drf-extra-fields = "*"
 django-cors-headers = "*"
+pyJWT = "*"
 
 [dev-packages]
 

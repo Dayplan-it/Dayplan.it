@@ -18,7 +18,7 @@ class LoginProvider extends ChangeNotifier {
     var prefs = await SharedPreferences.getInstance();
     // Set
     prefs.setString('apiToken', token);
-    
+
     // Get
     //String token = prefs.getString('apiToken');
   }

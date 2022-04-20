@@ -1,7 +1,5 @@
-import 'package:dayplan_it/provider_th/login_provider.dart';
+import 'package:dayplan_it/screens/start/login_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/screens/home/home_screen.dart';
-import 'package:dayplan_it/screens/profile/profile_screen.dart';
 import 'package:dayplan_it/screens/start/landingpage.dart';
 import 'package:dayplan_it/screens/start/signuppage.dart';
 import 'package:dayplan_it/screens/start/loginpage.dart';
@@ -15,7 +13,7 @@ void main() {
         create: (BuildContext context) => LoginProvider(),
       )
     ],
-    child: MyApp(),
+    child: const MyApp(),
   ));
 }
 
@@ -33,11 +31,11 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Dayplan.it',
       routes: <String, WidgetBuilder>{
-        '/main': (BuildContext context) => MainPage(),
-        '/login': (BuildContext context) => LoginPage(),
+        '/main': (BuildContext context) => const MainPage(),
+        '/login': (BuildContext context) => const LoginPage(),
         '/signup': (BuildContext context) => SignupPage(),
       },
-      home: LandingPage(),
+      home: const LandingPage(),
     );
   }
 }

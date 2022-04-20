@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/screens/mainpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LandingPage extends StatefulWidget {
@@ -18,7 +17,7 @@ class _LandingPageState extends State<LandingPage> {
     super.initState();
 
     //이부분에서 로그인체크하고 로그인되어있을 떄 사용자정보 불러옴
-    Timer(Duration(seconds: 2), () async {
+    Timer(const Duration(seconds: 2), () async {
       await _getToken();
 
       if (_hasToken == "null") {
@@ -43,7 +42,7 @@ class _LandingPageState extends State<LandingPage> {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
           gradient: LinearGradient(
         colors: [Color(0xFF01578D), Color(0xFF80AFCC)],
         stops: [0, 1],
@@ -60,7 +59,7 @@ class _LandingPageState extends State<LandingPage> {
               height: 200,
               fit: BoxFit.fitHeight,
             ),
-            CircularProgressIndicator(
+            const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
           ]),
     );

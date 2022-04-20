@@ -15,13 +15,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  calendar_strip:
-    dependency: "direct main"
-    description:
-      name: calendar_strip
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.7"
   characters:
     dependency: transitive
     description:
@@ -128,13 +121,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  get:
-    dependency: "direct main"
-    description:
-      name: get
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.6.1"
   google_fonts:
     dependency: "direct main"
     description:

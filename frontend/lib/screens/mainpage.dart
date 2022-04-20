@@ -4,8 +4,6 @@ import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:dayplan_it/screens/profile/profile_screen.dart';
 import 'package:dayplan_it/components/app_bar.dart';
 import 'package:dayplan_it/components/bottom_nav_bar.dart';
-import 'package:dayplan_it/screens/start/landingpage.dart';
-import 'package:dayplan_it/screens/mainpage.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -16,7 +14,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
-  List<Widget> screenList = [HomeScreen(), ProfileScreen()];
+  List<Widget> screenList = [HomeScreen(), const ProfileScreen()];
 
   void _onItemTapped(int index) {
     setState(() {

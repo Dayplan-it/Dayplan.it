@@ -1,12 +1,10 @@
-import 'package:dayplan_it/provider_th/login_provider.dart';
-import 'package:dayplan_it/screens/start/signuppage.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:dayplan_it/constants.dart';
-import 'package:dio/dio.dart';
-import 'dart:convert';
-import 'package:dayplan_it/screens/mainpage.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:dayplan_it/screens/start/login_provider.dart';
+import 'package:dayplan_it/screens/start/signuppage.dart';
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/mainpage.dart';
 import 'package:dayplan_it/repository/user_repository.dart';
 
 class LoginPage extends StatefulWidget {
@@ -21,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final formkey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     _loginProvider = Provider.of<LoginProvider>(context, listen: false);
@@ -32,60 +31,49 @@ class _LoginPageState extends State<LoginPage> {
 
       return Container(
           child: showProgress
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : Column(
-                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    Align(
-                      alignment: AlignmentDirectional(0, 0),
-                      child: Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(5, 10, 0, 0),
-                        child: Image.asset(
-                          'assets/icons/loginpage_icon.png',
-                          width: 0.8 * MediaQuery.of(context).size.width,
-                          height: 0.15 * MediaQuery.of(context).size.height,
-                          fit: BoxFit.fitWidth,
-                        ),
+                    Padding(
+                      padding:
+                          const EdgeInsetsDirectional.fromSTEB(5, 10, 5, 10),
+                      child: Image.asset(
+                        'assets/icons/loginpage_icon.png',
+                        width: 0.8 * MediaQuery.of(context).size.width,
+                        height: 0.15 * MediaQuery.of(context).size.height,
+                        fit: BoxFit.fitWidth,
                       ),
                     ),
-                    Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(30, 40, 0, 0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: 200,
-                              height: 100,
-                              alignment: AlignmentDirectional(-1, 0),
-                              child: Container(
-                                child: Text(
-                                  'Sign in',
-                                  style: mainFont(
-                                      textStyle:
-                                          const TextStyle(color: Colors.black),
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 45),
-                                ),
-                              ),
-                            ),
-                          ],
-                        )),
-                    Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(30, 0, 0, 0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Text(
-                              '로그인을 해주세요!',
-                              style: mainFont(
-                                  textStyle: const TextStyle(
-                                      color:
-                                          Color.fromARGB(255, 124, 124, 124)),
-                                  fontSize: 20),
-                            )
-                          ],
-                        )),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 30),
+                          Text(
+                            'Sign in',
+                            style: mainFont(
+                                textStyle: const TextStyle(color: Colors.black),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 45),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 30),
+                          Text(
+                            '로그인을 해주세요!',
+                            style: mainFont(
+                                textStyle: const TextStyle(
+                                    color: Color.fromARGB(255, 124, 124, 124)),
+                                fontSize: 20),
+                          )
+                        ],
+                      ),
+                    ),
                     Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(30, 0, 30, 0),
                         child: Form(
@@ -130,36 +118,36 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               ButtonBar(
                                 children: <Widget>[
-                                  FlatButton(
+                                  TextButton(
                                     child: Text('CANCEL'),
                                     onPressed: () {
                                       _usernameController.clear();
                                       _passwordController.clear();
                                     },
                                   ),
-                                  RaisedButton(
+                                  ElevatedButton(
                                     child: Text('NEXT'),
                                     onPressed: () async {
-                                      Future<List<String>> response_login =
+                                      Future<List<dynamic>> response_login =
                                           _loginRepository.loadToken(
                                               _usernameController.text,
                                               _passwordController.text);
                                       //일단 토큰을 서버에서 받아오기 전까지 로딩창 띄우기
                                       response_login.then((val) {
-                                        if (val[1] == '200') {
+                                        if (val[1] == 200) {
                                           setState(() {
                                             showProgress = false;
                                           });
                                           Provider.of<LoginProvider>(context,
                                                   listen: false)
-                                              .setToken(val[0]
-                                                  .toString()); // Provider.of<Counter>(context, listen: false) 사용.
+                                              .setToken(val[
+                                                  0]); // Provider.of<Counter>(context, listen: false) 사용.
 
                                           Navigator.pushReplacement(
                                               context,
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                      MainPage()));
+                                                      const MainPage()));
                                         } else {
                                           FlutterDialog();
                                         }
@@ -170,6 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                                           showProgress = false;
                                         });
                                         FlutterDialog();
+                                        print(error.toString());
                                       });
 
                                       setState(() {
@@ -182,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                               Center(
                                 child: ButtonBar(
                                   children: <Widget>[
-                                    FlatButton(
+                                    ElevatedButton(
                                       child: Text('회원가입'),
                                       onPressed: () {
                                         Navigator.push(
@@ -214,11 +203,7 @@ class _LoginPageState extends State<LoginPage> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0)),
             //Dialog Main Title
-            title: Column(
-              children: <Widget>[
-                new Text("오류"),
-              ],
-            ),
+            title: Text("오류"),
             //
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -230,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
             actions: <Widget>[
-              new FlatButton(
+              new ElevatedButton(
                 child: new Text("확인"),
                 onPressed: () {
                   Navigator.pop(context);

@@ -1,10 +1,7 @@
-import 'package:dayplan_it/provider_th/login_provider.dart';
+import 'dart:async';
 import 'package:dayplan_it/screens/start/loginpage.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:dayplan_it/constants.dart';
-import 'package:dio/dio.dart';
-import 'package:provider/provider.dart';
 import 'package:dayplan_it/repository/user_repository.dart';
 
 class SignupPage extends StatefulWidget {
@@ -190,6 +187,11 @@ class _SignupPageState extends State<SignupPage> {
                                     setState(() {
                                       showProgress = false;
                                     });
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LoginPage()));
                                   } else {
                                     FlutterDialog();
                                   }
@@ -199,6 +201,8 @@ class _SignupPageState extends State<SignupPage> {
                                   setState(() {
                                     showProgress = false;
                                   });
+                                  print(error.toString());
+
                                   FlutterDialog();
                                 });
 
