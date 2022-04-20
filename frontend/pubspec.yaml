@@ -34,12 +34,13 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   google_fonts: ^2.3.1 # 구글에서 제공하는 무료 폰트 사용
+  dio: ^4.0.0
+  provider: ^6.0.2
+  shared_preferences: ^2.0.13
   google_maps_flutter: ^2.1.3
   flutter_polyline_points: ^1.0.0
   flutter_calendar_week: ^2.1.0
-  dio: ^4.0.0
-  provider: ^6.0.2
-  location: ^4.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
