@@ -118,7 +118,9 @@ class TransitDetail(core_models.TimeStampedModel):
     transit_type = models.CharField(
         null=False, max_length=3, choices=TRANSIT_TYPE_CHOICES)
     transit_name = models.CharField(
-        null=False, max_length=10)  # 1330-44(번 버스), 2호선 등등
+        null=False, max_length=10)  # 서울지하철, 간선버스 등등
+    transit_short_name = models.CharField(
+        null=False, max_length=10)   # 1330-44(번 버스), 2호선 등등
 
     departure_stop_name = models.CharField(null=False, max_length=50)
     departure_stop_loc = geom_models.PointField(
