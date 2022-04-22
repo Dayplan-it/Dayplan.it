@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
-import 'package:dayplan_it/screens/create_schedule/create_detail_schedule_screen.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/create_rough_schedule_right_side.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/durationLine_vertical.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/RecommendedSchedulesGrid.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/create_rough_screen_bottom_right_space.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/timeline_vertical.dart';
 
 class CreateRoughScheduleScreen extends StatefulWidget {
   const CreateRoughScheduleScreen({Key? key, required this.date})
@@ -30,7 +28,7 @@ class _CreateRoughScheduleScreenState extends State<CreateRoughScheduleScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        context.read<CreateScheduleStore>().clearSchedule();
+        context.read<CreateScheduleStore>().clearDurationSchedule();
         return true;
       },
       child: Scaffold(
@@ -40,42 +38,27 @@ class _CreateRoughScheduleScreenState extends State<CreateRoughScheduleScreen> {
                 "${widget.date.month.toString()}월 ${widget.date.day.toString()}일",
             isHomePage: false,
           ),
-          body: RoughSceduleCreatorBody(
+          body: DurationOnlyScheduleCreatorBody(
             date: widget.date,
           )),
     );
   }
 }
 
-class RoughSceduleCreatorBody extends StatefulWidget {
-  const RoughSceduleCreatorBody({
-    Key? key,
-    required this.date,
-  }) : super(key: key);
+class DurationOnlyScheduleCreatorBody extends StatelessWidget {
+  const DurationOnlyScheduleCreatorBody({Key? key, required this.date})
+      : super(key: key);
   final DateTime date;
-
-  @override
-  State<RoughSceduleCreatorBody> createState() =>
-      _RoughSceduleCreatorBodyState();
-}
-
-class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<CreateScheduleStore>().scheduleDate = widget.date;
-  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
-      child: Row(
-        children: [
+        padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
+        child: Row(children: [
           const Expanded(
               flex: 47,
-              child: TimeLine(
-                timeLineWidth: roughTimeLineWidth,
+              child: DurationLine(
+                durationLineWidth: roughTimeLineWidth,
               )),
           Expanded(
               flex: 53,
@@ -83,13 +66,15 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                 children: [
                   Expanded(
                       flex: 60,
-                      child: context.watch<CreateScheduleStore>().isDragging
-                          ? const DeleteScheduleArea()
+                      child: context
+                              .watch<CreateScheduleStore>()
+                              .isDurationOnlyScheduleDragging
+                          ? const DeleteDurationOnlyScheduleArea()
                           : const RecommendedSchedulesGrid()),
                   Expanded(
                       flex: (context
                               .watch<CreateScheduleStore>()
-                              .roughSchedule
+                              .durationSchedule
                               .isEmpty
                           ? (context
                                   .watch<CreateScheduleStore>()
@@ -101,10 +86,22 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                                   .isCustomBlockBeingMade
                               ? 180
                               : 0)),
-                      child: _buildBottomRight(context)),
+                      child: context
+                                  .watch<CreateScheduleStore>()
+                                  .durationSchedule
+                                  .isEmpty &&
+                              !context
+                                  .watch<CreateScheduleStore>()
+                                  .isCustomBlockBeingMade
+                          ? const NoScheduleText()
+                          : (context
+                                  .watch<CreateScheduleStore>()
+                                  .isCustomBlockBeingMade
+                              ? const CreateCustomBlock()
+                              : const SizedBox())),
                   if (context
                       .watch<CreateScheduleStore>()
-                      .roughSchedule
+                      .durationSchedule
                       .isNotEmpty)
                     const SizedBox(
                       height: 5,
@@ -112,22 +109,28 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                   ElevatedButton(
                       onPressed: context
                               .watch<CreateScheduleStore>()
-                              .roughSchedule
+                              .durationSchedule
                               .isEmpty
                           ? null
                           : () {
-                              context
+                              for (var schedule in context
                                   .read<CreateScheduleStore>()
-                                  .indexOfCurrentlyDecidingDetail = 0;
-                              context
-                                  .read<CreateScheduleStore>()
-                                  .toggleIsDetailBeingMade();
+                                  .durationSchedule) {
+                                print(schedule.duration);
+                              }
 
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const CreateDetailScheduleScreen()));
+                              // context
+                              //     .read<CreateScheduleStore>()
+                              //     .indexOfCurrentlyDecidingDetail = 0;
+                              // context
+                              //     .read<CreateScheduleStore>()
+                              //     .toggleIsDetailBeingMade();
+
+                              // Navigator.push(
+                              //     context,
+                              //     MaterialPageRoute(
+                              //         builder: (context) =>
+                              //             const CreateDetailScheduleScreen()));
                             },
                       style: ElevatedButton.styleFrom(
                           primary: primaryColor,
@@ -143,33 +146,20 @@ class _RoughSceduleCreatorBodyState extends State<RoughSceduleCreatorBody> {
                       ))
                 ],
               ))
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomRight(BuildContext context) {
-    if (context.watch<CreateScheduleStore>().roughSchedule.isEmpty &&
-        !context.watch<CreateScheduleStore>().isCustomBlockBeingMade) {
-      return const NoScheduleText();
-    } else if (context.watch<CreateScheduleStore>().isCustomBlockBeingMade) {
-      return const CreateCustomBlock();
-    } else {
-      return const SizedBox();
-    }
+        ]));
   }
 }
 
-class DeleteScheduleArea extends StatefulWidget {
-  const DeleteScheduleArea({
-    Key? key,
-  }) : super(key: key);
+class DeleteDurationOnlyScheduleArea extends StatefulWidget {
+  const DeleteDurationOnlyScheduleArea({Key? key}) : super(key: key);
 
   @override
-  State<DeleteScheduleArea> createState() => _DeleteScheduleAreaState();
+  State<DeleteDurationOnlyScheduleArea> createState() =>
+      _DeleteDurationOnlyScheduleAreaState();
 }
 
-class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
+class _DeleteDurationOnlyScheduleAreaState
+    extends State<DeleteDurationOnlyScheduleArea> {
   bool isHovered = false;
 
   @override
@@ -214,9 +204,11 @@ class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
           isHovered = false;
         });
       },
-      onAccept: (int scheduleIndex) {
-        context.read<CreateScheduleStore>().removeRoughSchedule(scheduleIndex);
-        context.read<CreateScheduleStore>().onDragEnd();
+      onAccept: (int durationOnlyScheduleIndex) {
+        context
+            .read<CreateScheduleStore>()
+            .removeDurationOnlySchedule(durationOnlyScheduleIndex);
+        context.read<CreateScheduleStore>().onDurationScheduleDragEnd();
       },
     );
   }

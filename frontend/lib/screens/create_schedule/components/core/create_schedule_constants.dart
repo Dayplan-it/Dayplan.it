@@ -22,6 +22,8 @@ const double detailTimeLineWidth = 100;
 
 const double scheduleBoxHandleWidth = 22;
 
+const double upDownHandleHeight = 14;
+
 /// BorderRadius 기본값
 BorderRadius defaultBoxRadius = BorderRadius.circular(20);
 

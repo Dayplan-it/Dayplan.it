@@ -39,9 +39,11 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
                           .toggleIsDetailBeingMade();
                     } else if (context
                         .read<CreateScheduleStore>()
-                        .roughSchedule
+                        .durationSchedule
                         .isNotEmpty) {
-                      context.read<CreateScheduleStore>().clearSchedule();
+                      context
+                          .read<CreateScheduleStore>()
+                          .clearDurationSchedule();
                     }
                   },
                   icon: const Icon(
