@@ -65,6 +65,7 @@ class TransitDetailSerializer(serializers.ModelSerializer):
         fields = [
             'transit_type',
             'transit_name',
+            'transit_short_name',
             'departure_stop_name',
             'departure_time',
             'arrival_stop_name',

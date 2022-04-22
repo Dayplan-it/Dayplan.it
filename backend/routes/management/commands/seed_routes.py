@@ -1,7 +1,7 @@
 import random
 import json
 import datetime
-from time import sleep
+from time import sleep, mktime
 import requests
 from pathlib import Path
 from django.core.management.base import BaseCommand
@@ -107,11 +107,12 @@ class Command(BaseCommand):
                             sleep(0.5)
 
                         if json.loads(response.text)["status"] == "ZERO_RESULTS":
-                            print(directions_url)
-                            return self.stdout.write(self.style.ERROR('ERROR : 아직까지 못잡은 버그 발생 (ZERO_RESULTS) 위 내용 공유바랍니다.'))
+                            self.stdout.write(self.style.ERROR(
+                                f'ERROR : {order_for_dummy_routes[i].schedule.user.id}번 유저의 {mktime(order_for_dummy_routes[i].schedule.date.timetuple())} 스케줄 {order_for_dummy_routes[i].serial}번째 Order인 Route는 Google Directions API로는 경로를 찾을 수 없음'))
+                            continue
 
-                        routes_legs = json.loads(
-                            response.text)["routes"][0]["legs"][0]
+                        routes_legs = json.loads(response.text)[
+                            "routes"][0]["legs"][0]
 
                         overview_polyline = json.loads(
                             response.text)["routes"][0]["overview_polyline"]["points"]
@@ -216,6 +217,7 @@ class Command(BaseCommand):
                                     transit_type='SUB' if current_substep["line"][
                                         "vehicle"]["type"] == 'SUBWAY' else 'BUS',
                                     transit_name=current_substep["line"]["name"],
+                                    transit_short_name=current_substep["line"]["short_name"],
 
                                     departure_stop_name=current_substep["departure_stop"]["name"],
                                     departure_stop_loc=Point(
