@@ -50,6 +50,7 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
           ///날짜를 클릭했을 때 해당 날짜 지도, 스케줄, provider 설정
           onDatePressed: (DateTime datetime) async {
             ///provider 현재날짜설정
+
             Provider.of<HomeProvider>(context, listen: false)
                 .selectDate(datetime);
 
@@ -61,12 +62,14 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
                 _homeRepository.getScheduleDetail(
                     Provider.of<HomeProvider>(context, listen: false).id,
                     datetime);
+
             responseDetail.then((value) {
               if (value.length > 2) {
                 Provider.of<HomeProvider>(context, listen: false)
                     .setScheduleDetail(value);
                 Map<dynamic, dynamic> mapdata =
                     _homeRepository.setRouteData(value);
+
                 Provider.of<HomeProvider>(context, listen: false)
                     .setGeom(mapdata);
               } else {}

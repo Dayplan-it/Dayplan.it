@@ -72,7 +72,7 @@ class _GooglemapState extends State<Googlemap> {
               heightFactor: 0.3,
               widthFactor: 2.5,
               child: GoogleMap(
-                padding: const EdgeInsets.only(left: 150),
+                padding: const EdgeInsets.only(left: 60),
                 mapType: MapType.normal,
                 myLocationEnabled: true,
                 onMapCreated: (GoogleMapController controller) {

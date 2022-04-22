@@ -37,7 +37,11 @@ class HomeRepository {
           res["order"][i]["detail"]["point"]["latitude"],
           res["order"][i]["detail"]["point"]["longitude"]
         ]);
-        detail.add(res["order"][i]["detail"]["place_id"]);
+        detail.add([
+          res["order"][i]["detail"]["point"]["latitude"],
+          res["order"][i]["detail"]["point"]["longitude"],
+          res["order"][i]["detail"]["place_id"]
+        ]);
         type.add("PL");
       } else {
         comments.add(
@@ -73,11 +77,10 @@ class HomeRepository {
 
     for (int i = 0; i < mapdata["comments"].length; i++) {
       if (mapdata["type"][i] == "PL") {
-        MarkerId markerId = MarkerId(mapdata["detail"][i]);
+        MarkerId markerId = MarkerId(mapdata["detail"][i][2]);
         double lat = mapdata["geom"][i][0];
         double lng = mapdata["geom"][i][1];
         LatLng position = LatLng(lat, lng);
-
         BitmapDescriptor descriptor = BitmapDescriptor.defaultMarkerWithHue(90);
         Marker marker =
             Marker(markerId: markerId, icon: descriptor, position: position);

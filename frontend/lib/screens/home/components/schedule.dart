@@ -1,3 +1,4 @@
+import 'package:dayplan_it/screens/home/components/detailroutepopup.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
@@ -13,6 +14,7 @@ class Schedule extends StatefulWidget {
 class _ScheduleState extends State<Schedule> {
   @override
   Widget build(BuildContext context) {
+    Detailpopup detailPopup = Detailpopup();
     final devicewidth = MediaQuery.of(context).size.width;
     final deviceheight = MediaQuery.of(context).size.height;
     return Consumer<HomeProvider>(builder: (context, provider, widget) {
@@ -35,67 +37,96 @@ class _ScheduleState extends State<Schedule> {
       }
       List<dynamic> startTime = route["start_time"] ?? [];
       List<dynamic> endTime = route["end_time"] ?? [];
+      List<dynamic> detailRoute = route['detail'] ?? [];
       int len = route["comments"]?.length ?? 0;
+      return ClipRRect(
+          borderRadius: BorderRadius.circular(40),
+          child: Container(
+            width: 0.95 * devicewidth,
+            height: 0.3 * deviceheight,
+            child: ListView.separated(
+              padding: const EdgeInsets.all(5),
+              itemCount: len,
+              itemBuilder: (context, index) {
+                return Card(
+                  child:
+                      Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                    ListTile(
+                      onTap: () {
+                        int routeIndex;
+                        int startIndex;
+                        int endIndex;
 
-      return Container(
-        width: 0.95 * devicewidth,
-        height: 0.3 * deviceheight,
-        child: ListView.separated(
-          padding: const EdgeInsets.all(5),
-          itemCount: len,
-          itemBuilder: (context, index) {
-            return Card(
-              child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                ListTile(
-                  onTap: () {
-                    ///스케줄카드를 눌렀을 떄 기능 구현
-                  },
-                  leading: Icon(
-                    icons[index],
-                    color: Colors.redAccent,
-                  ),
-                  title: Text(
-                    '${comments[index]}',
-                    style: DayplanitLogoFont(
-                        textStyle: const TextStyle(
-                            color: Color.fromARGB(221, 72, 72, 72)),
-                        fontWeight: FontWeight.w700),
-                  ),
-                  subtitle: Text(
-                    //시작,끝시간 초단위 삭제
-                    '${startTime[index].toString().substring(0, 5)}~${endTime[index]..toString().substring(0, 5)}',
-                  ),
+                        //마지막 장소일 떄는 전장소의 경로      장소 경로 장소 경로 장소
+                        if (index == len - 1) {
+                          routeIndex = index - 1;
+                          startIndex = index - 2;
+                          endIndex = index;
+                        }
+                        //홀수일떄는 경로
+                        else if (index % 2 != 0) {
+                          routeIndex = index;
+                          startIndex = index - 1;
+                          endIndex = index + 1;
+                        }
+                        //짝수일떄는 장소
+                        else {
+                          routeIndex = index + 1;
+                          startIndex = index;
+                          endIndex = index + 2;
+                        }
+                        detailPopup.setRouteDetail(
+                            context,
+                            detailRoute[startIndex],
+                            detailRoute[routeIndex],
+                            detailRoute[endIndex],
+                            devicewidth,
+                            deviceheight);
+                      },
+                      leading: Icon(
+                        icons[index],
+                        color: const Color.fromARGB(255, 122, 122, 122),
+                      ),
+                      title: Text(
+                        '${comments[index]}',
+                        style: DayplanitLogoFont(
+                            textStyle: const TextStyle(
+                                color: Color.fromARGB(221, 72, 72, 72)),
+                            fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                          '${startTime[index].toString().substring(0, 5)}~${endTime[index]..toString().substring(0, 5)}'),
+                    ),
+                  ]),
+                );
+              },
+
+              ///구분선추가
+              separatorBuilder: (context, index) {
+                return const Divider();
+              },
+            ),
+            decoration: const BoxDecoration(
+              color: Color.fromARGB(255, 255, 255, 255),
+              borderRadius: BorderRadius.all(
+                Radius.circular(40),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Color.fromARGB(71, 158, 158, 158),
+                  offset: Offset(4.0, 4.0),
+                  blurRadius: 15.0,
+                  spreadRadius: 1.0,
                 ),
-              ]),
-            );
-          },
-
-          ///구분선추가
-          separatorBuilder: (context, index) {
-            return const Divider();
-          },
-        ),
-        decoration: const BoxDecoration(
-          color: Color.fromARGB(255, 255, 255, 255),
-          borderRadius: BorderRadius.all(
-            Radius.circular(40),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Color.fromARGB(71, 158, 158, 158),
-              offset: Offset(4.0, 4.0),
-              blurRadius: 15.0,
-              spreadRadius: 1.0,
+                BoxShadow(
+                  color: Colors.white,
+                  offset: Offset(-4.0, -4.0),
+                  blurRadius: 15.0,
+                  spreadRadius: 1.0,
+                ),
+              ],
             ),
-            BoxShadow(
-              color: Colors.white,
-              offset: Offset(-4.0, -4.0),
-              blurRadius: 15.0,
-              spreadRadius: 1.0,
-            ),
-          ],
-        ),
-      );
+          ));
     });
   }
 }

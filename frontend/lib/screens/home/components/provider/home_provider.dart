@@ -6,7 +6,7 @@ class HomeProvider extends ChangeNotifier {
   //id값이 넘어오거나 해서 있다고 가정한다.
   //예시 데이터 id= 30
   // 밑에 변수들 Const선언하라고 파란줄 뜨는데 이부분은 상수인가?
-  int _id = 30;
+  int _id = 44;
   //사용자의 모든 일정리스트로 불러옴
   List<DateTime> _allSchedule = [];
   //현재 사용자가 선택한 날짜를 나타내는 변수(default = 오늘)

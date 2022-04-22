@@ -6,7 +6,7 @@ import 'package:dayplan_it/components/floating_btn.dart';
 import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
 
 class HomeScreen extends StatefulWidget {
-  HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

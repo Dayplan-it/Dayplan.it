@@ -41,7 +41,7 @@ class _MyAppState extends State<MyApp> {
         '/signup': (BuildContext context) => SignupPage(),
         '/home': (BuildContext context) => HomeScreen(),
       },
-      home: const LandingPage(),
+      home: MainPage(),
     );
   }
 }

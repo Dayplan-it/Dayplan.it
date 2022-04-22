@@ -31,7 +31,6 @@ class _MainPageState extends State<MainPage> {
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
       ),
-      floatingActionButton: const DayplanitFloatingBtn(),
     );
   }
 }
