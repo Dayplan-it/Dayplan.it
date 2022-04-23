@@ -19,11 +19,12 @@ class DurationOnlyScheduleBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isEmpty = (placeDurationOnly.placeType == "empty");
     return Container(
         decoration: BoxDecoration(
             color: placeDurationOnly.color,
             borderRadius: defaultBoxRadius,
-            border: Border.all(color: primaryColor, width: 3)),
+            boxShadow: defaultBoxShadow),
         height: placeDurationOnly.toHeight(),
         width: itemWidth,
         clipBehavior: Clip.antiAlias,
@@ -35,14 +36,15 @@ class DurationOnlyScheduleBox extends StatelessWidget {
                 fit: BoxFit.fitWidth,
                 child: Column(
                   children: [
-                    Text(
-                      placeDurationOnly.nameKor,
-                      style: mainFont(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          fontSize: itemHeight / 5,
-                          letterSpacing: 1),
-                    ),
+                    if (!isEmpty)
+                      Text(
+                        placeDurationOnly.nameKor,
+                        style: mainFont(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontSize: itemHeight / 5,
+                            letterSpacing: 1),
+                      ),
                     placeDurationOnly.toHeight() > itemHeight / 4
                         ? Text(
                             ((placeDurationOnly.duration.inMinutes >= 60)
@@ -59,7 +61,7 @@ class DurationOnlyScheduleBox extends StatelessWidget {
                                     : ""),
                             style: mainFont(
                                 fontWeight: FontWeight.w500,
-                                color: Color.fromARGB(255, 255, 255, 255),
+                                color: Colors.white,
                                 fontSize: itemHeight / 7,
                                 letterSpacing: 1),
                           )
@@ -77,28 +79,25 @@ class DurationOnlyScheduleBox extends StatelessWidget {
                   index: index,
                 ),
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () => print("TAP"),
-                    child: LongPressDraggable(
-                      feedback: OnDurationOnlyScheduleBoxLongPress(
-                        width: itemWidth,
-                        placeDurationOnly: placeDurationOnly,
-                        isFeedback: true,
-                      ),
-                      delay: const Duration(milliseconds: 100),
-                      data: index,
-                      onDragEnd: (DraggableDetails details) => context
-                          .read<CreateScheduleStore>()
-                          .onDurationScheduleDragEnd(),
-                      onDragStarted: () => context
-                          .read<CreateScheduleStore>()
-                          .onDurationScheduleDragStart(index),
-                      onDraggableCanceled: (velocity, offset) => context
-                          .read<CreateScheduleStore>()
-                          .onDurationScheduleDragEnd,
-                      child: Container(
-                        color: const Color.fromRGBO(0, 0, 0, 0),
-                      ),
+                  child: LongPressDraggable(
+                    feedback: OnDurationOnlyScheduleBoxLongPress(
+                      width: itemWidth,
+                      placeDurationOnly: placeDurationOnly,
+                      isFeedback: true,
+                    ),
+                    delay: const Duration(milliseconds: 100),
+                    data: index,
+                    onDragEnd: (DraggableDetails details) => context
+                        .read<CreateScheduleStore>()
+                        .onDurationScheduleDragEnd(),
+                    onDragStarted: () => context
+                        .read<CreateScheduleStore>()
+                        .onDurationScheduleDragStart(index),
+                    onDraggableCanceled: (velocity, offset) => context
+                        .read<CreateScheduleStore>()
+                        .onDurationScheduleDragEnd,
+                    child: Container(
+                      color: const Color.fromRGBO(0, 0, 0, 0),
                     ),
                   ),
                 ),
@@ -108,7 +107,7 @@ class DurationOnlyScheduleBox extends StatelessWidget {
                 ),
               ],
             ),
-          )
+          ),
         ]));
   }
 }

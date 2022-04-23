@@ -5,6 +5,7 @@ import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/place.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 
 class RecommendedSchedulesGrid extends StatelessWidget {
   const RecommendedSchedulesGrid({Key? key}) : super(key: key);
@@ -20,7 +21,7 @@ class RecommendedSchedulesGrid extends StatelessWidget {
           color: place[2],
 
           // 아래는 임시로 부여하는 시간 데이터
-          duration: const Duration(seconds: 1)));
+          duration: Duration.zero));
 
       // 아이콘 저장
       placeIcons.add(place[3]);
@@ -74,26 +75,55 @@ class RecommendedSchedulesGrid extends StatelessWidget {
         Positioned(
           bottom: 2,
           right: 2,
-          child: ElevatedButton.icon(
-              onPressed: () => context
-                  .read<CreateScheduleStore>()
-                  .onStartMakingCustomBlock(),
-              style: ElevatedButton.styleFrom(
-                  primary: primaryColor,
-                  shape:
-                      RoundedRectangleBorder(borderRadius: defaultBoxRadius)),
-              icon: const Icon(
-                Icons.add_circle_outline,
-                color: Colors.white,
-                size: 20,
-              ),
-              label: Text(
-                '커스텀 블록 추가',
-                style: mainFont(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              ElevatedButton.icon(
+                  onPressed: () => context
+                      .read<CreateScheduleStore>()
+                      .addScheduleDurationOnly(PlaceDurationOnly(
+                          nameKor: "",
+                          placeType: "empty",
+                          color: const Color.fromARGB(150, 72, 72, 72),
+                          duration: Duration.zero)),
+                  style: ElevatedButton.styleFrom(
+                      primary: primaryColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: defaultBoxRadius)),
+                  icon: const Icon(
+                    Icons.add_circle_outline,
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13),
-              )),
+                    size: 20,
+                  ),
+                  label: Text(
+                    '빈 블록 추가',
+                    style: mainFont(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13),
+                  )),
+              ElevatedButton.icon(
+                  onPressed: () => context
+                      .read<CreateScheduleStore>()
+                      .onStartMakingCustomBlock(),
+                  style: ElevatedButton.styleFrom(
+                      primary: primaryColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: defaultBoxRadius)),
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  label: Text(
+                    '커스텀 블록 추가',
+                    style: mainFont(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13),
+                  )),
+            ],
+          ),
         )
       ]),
     );
@@ -160,6 +190,16 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
 
   @override
   Widget build(BuildContext context) {
+    _onAddCustomScheduleBtnPressed() {
+      context.read<CreateScheduleStore>().addScheduleDurationOnly(
+          PlaceDurationOnly(
+              nameKor: _input,
+              placeType: "custom",
+              color: pointColor,
+              duration: const Duration(seconds: 1)));
+      context.read<CreateScheduleStore>().onEndMakingCustomBlock();
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -198,49 +238,16 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
         ),
         Column(
           children: [
-            ElevatedButton(
-                onPressed: _isInputExists
-                    ? () {
-                        context
-                            .read<CreateScheduleStore>()
-                            .addScheduleDurationOnly(PlaceDurationOnly(
-                                nameKor: _input,
-                                placeType: "custom",
-                                color: pointColor,
-                                duration: const Duration(seconds: 1)));
-                        context
-                            .read<CreateScheduleStore>()
-                            .onEndMakingCustomBlock();
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                    primary: primaryColor,
-                    minimumSize: const Size(double.maxFinite, 40),
-                    shape:
-                        RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
-                child: Text(
-                  "추가하기",
-                  style: mainFont(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                )),
-            ElevatedButton(
-                onPressed: () => context
-                    .read<CreateScheduleStore>()
-                    .onEndMakingCustomBlock(),
-                style: ElevatedButton.styleFrom(
-                    primary: pointColor,
-                    minimumSize: const Size(double.maxFinite, 40),
-                    shape:
-                        RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
-                child: Text(
-                  "취소",
-                  style: mainFont(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                )),
+            SquareButton(
+                title: "추가하기",
+                activate: _isInputExists,
+                onPressed: _onAddCustomScheduleBtnPressed),
+            SquareButton(
+              title: "취소",
+              onPressed:
+                  context.read<CreateScheduleStore>().onEndMakingCustomBlock,
+              isCancle: true,
+            )
           ],
         ),
       ],
