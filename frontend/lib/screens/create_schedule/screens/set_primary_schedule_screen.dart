@@ -22,7 +22,7 @@ class _SetPrimaryScheduleScreen extends State<SetPrimaryScheduleScreen> {
     DateTime date = context.read<CreateScheduleStore>().scheduleDate;
     return WillPopScope(
       onWillPop: () async {
-        // context.read<CreateScheduleStore>().onPopCreateRoughScheduleScreen();
+        context.read<CreateScheduleStore>().onPopSetPrimaryScheduleScreen();
         return true;
       },
       child: Scaffold(
