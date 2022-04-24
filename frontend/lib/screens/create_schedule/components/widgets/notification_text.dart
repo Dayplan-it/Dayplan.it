@@ -86,7 +86,7 @@ class NotificationBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 10),
+      padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: defaultBoxShadow,

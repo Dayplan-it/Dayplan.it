@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dayplan_it/constants.dart';
@@ -47,7 +48,7 @@ class _SetScheduleTabState extends State<SetScheduleTab> {
           const SizedBox(height: 10),
         if (_isSetTimeNotiboxShow)
           NotificationBox(
-            title: "추가한 일정을 누르거나 일정 시작 전 회색 영역을 눌러 스케줄의 시작시간을 조절하세요.",
+            title: "일정 또는 회색 영역을 눌러 전체 스케줄의 시간을 간편하게 조절하세요.",
             onClosePressed: _onNotiBox2ClosePressed,
           ),
       ],
@@ -66,14 +67,14 @@ class _SetScheduleTabState extends State<SetScheduleTab> {
         ),
         if (context.watch<CreateScheduleStore>().isCustomBlockBeingMade)
           const Positioned.fill(child: CreateCustomBlock()),
+        if (context.watch<CreateScheduleStore>().isDecidingScheduleStartsAt)
+          const Positioned.fill(child: SetScheduleStartsAt()),
         if (context.watch<CreateScheduleStore>().isScheduleBoxDragging)
           const Positioned.fill(
               child: Padding(
             padding: EdgeInsets.only(top: 10),
             child: DeleteScheduleArea(),
           )),
-        if (context.watch<CreateScheduleStore>().isDecidingScheduleStartsAt)
-          const Positioned.fill(child: SizedBox())
       ],
     );
   }
@@ -340,6 +341,249 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
                     context.read<CreateScheduleStore>().onEndMakingCustomBlock,
                 isCancle: true,
               )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// TimePickerSpinner를 이용해서 시간을 선택하는 부분인데,
+/// 블록을 새로 선택할 때마다 타임피커의 time이 바뀌게 하고싶어서 여러가지 시도해봤지만
+/// 실패하여 우선은 작동은 되는 상태로 둠
+/// 추후 개선이 필요
+class SetScheduleStartsAt extends StatefulWidget {
+  const SetScheduleStartsAt({Key? key}) : super(key: key);
+
+  @override
+  State<SetScheduleStartsAt> createState() => _SetScheduleStartsAtState();
+}
+
+class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
+  late DateTime _dateTime;
+  late Schedule currentlyDecidingSchedule;
+
+  @override
+  void initState() {
+    // if (context.watch<CreateScheduleStore>().isBeforeStartTap ||
+    //     context.watch<CreateScheduleStore>().scheduleList.isEmpty) {
+    //   // 스케줄 시작 전 회색영역 터치한 경우
+    //   context.read<CreateScheduleStore>().isBeforeStartTap = false;
+    //   setState(() {
+    //     currentlyDecidingSchedule = Schedule(
+    //         nameKor: "전체 일정 시작시간",
+    //         placeType: "dummy",
+    //         color: const Color.fromARGB(157, 69, 69, 69),
+    //         duration: Duration.zero);
+    //     _startTime = context.read<CreateScheduleStore>().scheduleListStartsAt;
+    //     _dateTime = _startTime;
+    //   });
+    // } else {
+    //   setState(() {
+    //     currentlyDecidingSchedule =
+    //         context.watch<CreateScheduleStore>().scheduleList[context
+    //             .watch<CreateScheduleStore>()
+    //             .indexOfcurrentlyDecidingStartsAtSchedule];
+    //     _startTime = currentlyDecidingSchedule.startsAt!;
+    //     _dateTime = _startTime;
+    //   });
+    // }
+    if (context.read<CreateScheduleStore>().scheduleList.isNotEmpty) {
+      _dateTime = context
+          .read<CreateScheduleStore>()
+          .scheduleList[context
+              .read<CreateScheduleStore>()
+              .indexOfcurrentlyDecidingStartsAtSchedule]
+          .startsAt!;
+    } else {
+      _dateTime = context.read<CreateScheduleStore>().scheduleListStartsAt;
+    }
+    super.initState();
+  }
+
+  DateTime _timePickerInitTime() {
+    try {
+      return context
+          .watch<CreateScheduleStore>()
+          .scheduleList[context
+              .watch<CreateScheduleStore>()
+              .indexOfcurrentlyDecidingStartsAtSchedule]
+          .startsAt!;
+    } catch (_) {
+      return context.watch<CreateScheduleStore>().scheduleListStartsAt;
+    }
+  }
+
+  late TimePickerSpinner _timePickerSpinner;
+
+  @override
+  Widget build(BuildContext context) {
+    // print(context.read<CreateScheduleStore>().scheduleListStartsAt);
+    // print(currentlyDecidingSchedule.startsAt);
+
+    if (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty &&
+        !context.watch<CreateScheduleStore>().isBeforeStartTap) {
+      currentlyDecidingSchedule =
+          context.watch<CreateScheduleStore>().scheduleList[context
+              .watch<CreateScheduleStore>()
+              .indexOfcurrentlyDecidingStartsAtSchedule];
+      setState(() {
+        _timePickerSpinner = TimePickerSpinner(
+          time: context
+              .watch<CreateScheduleStore>()
+              .scheduleList[context
+                  .watch<CreateScheduleStore>()
+                  .indexOfcurrentlyDecidingStartsAtSchedule]
+              .startsAt!,
+          is24HourMode: false,
+          normalTextStyle: mainFont(color: subTextColor),
+          highlightedTextStyle:
+              mainFont(color: primaryColor, fontWeight: FontWeight.w600),
+          itemHeight: 40,
+          isForce2Digits: true,
+          onTimeChange: (time) {
+            setState(() {
+              _dateTime = time;
+            });
+          },
+        );
+      });
+    } else {
+      currentlyDecidingSchedule = Schedule(
+          nameKor: "전체 일정 시작시간",
+          placeType: "dummy",
+          color: const Color.fromARGB(157, 69, 69, 69),
+          duration: Duration.zero);
+      context.read<CreateScheduleStore>().isBeforeStartTap = false;
+      setState(() {
+        _timePickerSpinner = TimePickerSpinner(
+          time: context.watch<CreateScheduleStore>().scheduleListStartsAt,
+          is24HourMode: false,
+          normalTextStyle: mainFont(color: subTextColor),
+          highlightedTextStyle:
+              mainFont(color: primaryColor, fontWeight: FontWeight.w600),
+          itemHeight: 40,
+          isForce2Digits: true,
+          onTimeChange: (time) {
+            setState(() {
+              _dateTime = time;
+            });
+          },
+        );
+      });
+    }
+
+    return Container(
+      color: Colors.white,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Column(
+            children: [
+              UnconstrainedBox(
+                child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                        color: currentlyDecidingSchedule.color,
+                        borderRadius: defaultBoxRadius,
+                        boxShadow: defaultBoxShadow),
+                    padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                    child: Text(
+                      currentlyDecidingSchedule.nameKor,
+                      style: mainFont(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15),
+                    )),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                "시작 시간을 선택하세요",
+                style: mainFont(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15),
+              ),
+              const SizedBox(
+                height: 3,
+              ),
+              Text(
+                "설정하신 시각을 기준으로",
+                style: mainFont(color: subTextColor, fontSize: 12),
+              ),
+              const SizedBox(
+                height: 2,
+              ),
+              Text(
+                "전체 스케줄의 시간이 결정됩니다",
+                style: mainFont(color: subTextColor, fontSize: 12),
+              )
+            ],
+          ),
+          Container(
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: defaultBoxRadius,
+                boxShadow: defaultBoxShadow),
+            height: 140,
+            alignment: Alignment.center,
+            child: _timePickerSpinner,
+          ),
+          Column(
+            children: [
+              if (context
+                  .watch<CreateScheduleStore>()
+                  .checkIfScheduleListStartsAtSettable(_dateTime))
+                const SizedBox(height: 23)
+              else
+                const NotificationText(
+                  title: "스케줄이 하루를 넘어서게 됩니다",
+                  isRed: true,
+                ),
+              ElevatedButton(
+                  onPressed: context
+                          .watch<CreateScheduleStore>()
+                          .checkIfScheduleListStartsAtSettable(_dateTime)
+                      ? () {
+                          context
+                              .read<CreateScheduleStore>()
+                              .setScheduleListStartsAt(_dateTime);
+                          context
+                              .read<CreateScheduleStore>()
+                              .onDecidingScheduleStartsAtEnd();
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                      primary: primaryColor,
+                      minimumSize: const Size(double.maxFinite, 40),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: buttonBoxRadius)),
+                  child: Text(
+                    "스케줄 시간 설정하기",
+                    style: mainFont(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  )),
+              ElevatedButton(
+                  onPressed: () => context
+                      .read<CreateScheduleStore>()
+                      .onDecidingScheduleStartsAtEnd(),
+                  style: ElevatedButton.styleFrom(
+                      primary: pointColor,
+                      minimumSize: const Size(double.maxFinite, 40),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: buttonBoxRadius)),
+                  child: Text(
+                    "취소",
+                    style: mainFont(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  )),
             ],
           ),
         ],

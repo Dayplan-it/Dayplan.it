@@ -28,8 +28,6 @@ class _TimeLineState extends State<TimeLine> {
   }
 
   Widget _buildScheduleStartsAt() {
-    List<Schedule> scheduleList =
-        context.watch<CreateScheduleStore>().scheduleList;
     return Row(
       children: [
         const SizedBox(
@@ -41,16 +39,20 @@ class _TimeLineState extends State<TimeLine> {
               height: reorderDragTargetHeight / 2,
             ),
             GestureDetector(
-              onTap: () => context
-                  .read<CreateScheduleStore>()
-                  .toggleIsDecidingScheduleStartsAt(),
+              onTap: () {
+                context.read<CreateScheduleStore>().onBeforeStartTap();
+                context
+                    .read<CreateScheduleStore>()
+                    .onDecidingScheduleStartsAtStart();
+              },
               child: Container(
-                height: dateTimeToHeight(context
-                        .watch<CreateScheduleStore>()
-                        .scheduleListStartsAt) +
-                    (scheduleList.isNotEmpty ? upDownHandleHeight : 0),
+                height: dateTimeToHeight(
+                    context.watch<CreateScheduleStore>().scheduleListStartsAt),
                 width: widget.timeLineWidth,
-                color: const Color.fromARGB(157, 69, 69, 69),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(157, 69, 69, 69),
+                  borderRadius: defaultBoxRadius,
+                ),
               ),
             ),
           ],

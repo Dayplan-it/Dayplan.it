@@ -1,3 +1,4 @@
+import 'package:dayplan_it/screens/create_schedule/tabbar/select_place_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,6 @@ class CreateScheduleScreen extends StatefulWidget {
 class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
   @override
   void initState() {
-    // context.read<CreateScheduleStore>().isDetailBeingMade = false;
     context.read<CreateScheduleStore>().scheduleDate = widget.date;
     context.read<CreateScheduleStore>().scheduleListStartsAt =
         widget.date.add(const Duration(hours: 9));
@@ -74,7 +74,6 @@ class CreateScheduleScreenRightSide extends StatefulWidget {
 
 class _CreateScheduleScreenRightSideState
     extends State<CreateScheduleScreenRightSide> with TickerProviderStateMixin {
-  late TabController _tabController;
   int index = 0;
 
   Widget _buildTabTitle(String title) {
@@ -91,16 +90,17 @@ class _CreateScheduleScreenRightSideState
 
   @override
   void initState() {
-    _tabController = TabController(
+    context.read<CreateScheduleStore>().tabController = TabController(
       length: 3,
       vsync: this,
     );
 
-    _tabController.addListener(() {
+    context.read<CreateScheduleStore>().tabController.addListener(() {
       setState(() {
-        index = _tabController.index;
+        index = context.read<CreateScheduleStore>().tabController.index;
       });
     });
+
     super.initState();
   }
 
@@ -112,7 +112,7 @@ class _CreateScheduleScreenRightSideState
           height: 25,
           width: double.infinity,
           child: TabBarView(
-            controller: _tabController,
+            controller: context.read<CreateScheduleStore>().tabController,
             children: [
               _buildTabTitle("일정 추가 및 조정"),
               _buildTabTitle("장소 설정"),
@@ -121,7 +121,7 @@ class _CreateScheduleScreenRightSideState
           ),
         ),
         TabBar(
-          controller: _tabController,
+          controller: context.read<CreateScheduleStore>().tabController,
           indicatorColor: primaryColor,
           labelColor: primaryColor,
           tabs: const [
@@ -143,17 +143,17 @@ class _CreateScheduleScreenRightSideState
         ),
         Expanded(
           child: TabBarView(
-            controller: _tabController,
+            controller: context.read<CreateScheduleStore>().tabController,
             children: [
               const SetScheduleTab(),
-              Text(index.toString()),
+              const SelectPlaceTab(),
               Text(index.toString()),
             ],
           ),
         ),
         Column(
           children: [
-            if (context.read<CreateScheduleStore>().scheduleList.isEmpty)
+            if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
               const NotificationText(
                 title: "일정이 없습니다",
                 isRed: true,

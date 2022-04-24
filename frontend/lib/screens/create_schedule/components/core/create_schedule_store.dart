@@ -39,60 +39,120 @@ class CreateScheduleStore extends ChangeNotifier {
   void removeSchedule(int scheduleIndex) {
     scheduleList.removeAt(scheduleIndex);
     calSchedulesStartsAndEndsAt();
+
+    // 스케줄 시작시간을 조정중에 삭제할 경우
+    // 경우에 따라 indexOfcurrentlyDecidingStartsAtSchedule을 바꿔줘야 함
+    if (isDecidingScheduleStartsAt) {
+      if (indexOfcurrentlyDecidingStartsAtSchedule != 0) {
+        indexOfcurrentlyDecidingStartsAtSchedule--;
+      }
+    }
     notifyListeners();
   }
 
   /// 스케줄 시작시간 조정 여부 확인용 변수
   bool isDecidingScheduleStartsAt = false;
 
-  /// 스케줄 시작시간 조정 시작 / 종료시 호출
-  void toggleIsDecidingScheduleStartsAt() {
-    isDecidingScheduleStartsAt = !isDecidingScheduleStartsAt;
+  void onDecidingScheduleStartsAtStart() {
+    isDecidingScheduleStartsAt = true;
+    notifyListeners();
+  }
+
+  void onDecidingScheduleStartsAtEnd() {
+    isDecidingScheduleStartsAt = false;
+    notifyListeners();
+  }
+
+  /// 현재 시작시간을 변경중인 스케줄의 인덱스
+  late int indexOfcurrentlyDecidingStartsAtSchedule;
+
+  void setIndexOfcurrentlyDecidingStartsAtSchedule(int index) {
+    indexOfcurrentlyDecidingStartsAtSchedule = index;
+    notifyListeners();
+  }
+
+  /// 시작시간 전 회색영역 탭 여부 확인용 변수
+  bool isBeforeStartTap = false;
+
+  void onBeforeStartTap() {
+    isBeforeStartTap = true;
     notifyListeners();
   }
 
   /// 스케줄 시작시간을 사용자에게 입력받을 때
   /// 해당 시간이 적용이 가능한지 여부를 확인하는 함수 (bool)
-  bool checkIfScheduleListStartsAtSettable(
-      DateTime startsAt, int scheduleIndex) {
-    if (scheduleList.isNotEmpty) {
+  bool checkIfScheduleListStartsAtSettable(DateTime startsAt) {
+    bool _checkAfterStartsAt(DateTime startsAt) {
       Duration sum = Duration.zero;
-      for (int i = scheduleIndex; i > 0; i--) {
+      for (int i = indexOfcurrentlyDecidingStartsAtSchedule;
+          i < scheduleList.length;
+          i++) {
         sum += scheduleList[i].duration;
       }
+
+      if (sum >
+          scheduleDate.add(const Duration(days: 1)).difference(startsAt)) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    bool _checkBeforeStartsAt(DateTime startsAt) {
+      Duration sum = Duration.zero;
+      for (int i = indexOfcurrentlyDecidingStartsAtSchedule - 1; i >= 0; i--) {
+        sum += scheduleList[i].duration;
+      }
+
       if (sum > startsAt.difference(scheduleDate)) {
         return false;
       } else {
         return true;
       }
+    }
+
+    if (scheduleList.isNotEmpty) {
+      if (indexOfcurrentlyDecidingStartsAtSchedule == 0) {
+        return _checkAfterStartsAt(startsAt);
+      }
+
+      if (_checkBeforeStartsAt(startsAt)) {
+        return _checkAfterStartsAt(startsAt);
+      } else {
+        return false;
+      }
     } else {
-      return false;
+      return true;
     }
   }
 
   /// 스케줄 시작시간이 바뀔 때 호출
   /// 인덱스를 지정해서 전체 스케줄 시작시간을 계산할수도 있음
-  void setScheduleListStartsAt(DateTime startsAt, int? scheduleIndex) {
+  void setScheduleListStartsAt(DateTime startsAt) {
     if (scheduleList.isNotEmpty) {
-      if (scheduleIndex == null) {
-        for (Schedule schedule in scheduleList) {
-          schedule.changeAndSetStartsAt(startsAt);
-          startsAt = schedule.endsAt!;
-        }
-      } else {
-        DateTime _startsAt = startsAt;
-        for (int i = scheduleIndex; i > 0; i--) {
-          scheduleList[i - 1].changeAndSetEndsAt(_startsAt);
-          _startsAt = scheduleList[i - 1].startsAt!;
-        }
-        _startsAt = startsAt;
-        for (int i = scheduleIndex; i < scheduleList.length; i++) {
-          scheduleList[i].changeAndSetStartsAt(_startsAt);
-          _startsAt = scheduleList[i - 1].endsAt!;
-        }
+      DateTime _startsAt = startsAt;
+      for (int i = indexOfcurrentlyDecidingStartsAtSchedule; i > 0; i--) {
+        scheduleList[i - 1].changeAndSetEndsAt(_startsAt);
+        _startsAt = scheduleList[i - 1].startsAt!;
       }
+      _startsAt = startsAt;
+      for (int i = indexOfcurrentlyDecidingStartsAtSchedule;
+          i < scheduleList.length;
+          i++) {
+        scheduleList[i].changeAndSetStartsAt(_startsAt);
+        _startsAt = scheduleList[i].endsAt!;
+      }
+
+      scheduleListStartsAt = getScheduleListStartsAt();
+    } else {
+      scheduleListStartsAt = startsAt;
     }
     notifyListeners();
+  }
+
+  /// 스케줄의 시작시간을 얻어오는 함수
+  DateTime getScheduleListStartsAt() {
+    return scheduleList[0].startsAt!;
   }
 
   /// 새로운 블록이 추가 / 삭제될 때, 블록 순서가 바뀔때 등에 호출하는 함수로
@@ -100,9 +160,9 @@ class CreateScheduleStore extends ChangeNotifier {
   void calSchedulesStartsAndEndsAt() {
     DateTime tempStartsAt = scheduleListStartsAt;
     if (scheduleList.isNotEmpty) {
-      for (Schedule schedule in scheduleList) {
-        schedule.changeAndSetStartsAt(tempStartsAt);
-        tempStartsAt = schedule.endsAt!;
+      for (int i = 0; i < scheduleList.length; i++) {
+        scheduleList[i].changeAndSetStartsAt(tempStartsAt);
+        tempStartsAt = scheduleList[i].endsAt!;
       }
     }
     notifyListeners();
@@ -118,12 +178,6 @@ class CreateScheduleStore extends ChangeNotifier {
     scheduleList.insert(newIndex, temp);
     calSchedulesStartsAndEndsAt();
     notifyListeners();
-  }
-
-  /// 스케줄의 시작시간을 얻어오는 함수
-  /// 쓸지 안쓸지 모름 컴쿰
-  DateTime getScheduleListStartsAt() {
-    return scheduleList[0].startsAt!;
   }
 
   /// 스케줄 삭제 / 순서 바꾸기 위한
@@ -172,7 +226,17 @@ class CreateScheduleStore extends ChangeNotifier {
       Duration scheduleDuration = getScheduleDuration();
       if (isUp == true) {
         // 윗쪽 핸들 아래로 당김
-        if (scheduleDuration + timeDelta < const Duration(days: 1)) {
+        if (index == 0) {
+          if (scheduleList[0].duration - timeDelta >
+              minimumScheduleBoxDuration) {
+            scheduleList[0].duration -= timeDelta;
+            setScheduleListStartsAt(scheduleList[0].startsAt!.add(timeDelta));
+          } else {
+            scheduleList[0].duration = minimumScheduleBoxDuration;
+            setScheduleListStartsAt(
+                scheduleList[0].endsAt!.subtract(minimumScheduleBoxDuration));
+          }
+        } else if (scheduleDuration + timeDelta < const Duration(days: 1)) {
           scheduleList[index - 1].duration += timeDelta;
         } else {
           scheduleList[index - 1].duration +=
@@ -193,7 +257,20 @@ class CreateScheduleStore extends ChangeNotifier {
       // 위로 당기는 경우
       if (isUp == true) {
         // 위쪽 핸들을 위로 당김
-        if (scheduleList[index - 1].duration - timeDelta >
+        if (index == 0) {
+          if (scheduleList[0]
+              .startsAt!
+              .subtract(timeDelta)
+              .isAfter(scheduleDate)) {
+            scheduleList[0].duration += timeDelta;
+            setScheduleListStartsAt(
+                scheduleList[0].startsAt!.subtract(timeDelta));
+          } else {
+            scheduleList[0].duration =
+                scheduleList[0].endsAt!.difference(scheduleDate);
+            setScheduleListStartsAt(scheduleDate);
+          }
+        } else if (scheduleList[index - 1].duration - timeDelta >
             minimumScheduleBoxDuration) {
           scheduleList[index - 1].duration -= timeDelta;
         } else {
@@ -293,6 +370,7 @@ class CreateScheduleStore extends ChangeNotifier {
     //     }
     //   }
     // }
+    calSchedulesStartsAndEndsAt();
     notifyListeners();
   }
 
@@ -321,5 +399,16 @@ class CreateScheduleStore extends ChangeNotifier {
     clearScheduleList();
     onEndMakingCustomBlock();
     onScheduleBoxDragEnd();
+    isBeforeStartTap = false;
   }
+
+  ///
+  /// 이하 각종 컨트롤러
+  ///
+
+  /// 탭 컨트롤
+  late TabController tabController;
+
+  /// 타임라인 스크롤 컨트롤
+  late ScrollController timeLineScrollController;
 }

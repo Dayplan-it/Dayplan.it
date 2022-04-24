@@ -45,22 +45,37 @@ class ScheduleBox extends StatelessWidget {
                             fontSize: itemHeight / 5,
                             letterSpacing: 1),
                       ),
-                    schedule.toHeight() > itemHeight / 4
-                        ? Text(
-                            ((schedule.duration.inMinutes >= 60)
-                                    ? schedule.duration.inHours.toString() +
-                                        "시간 "
-                                    : "") +
-                                ((schedule.duration.inMinutes % 60) != 0
-                                    ? (schedule.duration.inMinutes % 60)
-                                            .toString() +
-                                        "분"
-                                    : ""),
-                            style: mainFont(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                                fontSize: itemHeight / 7,
-                                letterSpacing: 1),
+                    schedule.toHeight() > 60
+                        ? Column(
+                            children: [
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
+                                style: mainFont(
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                    fontSize: itemHeight / 7,
+                                    letterSpacing: 1),
+                              ),
+                              Text(
+                                ((schedule.duration.inMinutes >= 60)
+                                        ? schedule.duration.inHours.toString() +
+                                            "시간 "
+                                        : "") +
+                                    ((schedule.duration.inMinutes % 60) != 0
+                                        ? (schedule.duration.inMinutes % 60)
+                                                .toString() +
+                                            "분"
+                                        : ""),
+                                style: mainFont(
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                    fontSize: itemHeight / 7,
+                                    letterSpacing: 1),
+                              ),
+                            ],
                           )
                         : const SizedBox()
                   ],
@@ -71,31 +86,40 @@ class ScheduleBox extends StatelessWidget {
           Positioned.fill(
             child: Column(
               children: [
-                if (index != 0)
-                  ScheduleBoxUpDownHandle(
-                    isUp: true,
-                    index: index,
-                  ),
+                ScheduleBoxUpDownHandle(
+                  isUp: true,
+                  index: index,
+                ),
                 Expanded(
-                  child: LongPressDraggable(
-                    feedback: OnScheduleBoxLongPress(
-                      width: itemWidth,
-                      schedule: schedule,
-                      isFeedback: true,
-                    ),
-                    delay: const Duration(milliseconds: 100),
-                    data: index,
-                    onDragEnd: (DraggableDetails details) => context
-                        .read<CreateScheduleStore>()
-                        .onScheduleBoxDragEnd(),
-                    onDragStarted: () => context
-                        .read<CreateScheduleStore>()
-                        .onScheduleBoxDragStart(index),
-                    onDraggableCanceled: (velocity, offset) => context
-                        .read<CreateScheduleStore>()
-                        .onScheduleBoxDragEnd(),
-                    child: Container(
-                      color: const Color.fromRGBO(0, 0, 0, 0),
+                  child: GestureDetector(
+                    onTap: () {
+                      context
+                          .read<CreateScheduleStore>()
+                          .setIndexOfcurrentlyDecidingStartsAtSchedule(index);
+                      context
+                          .read<CreateScheduleStore>()
+                          .onDecidingScheduleStartsAtStart();
+                    },
+                    child: LongPressDraggable(
+                      feedback: OnScheduleBoxLongPress(
+                        width: itemWidth,
+                        schedule: schedule,
+                        isFeedback: true,
+                      ),
+                      delay: const Duration(milliseconds: 100),
+                      data: index,
+                      onDragEnd: (DraggableDetails details) => context
+                          .read<CreateScheduleStore>()
+                          .onScheduleBoxDragEnd(),
+                      onDragStarted: () => context
+                          .read<CreateScheduleStore>()
+                          .onScheduleBoxDragStart(index),
+                      onDraggableCanceled: (velocity, offset) => context
+                          .read<CreateScheduleStore>()
+                          .onScheduleBoxDragEnd(),
+                      child: Container(
+                        color: const Color.fromRGBO(0, 0, 0, 0),
+                      ),
                     ),
                   ),
                 ),
@@ -147,21 +171,37 @@ class OnScheduleBoxLongPress extends StatelessWidget {
                       fontSize: itemHeight / 5,
                       letterSpacing: 1),
                 ),
-                schedule.toHeight() > itemHeight / 4
-                    ? Text(
-                        ((schedule.duration.inMinutes >= 60)
-                                ? schedule.duration.inHours.toString() + "시간 "
-                                : "") +
-                            ((schedule.duration.inMinutes % 60) != 0
-                                ? (schedule.duration.inMinutes % 60)
-                                        .toString() +
-                                    "분"
-                                : ""),
-                        style: mainFont(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                            fontSize: itemHeight / 7,
-                            letterSpacing: 1),
+                schedule.toHeight() > 60
+                    ? Column(
+                        children: [
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
+                            style: mainFont(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontSize: itemHeight / 7,
+                                letterSpacing: 1),
+                          ),
+                          Text(
+                            ((schedule.duration.inMinutes >= 60)
+                                    ? schedule.duration.inHours.toString() +
+                                        "시간 "
+                                    : "") +
+                                ((schedule.duration.inMinutes % 60) != 0
+                                    ? (schedule.duration.inMinutes % 60)
+                                            .toString() +
+                                        "분"
+                                    : ""),
+                            style: mainFont(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontSize: itemHeight / 7,
+                                letterSpacing: 1),
+                          ),
+                        ],
                       )
                     : const SizedBox()
               ],

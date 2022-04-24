@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 /// Create Schedule Screen을 위한 상수, 함수들
 
@@ -62,4 +63,10 @@ String printDuration(Duration duration) {
   String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
   String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
   return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+}
+
+Future<Position> getLocation() async {
+  Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high);
+  return position;
 }
