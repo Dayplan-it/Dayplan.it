@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/place.dart';
 
-class DurationOnlyScheduleBox extends StatelessWidget {
-  const DurationOnlyScheduleBox({
+class ScheduleBox extends StatelessWidget {
+  const ScheduleBox({
     Key? key,
-    required this.placeDurationOnly,
+    required this.schedule,
     required this.index,
     required this.itemWidth,
   }) : super(key: key);
 
-  final PlaceDurationOnly placeDurationOnly;
+  final Schedule schedule;
   final int index;
   final double itemWidth;
 
   @override
   Widget build(BuildContext context) {
-    bool isEmpty = (placeDurationOnly.placeType == "empty");
+    bool isEmpty = (schedule.placeType == "empty");
     return Container(
         decoration: BoxDecoration(
-            color: placeDurationOnly.color,
+            color: schedule.color,
             borderRadius: defaultBoxRadius,
             boxShadow: defaultBoxShadow),
-        height: placeDurationOnly.toHeight(),
+        height: schedule.toHeight(),
         width: itemWidth,
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
@@ -38,24 +38,21 @@ class DurationOnlyScheduleBox extends StatelessWidget {
                   children: [
                     if (!isEmpty)
                       Text(
-                        placeDurationOnly.nameKor,
+                        schedule.nameKor,
                         style: mainFont(
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                             fontSize: itemHeight / 5,
                             letterSpacing: 1),
                       ),
-                    placeDurationOnly.toHeight() > itemHeight / 4
+                    schedule.toHeight() > itemHeight / 4
                         ? Text(
-                            ((placeDurationOnly.duration.inMinutes >= 60)
-                                    ? placeDurationOnly.duration.inHours
-                                            .toString() +
+                            ((schedule.duration.inMinutes >= 60)
+                                    ? schedule.duration.inHours.toString() +
                                         "시간 "
                                     : "") +
-                                ((placeDurationOnly.duration.inMinutes % 60) !=
-                                        0
-                                    ? (placeDurationOnly.duration.inMinutes %
-                                                60)
+                                ((schedule.duration.inMinutes % 60) != 0
+                                    ? (schedule.duration.inMinutes % 60)
                                             .toString() +
                                         "분"
                                     : ""),
@@ -74,28 +71,29 @@ class DurationOnlyScheduleBox extends StatelessWidget {
           Positioned.fill(
             child: Column(
               children: [
-                ScheduleBoxUpDownHandle(
-                  isUp: true,
-                  index: index,
-                ),
+                if (index != 0)
+                  ScheduleBoxUpDownHandle(
+                    isUp: true,
+                    index: index,
+                  ),
                 Expanded(
                   child: LongPressDraggable(
-                    feedback: OnDurationOnlyScheduleBoxLongPress(
+                    feedback: OnScheduleBoxLongPress(
                       width: itemWidth,
-                      placeDurationOnly: placeDurationOnly,
+                      schedule: schedule,
                       isFeedback: true,
                     ),
                     delay: const Duration(milliseconds: 100),
                     data: index,
                     onDragEnd: (DraggableDetails details) => context
                         .read<CreateScheduleStore>()
-                        .onDurationScheduleDragEnd(),
+                        .onScheduleBoxDragEnd(),
                     onDragStarted: () => context
                         .read<CreateScheduleStore>()
-                        .onDurationScheduleDragStart(index),
+                        .onScheduleBoxDragStart(index),
                     onDraggableCanceled: (velocity, offset) => context
                         .read<CreateScheduleStore>()
-                        .onDurationScheduleDragEnd,
+                        .onScheduleBoxDragEnd(),
                     child: Container(
                       color: const Color.fromRGBO(0, 0, 0, 0),
                     ),
@@ -112,15 +110,15 @@ class DurationOnlyScheduleBox extends StatelessWidget {
   }
 }
 
-class OnDurationOnlyScheduleBoxLongPress extends StatelessWidget {
-  const OnDurationOnlyScheduleBoxLongPress({
+class OnScheduleBoxLongPress extends StatelessWidget {
+  const OnScheduleBoxLongPress({
     Key? key,
-    required this.placeDurationOnly,
+    required this.schedule,
     required this.width,
     this.isFeedback = false,
   }) : super(key: key);
 
-  final PlaceDurationOnly placeDurationOnly;
+  final Schedule schedule;
   final double width;
   final bool isFeedback;
 
@@ -128,10 +126,10 @@ class OnDurationOnlyScheduleBoxLongPress extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: placeDurationOnly.color.withAlpha((isFeedback ? 150 : 255)),
+          color: schedule.color.withAlpha((isFeedback ? 150 : 255)),
           borderRadius: defaultBoxRadius,
           border: Border.all(color: Colors.blue, width: 3)),
-      height: placeDurationOnly.toHeight(),
+      height: schedule.toHeight(),
       width: width,
       alignment: Alignment.center,
       child: Padding(
@@ -142,28 +140,26 @@ class OnDurationOnlyScheduleBoxLongPress extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  placeDurationOnly.nameKor,
+                  schedule.nameKor,
                   style: mainFont(
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                       fontSize: itemHeight / 5,
                       letterSpacing: 1),
                 ),
-                placeDurationOnly.toHeight() > itemHeight / 4
+                schedule.toHeight() > itemHeight / 4
                     ? Text(
-                        ((placeDurationOnly.duration.inMinutes >= 60)
-                                ? placeDurationOnly.duration.inHours
-                                        .toString() +
-                                    "시간 "
+                        ((schedule.duration.inMinutes >= 60)
+                                ? schedule.duration.inHours.toString() + "시간 "
                                 : "") +
-                            ((placeDurationOnly.duration.inMinutes % 60) != 0
-                                ? (placeDurationOnly.duration.inMinutes % 60)
+                            ((schedule.duration.inMinutes % 60) != 0
+                                ? (schedule.duration.inMinutes % 60)
                                         .toString() +
                                     "분"
                                 : ""),
                         style: mainFont(
                             fontWeight: FontWeight.w500,
-                            color: Color.fromARGB(255, 255, 255, 255),
+                            color: Colors.white,
                             fontSize: itemHeight / 7,
                             letterSpacing: 1),
                       )
@@ -203,33 +199,31 @@ class ScheduleBoxUpDownHandle extends StatelessWidget {
         color: const Color.fromARGB(71, 255, 255, 255),
       ),
       onDragUpdate: (detail) {
-        context.read<CreateScheduleStore>().onBlockResizing();
+        context.read<CreateScheduleStore>().toggleIsScheduleBoxDragging();
         context
             .read<CreateScheduleStore>()
             .changeDurationOfScheduleForUpDownBtn(index, detail.delta.dy, isUp);
       },
       onDragEnd: (detail) {
-        context.read<CreateScheduleStore>().onEndBlockResizing();
+        context.read<CreateScheduleStore>().toggleIsScheduleBoxDragging();
       },
       onDragCompleted: () {
-        context.read<CreateScheduleStore>().onEndBlockResizing();
+        context.read<CreateScheduleStore>().toggleIsScheduleBoxDragging();
       },
     );
   }
 }
 
-class DurationOnlyScheduleBoxDragTarget extends StatefulWidget {
-  const DurationOnlyScheduleBoxDragTarget({Key? key, required this.targetId})
+class ScheduleBoxDragTarget extends StatefulWidget {
+  const ScheduleBoxDragTarget({Key? key, required this.targetId})
       : super(key: key);
   final int targetId;
 
   @override
-  State<DurationOnlyScheduleBoxDragTarget> createState() =>
-      _DurationOnlyScheduleBoxDragTargetState();
+  State<ScheduleBoxDragTarget> createState() => _ScheduleBoxDragTargetState();
 }
 
-class _DurationOnlyScheduleBoxDragTargetState
-    extends State<DurationOnlyScheduleBoxDragTarget> {
+class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
   bool isHovered = false;
 
   @override
@@ -269,7 +263,7 @@ class _DurationOnlyScheduleBoxDragTargetState
         context
             .read<CreateScheduleStore>()
             .onChangeScheduleOrder(details.data, (widget.targetId / 2).floor());
-        context.read<CreateScheduleStore>().onDurationScheduleDragEnd();
+        context.read<CreateScheduleStore>().onScheduleBoxDragEnd();
       },
     );
   }

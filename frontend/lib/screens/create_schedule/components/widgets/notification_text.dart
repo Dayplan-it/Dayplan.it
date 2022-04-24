@@ -1,3 +1,4 @@
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 
@@ -6,11 +7,13 @@ class NotificationText extends StatelessWidget {
       {Key? key,
       required this.title,
       this.isRed = false,
-      this.isInstruction = false})
+      this.isInstruction = false,
+      this.makePaddingZero = false})
       : super(key: key);
   final String title;
   final bool isRed;
   final bool isInstruction;
+  final bool makePaddingZero;
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +60,58 @@ class NotificationText extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(
-          height: 5,
-        ),
+        if (!makePaddingZero)
+          const SizedBox(
+            height: 5,
+          ),
       ],
+    );
+  }
+}
+
+class NotificationBox extends StatelessWidget {
+  const NotificationBox(
+      {Key? key,
+      required this.title,
+      required this.onClosePressed,
+      this.isRed = false,
+      this.isInstruction = false})
+      : super(key: key);
+
+  final String title;
+  final VoidCallback onClosePressed;
+  final bool isRed;
+  final bool isInstruction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: defaultBoxShadow,
+        borderRadius: defaultBoxRadius,
+      ),
+      width: double.infinity,
+      child: Row(
+        children: [
+          Expanded(
+            child: NotificationText(
+              title: title,
+              isRed: isRed,
+              isInstruction: isInstruction,
+              makePaddingZero: true,
+            ),
+          ),
+          IconButton(
+              onPressed: onClosePressed,
+              icon: const Icon(
+                Icons.close,
+                color: subTextColor,
+                size: 16,
+              ))
+        ],
+      ),
     );
   }
 }

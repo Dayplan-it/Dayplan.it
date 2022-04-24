@@ -1,160 +1,157 @@
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/place.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/schedule_class.dart';
 
 ///Create Schedule Screen을 위한 `Store`
 ///클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
 
 class CreateScheduleStore extends ChangeNotifier {
-  /// 현재 스크린의 인덱스를 확인하는 변수
-  /// 0 : create_duration_screen
-  /// 1 : set_primary_schedule_screen
-  /// Navigation에서 유용하게 사용됨
-  int currentScreenIndex = 0;
-
-  /// 생성되는 스케줄의 날짜, `create_schedule_screen.dart`에서 init
+  /// 스케줄 날짜
   late DateTime scheduleDate;
 
-  /// 중요한 변수들을 초기화함
-  void onPopCreateDurationScheduleScreen() {
-    currentScreenIndex = 0;
-    if (isDetailBeingMade) {
-      toggleIsDetailBeingMade();
+  /// 스케줄 리스트
+  List<Schedule> scheduleList = [];
+  void clearScheduleList() {
+    scheduleList = [];
+    notifyListeners();
+  }
+
+  Duration getScheduleDuration() {
+    Duration sum = Duration.zero;
+    for (Schedule schedule in scheduleList) {
+      sum += schedule.duration;
     }
-    clearDurationSchedule();
-    onEndBlockResizing();
-    onEndDecidePrimarySchedule();
-    onEndMakingCustomBlock();
+    return sum;
   }
 
-  void onPopSetPrimaryScheduleScreen() {
-    currentScreenIndex = 0;
+  /// 전체 스케줄의 시작시간을 저장하는 변수
+  late DateTime scheduleListStartsAt;
+
+  /// 스케줄을 추가할 때 호출하는 함수
+  void addSchedule(Schedule schedule) {
+    schedule.duration = const Duration(hours: 1);
+    scheduleList.add(schedule.copy());
+    calSchedulesStartsAndEndsAt();
+    notifyListeners();
   }
 
-  // AppBar에서 사용할 onPop 함수
-  void onPopCreateScheduleScreens() {
-    switch (currentScreenIndex) {
-      case 0:
-        onPopCreateDurationScheduleScreen();
-        break;
-      case 1:
-        onPopSetPrimaryScheduleScreen();
-    }
+  /// 스케줄을 삭제할 때 호출하는 함수
+  void removeSchedule(int scheduleIndex) {
+    scheduleList.removeAt(scheduleIndex);
+    calSchedulesStartsAndEndsAt();
+    notifyListeners();
   }
 
-  ///
-  /// 이하는 CreateDurationScheduleScreen 관련
-  ///
+  /// 스케줄 시작시간 조정 여부 확인용 변수
+  bool isDecidingScheduleStartsAt = false;
 
-  /// 스케줄 DurationLine ScrollHeight
-  double durationLineHeight = 0;
+  /// 스케줄 시작시간 조정 시작 / 종료시 호출
+  void toggleIsDecidingScheduleStartsAt() {
+    isDecidingScheduleStartsAt = !isDecidingScheduleStartsAt;
+    notifyListeners();
+  }
 
-  /// Duration만 존재하는 PlaceDurationOnly class 객체로 이루어진
-  /// 스케줄 List
-  List<PlaceDurationOnly> durationSchedule = [];
-
-  /// durationSchedule은 하나의 스케줄이 isPrimary = true(고정일정)여야 일정 결정이 가능함
-  /// 이를 체크하는 함수
-  /// isPrimary가 하나인지 여부는 검사하지 않음에 유의 (두개 이상일 경우는 디텍트 안함)
-  bool checkIfDurationScheduleAbleToMakeDetail() {
-    for (PlaceDurationOnly place in durationSchedule) {
-      if (place.isPrimary) {
+  /// 스케줄 시작시간을 사용자에게 입력받을 때
+  /// 해당 시간이 적용이 가능한지 여부를 확인하는 함수 (bool)
+  bool checkIfScheduleListStartsAtSettable(
+      DateTime startsAt, int scheduleIndex) {
+    if (scheduleList.isNotEmpty) {
+      Duration sum = Duration.zero;
+      for (int i = scheduleIndex; i > 0; i--) {
+        sum += scheduleList[i].duration;
+      }
+      if (sum > startsAt.difference(scheduleDate)) {
+        return false;
+      } else {
         return true;
       }
-    }
-    return false;
-  }
-
-  /// 디테일 스케줄 생성중인지 여부를 확인하기 위한 변수
-  bool isDetailBeingMade = false;
-  void toggleIsDetailBeingMade() {
-    isDetailBeingMade = !isDetailBeingMade;
-    notifyListeners();
-  }
-
-  /// 커스텀 블록 생성중 여부를 확인하기 위한 변수
-  bool isCustomBlockBeingMade = false;
-
-  /// 커스텀 블록 생성 시작
-  void onStartMakingCustomBlock() {
-    isCustomBlockBeingMade = true;
-    isDecidingPrimarySchedule = false; // PrimarySchedule 생성중이라면 해당 과정 종료
-    notifyListeners();
-  }
-
-  /// 커스텀 블록 생성 끝
-  void onEndMakingCustomBlock() {
-    isCustomBlockBeingMade = false;
-    notifyListeners();
-  }
-
-  /// Navigation.pop에 이용하는 durationSchedule 초기화 함수
-  void clearDurationSchedule() {
-    durationSchedule = [];
-    isCustomBlockBeingMade = false;
-    isDurationOnlyScheduleDragging = false;
-    notifyListeners();
-  }
-
-  /// durationSchedule에서 스케줄을 삭제하는 함수
-  void removeDurationOnlySchedule(int durationOnlyScheduleIndex) {
-    durationSchedule.removeAt(durationOnlyScheduleIndex);
-    notifyListeners();
-  }
-
-  /// durationSchedule 전체 Duration을 계산하는 함수
-  Duration durationOfDurationSchedule() {
-    Duration sumOfScheduleDuration = const Duration(seconds: 0);
-
-    for (PlaceDurationOnly schedule in durationSchedule) {
-      sumOfScheduleDuration += schedule.duration;
-    }
-
-    return sumOfScheduleDuration;
-  }
-
-  /// durationSchedule에 PlaceDurationOnly 추가하는 함수
-  /// 추가되는 스케줄의 처음 들어가는 시간을 조절하려면 여기에서 하면 됨
-  void addScheduleDurationOnly(PlaceDurationOnly _placeDurationOnly) {
-    PlaceDurationOnly placeDurationOnly = _placeDurationOnly.copy();
-    placeDurationOnly.duration = const Duration(hours: 1);
-
-    Duration sumOfScheduleDuration = durationOfDurationSchedule();
-
-    if (sumOfScheduleDuration + placeDurationOnly.duration <=
-        const Duration(days: 1)) {
-      durationSchedule.add(placeDurationOnly);
-      notifyListeners();
+    } else {
+      return false;
     }
   }
 
-  /// 현재 옮기는중인 PlaceDurationOnly의 index를 저장하는 변수
-  int indexOfcurrentlyDraggingPlaceDurationOnly = 999;
-
-  bool isDurationOnlyScheduleDragging = false;
-
-  void onDurationScheduleDragEnd() {
-    isDurationOnlyScheduleDragging = false;
+  /// 스케줄 시작시간이 바뀔 때 호출
+  /// 인덱스를 지정해서 전체 스케줄 시작시간을 계산할수도 있음
+  void setScheduleListStartsAt(DateTime startsAt, int? scheduleIndex) {
+    if (scheduleList.isNotEmpty) {
+      if (scheduleIndex == null) {
+        for (Schedule schedule in scheduleList) {
+          schedule.changeAndSetStartsAt(startsAt);
+          startsAt = schedule.endsAt!;
+        }
+      } else {
+        DateTime _startsAt = startsAt;
+        for (int i = scheduleIndex; i > 0; i--) {
+          scheduleList[i - 1].changeAndSetEndsAt(_startsAt);
+          _startsAt = scheduleList[i - 1].startsAt!;
+        }
+        _startsAt = startsAt;
+        for (int i = scheduleIndex; i < scheduleList.length; i++) {
+          scheduleList[i].changeAndSetStartsAt(_startsAt);
+          _startsAt = scheduleList[i - 1].endsAt!;
+        }
+      }
+    }
     notifyListeners();
   }
 
-  void onDurationScheduleDragStart(
-      int _currentlyDraggingPlaceDurationOnlyIndex) {
-    isDurationOnlyScheduleDragging = true;
-    indexOfcurrentlyDraggingPlaceDurationOnly =
-        _currentlyDraggingPlaceDurationOnlyIndex;
+  /// 새로운 블록이 추가 / 삭제될 때, 블록 순서가 바뀔때 등에 호출하는 함수로
+  /// 블록별 시간을 계산해 넣어줌
+  void calSchedulesStartsAndEndsAt() {
+    DateTime tempStartsAt = scheduleListStartsAt;
+    if (scheduleList.isNotEmpty) {
+      for (Schedule schedule in scheduleList) {
+        schedule.changeAndSetStartsAt(tempStartsAt);
+        tempStartsAt = schedule.endsAt!;
+      }
+    }
     notifyListeners();
   }
 
-  /// 타임라인에서 블록 사이즈 변경중임을 확인하기 위한 변수
-  bool isBlockResizing = false;
-  void onBlockResizing() {
-    isBlockResizing = true;
+  /// 블록 순서 바꿀 때 호출하는 함수
+  void onChangeScheduleOrder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+
+    final Schedule temp = scheduleList.removeAt(oldIndex);
+    scheduleList.insert(newIndex, temp);
+    calSchedulesStartsAndEndsAt();
     notifyListeners();
   }
 
-  void onEndBlockResizing() {
-    isBlockResizing = false;
+  /// 스케줄의 시작시간을 얻어오는 함수
+  /// 쓸지 안쓸지 모름 컴쿰
+  DateTime getScheduleListStartsAt() {
+    return scheduleList[0].startsAt!;
+  }
+
+  /// 스케줄 삭제 / 순서 바꾸기 위한
+  /// 드래그가 진행중인지 여부를 확인하는 변수
+  bool isScheduleBoxDragging = false;
+
+  /// 현재 드래그중인 스케줄의 인덱스
+  late int indexOfDraggingScheduleBox;
+
+  /// 스케줄 드래그 시작시 호출
+  void onScheduleBoxDragStart(int scheduleIndex) {
+    isScheduleBoxDragging = true;
+    indexOfDraggingScheduleBox = scheduleIndex;
+    notifyListeners();
+  }
+
+  /// 스케줄 드래그 종료시 호출
+  void onScheduleBoxDragEnd() {
+    isScheduleBoxDragging = false;
+    notifyListeners();
+  }
+
+  /// 스케줄 리사이징중인지 여부를 확인하는 변수
+  bool isScheduleBoxResizing = false;
+
+  /// 스케줄 리사이징 시작 및 종료시 호출
+  void toggleIsScheduleBoxDragging() {
+    isScheduleBoxResizing = !isScheduleBoxResizing;
     notifyListeners();
   }
 
@@ -172,12 +169,23 @@ class CreateScheduleStore extends ChangeNotifier {
 
     if (delta > 0) {
       // 아래로 당기는 경우
+      Duration scheduleDuration = getScheduleDuration();
       if (isUp == true) {
         // 윗쪽 핸들 아래로 당김
-        durationSchedule[index - 1].duration += timeDelta;
+        if (scheduleDuration + timeDelta < const Duration(days: 1)) {
+          scheduleList[index - 1].duration += timeDelta;
+        } else {
+          scheduleList[index - 1].duration +=
+              (const Duration(days: 1) - scheduleDuration);
+        }
       } else {
         // 아랫쪽 핸들 아래로 당김
-        durationSchedule[index].duration += timeDelta;
+        if (scheduleDuration + timeDelta < const Duration(days: 1)) {
+          scheduleList[index].duration += timeDelta;
+        } else {
+          scheduleList[index].duration +=
+              (const Duration(days: 1) - scheduleDuration);
+        }
       }
     } else {
       // delta가 음수로, duration이 감소하는 케이스이므로
@@ -185,19 +193,19 @@ class CreateScheduleStore extends ChangeNotifier {
       // 위로 당기는 경우
       if (isUp == true) {
         // 위쪽 핸들을 위로 당김
-        if (durationSchedule[index - 1].duration - timeDelta >
+        if (scheduleList[index - 1].duration - timeDelta >
             minimumScheduleBoxDuration) {
-          durationSchedule[index - 1].duration -= timeDelta;
+          scheduleList[index - 1].duration -= timeDelta;
         } else {
-          durationSchedule[index - 1].duration = minimumScheduleBoxDuration;
+          scheduleList[index - 1].duration = minimumScheduleBoxDuration;
         }
       } else {
         // 아래쪽 핸들을 위로 당김
-        if (durationSchedule[index].duration - timeDelta >
+        if (scheduleList[index].duration - timeDelta >
             minimumScheduleBoxDuration) {
-          durationSchedule[index].duration -= timeDelta;
+          scheduleList[index].duration -= timeDelta;
         } else {
-          durationSchedule[index].duration = minimumScheduleBoxDuration;
+          scheduleList[index].duration = minimumScheduleBoxDuration;
         }
       }
     }
@@ -288,116 +296,30 @@ class CreateScheduleStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 스케줄 순서 조정시에 사용되는 함수
-  /// isPrimary도 고려해서 옮길 수 있는지 여부까지 판단함 (옮길 수 없으면 return)
-  void onChangeScheduleOrder(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
-    }
-    // else {
-    //   // isPrimary를 고려해서 옮길 수 있는지 여부를 판단해야 함
+  /// 타임라인 스크롤 높이를 저장하는 변수
+  /// 쓸지 안쓸지 모름 컴쿰
+  late double timeLineScrollHeight;
 
-    //   int primaryScheduleIndex = 999;
-    //   Duration beforePrimaryStartsAt = Duration.zero;
-    //   Duration sum = Duration.zero;
-    //   for (int i = oldIndex; i >= 0; i--) {
-    //     if (durationSchedule[i].isPrimary) {
-    //       beforePrimaryStartsAt =
-    //           durationSchedule[i].startsAt!.difference(scheduleDate);
-    //       primaryScheduleIndex = i;
-    //     } else if (primaryScheduleIndex != 999) {
-    //       sum += durationSchedule[i].duration;
-    //     }
-    //   }
+  /// 커스텀 블록 생성중 여부를 확인하기 위한 변수
+  bool isCustomBlockBeingMade = false;
 
-    //   if (primaryScheduleIndex != 999) {
-    //     if (sum + durationSchedule[oldIndex].duration > beforePrimaryStartsAt) {
-    //       return;
-    //     }
-    //   }
-    // }
-
-    final PlaceDurationOnly temp = durationSchedule.removeAt(oldIndex);
-    durationSchedule.insert(newIndex, temp);
+  /// 커스텀 블록 생성 시작
+  void onStartMakingCustomBlock() {
+    isCustomBlockBeingMade = true;
     notifyListeners();
   }
 
-  /// primary 스케줄 결정중 여부 확인
-  bool isDecidingPrimarySchedule = false;
-
-  /// 현재 결정중인 primary schedule의 인덱스
-  late int currentlyDecidingPrimarySchedule;
-
-  /// primary 스케줄 결정 시작시 호출
-  void onDecidePrimarySchedule(int _currentlyDecidingPrimarySchedule) {
-    isDecidingPrimarySchedule = true;
-    currentlyDecidingPrimarySchedule = _currentlyDecidingPrimarySchedule;
-    onEndMakingCustomBlock(); // 커스텀 블록 생성중일시 블록 생성 중지
+  /// 커스텀 블록 생성 끝
+  void onEndMakingCustomBlock() {
+    isCustomBlockBeingMade = false;
     notifyListeners();
   }
 
-  /// primary 스케줄 결정 끝날시 호출
-  void onEndDecidePrimarySchedule() {
-    isDecidingPrimarySchedule = false;
-    notifyListeners();
-  }
-
-  /// primary 스케줄 시간 결정시, 해당 스케줄의 시작 시간과 전후 스케줄을 고려해
-  /// 해당 시작 시간을 수용할 수 있는지 여부를 판단하는 데에 사용하는 함수
-  bool checkIfPrimaryScheduleDecideAble(DateTime _primaryScheduleStartsAt) {
-    Duration beforePrimaryStartsAt =
-        _primaryScheduleStartsAt.difference(scheduleDate);
-    Duration afterPrimaryStartsAt = scheduleDate
-        .add(const Duration(days: 1))
-        .difference(_primaryScheduleStartsAt);
-    Duration sum = Duration.zero;
-
-    if (currentlyDecidingPrimarySchedule != 0) {
-      for (int i = currentlyDecidingPrimarySchedule - 1; i >= 0; i--) {
-        sum += durationSchedule[i].duration;
-      }
-
-      if (beforePrimaryStartsAt < sum) {
-        return false;
-      }
-
-      sum = Duration.zero;
-    }
-
-    for (int i = currentlyDecidingPrimarySchedule;
-        i < durationSchedule.length;
-        i++) {
-      sum += durationSchedule[i].duration;
-    }
-    if (afterPrimaryStartsAt < sum) {
-      return false;
-    }
-    return true;
-  }
-
-  /// primary Schedule 시작시간
-  late DateTime primaryScheduleStartsAt;
-
-  /// primary 스케줄 시간 결정시 호출
-  void setPrimarySchedule(DateTime _primaryScheduleStartsAt) {
-    for (PlaceDurationOnly place in durationSchedule) {
-      place.isPrimary = false;
-      // 먼저 기존 primary 스케줄 초기화
-    }
-
-    durationSchedule[currentlyDecidingPrimarySchedule].isPrimary = true;
-    durationSchedule[currentlyDecidingPrimarySchedule].startsAt =
-        _primaryScheduleStartsAt;
-
-    primaryScheduleStartsAt = _primaryScheduleStartsAt;
-
-    onEndDecidePrimarySchedule();
-    notifyListeners();
-  }
-
-  /// primary 스케줄 설정 해제시 호출 (핀버튼 클릭시)
-  void undoPrimarySchedule(int primaryScheduleIndex) {
-    durationSchedule[primaryScheduleIndex].isPrimary = false;
-    notifyListeners();
+  /// 중요한 변수들을 초기화함
+  /// 스케줄 생성 스크린 pop시 호출
+  void onPopCreateScheduleScreen() {
+    clearScheduleList();
+    onEndMakingCustomBlock();
+    onScheduleBoxDragEnd();
   }
 }

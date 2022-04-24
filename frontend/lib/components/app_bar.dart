@@ -34,7 +34,7 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
                     Navigator.pop(context);
                     context
                         .read<CreateScheduleStore>()
-                        .onPopCreateScheduleScreens();
+                        .onPopCreateScheduleScreen();
                   },
                   icon: const Icon(
                     Icons.arrow_back_ios,
