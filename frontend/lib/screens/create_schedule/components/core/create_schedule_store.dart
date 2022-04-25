@@ -2,12 +2,11 @@ import 'package:dayplan_it/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
-import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 
 ///Create Schedule Screen을 위한 `Store`
 ///클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
 
-class CreateScheduleStore extends ChangeNotifier {
+class CreateScheduleStore with ChangeNotifier {
   /// 스케줄 날짜
   late DateTime scheduleDate;
 
@@ -57,6 +56,7 @@ class CreateScheduleStore extends ChangeNotifier {
 
   void onDecidingScheduleStartsAtStart() {
     isDecidingScheduleStartsAt = true;
+    resetDatePicker();
     tabController.animateTo(0);
     notifyListeners();
   }
@@ -69,14 +69,18 @@ class CreateScheduleStore extends ChangeNotifier {
   /// 현재 시작시간을 변경중인 스케줄의 인덱스
   late int indexOfcurrentlyDecidingStartsAtSchedule;
   late Schedule currentlyDecidingStartsAtSchedule;
-  late TimePickerSpinner timePickerSpinner;
+
   late DateTime currentlySelectedTime;
+
+  void setCurrentlySelectedTime(DateTime _currentlySelectedTime) {
+    currentlySelectedTime = _currentlySelectedTime;
+    notifyListeners();
+  }
 
   void setIndexOfcurrentlyDecidingStartsAtSchedule(int index) {
     indexOfcurrentlyDecidingStartsAtSchedule = index;
     setCurrentlyDecidingStartsAtSchedule();
-    currentlySelectedTime = currentlyDecidingStartsAtSchedule.startsAt!;
-    createTimePickerSpinner();
+    setCurrentlySelectedTime(currentlyDecidingStartsAtSchedule.startsAt!);
     notifyListeners();
   }
 
@@ -86,8 +90,7 @@ class CreateScheduleStore extends ChangeNotifier {
   void onBeforeStartTap() {
     isBeforeStartTap = true;
     setCurrentlyDecidingStartsAtSchedule();
-    currentlySelectedTime = currentlyDecidingStartsAtSchedule.startsAt!;
-    createTimePickerSpinner();
+    setCurrentlySelectedTime(currentlyDecidingStartsAtSchedule.startsAt!);
     notifyListeners();
   }
 
@@ -113,29 +116,22 @@ class CreateScheduleStore extends ChangeNotifier {
       currentlyDecidingStartsAtSchedule =
           scheduleList[indexOfcurrentlyDecidingStartsAtSchedule];
     }
+    // createTimePickerSpinner();
     notifyListeners();
   }
 
-  void createTimePickerSpinner() {
-    timePickerSpinner = TimePickerSpinner(
-        time: currentlyDecidingStartsAtSchedule.startsAt,
-        is24HourMode: false,
-        normalTextStyle: mainFont(color: subTextColor),
-        highlightedTextStyle:
-            mainFont(color: primaryColor, fontWeight: FontWeight.w600),
-        itemHeight: 40,
-        isForce2Digits: true,
-        onTimeChange: (time) {
-          currentlySelectedTime = time;
-        });
+  /// TimePickerSpinner를 리셋하기 위해
+  /// 스피너에 글로벌 키를 주고, 블록이 바뀔때마다
+  /// 리셋을 호출해 리셋함
+  late GlobalKey datePickerKey;
+  void resetDatePicker() {
+    datePickerKey = GlobalKey();
     notifyListeners();
   }
 
   /// 스케줄 시작시간을 사용자에게 입력받을 때
   /// 해당 시간이 적용이 가능한지 여부를 확인하는 함수 (bool)
-  bool checkIfScheduleListStartsAtSettable() {
-    DateTime startsAt = currentlySelectedTime;
-
+  bool checkIfScheduleListStartsAtSettable(DateTime startsAt) {
     bool _checkAfterStartsAt(DateTime startsAt) {
       Duration sum = Duration.zero;
       for (int i = indexOfcurrentlyDecidingStartsAtSchedule;
@@ -178,6 +174,16 @@ class CreateScheduleStore extends ChangeNotifier {
     } else {
       return true;
     }
+  }
+
+  /// 시작시간 바꿨을 때
+  /// 스케줄의 시작시간으로 자동 스크롤
+  void scrollToScheduleListStartsAt() {
+    timeLineScrollController.animateTo(
+        dateTimeToHeight(scheduleListStartsAt) - 10,
+        duration: const Duration(milliseconds: 700),
+        curve: Curves.easeOutExpo);
+    notifyListeners();
   }
 
   /// 스케줄 시작시간이 바뀔 때 호출
@@ -476,7 +482,6 @@ class CreateScheduleStore extends ChangeNotifier {
   void onPopCreateScheduleScreen() {
     clearScheduleList();
     setCurrentlyDecidingScheduleStartsAtBeforeStart();
-    createTimePickerSpinner();
     onEndMakingCustomBlock();
     onScheduleBoxDragEnd();
     isBeforeStartTap = false;

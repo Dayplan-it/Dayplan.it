@@ -1,5 +1,5 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dayplan_it/constants.dart';
@@ -332,6 +332,25 @@ class SetScheduleStartsAt extends StatefulWidget {
 }
 
 class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
+  late DateTime _timePicked;
+
+  @override
+  void initState() {
+    setState(() {
+      if (context.read<CreateScheduleStore>().isBeforeStartTap) {
+        _timePicked = context.read<CreateScheduleStore>().scheduleListStartsAt;
+      } else {
+        _timePicked = context
+            .read<CreateScheduleStore>()
+            .scheduleList[context
+                .read<CreateScheduleStore>()
+                .indexOfcurrentlyDecidingStartsAtSchedule]
+            .startsAt!;
+      }
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -396,13 +415,28 @@ class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
                 boxShadow: defaultBoxShadow),
             height: 140,
             alignment: Alignment.center,
-            child: context.watch<CreateScheduleStore>().timePickerSpinner,
+            child: CupertinoDatePicker(
+                key: context.watch<CreateScheduleStore>().datePickerKey,
+                mode: CupertinoDatePickerMode.time,
+                initialDateTime: context
+                    .watch<CreateScheduleStore>()
+                    .currentlyDecidingStartsAtSchedule
+                    .startsAt,
+                use24hFormat: true,
+                onDateTimeChanged: (time) {
+                  context
+                      .read<CreateScheduleStore>()
+                      .setCurrentlySelectedTime(time);
+                  setState(() {
+                    _timePicked = time;
+                  });
+                }),
           ),
           Column(
             children: [
               if (context
                   .watch<CreateScheduleStore>()
-                  .checkIfScheduleListStartsAtSettable())
+                  .checkIfScheduleListStartsAtSettable(_timePicked))
                 const SizedBox(height: 23)
               else
                 const NotificationText(
@@ -412,13 +446,16 @@ class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
               ElevatedButton(
                   onPressed: context
                           .watch<CreateScheduleStore>()
-                          .checkIfScheduleListStartsAtSettable()
+                          .checkIfScheduleListStartsAtSettable(_timePicked)
                       ? () {
                           context
                               .read<CreateScheduleStore>()
                               .setScheduleListStartsAt(context
                                   .read<CreateScheduleStore>()
                                   .currentlySelectedTime);
+                          context
+                              .read<CreateScheduleStore>()
+                              .scrollToScheduleListStartsAt();
                           context
                               .read<CreateScheduleStore>()
                               .onDecidingScheduleStartsAtEnd();
