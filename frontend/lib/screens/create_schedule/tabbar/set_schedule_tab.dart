@@ -7,7 +7,7 @@ import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.da
 import 'package:dayplan_it/screens/create_schedule/components/widgets/notification_text.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/schedule_class.dart';
+import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 
 class SetScheduleTab extends StatefulWidget {
   const SetScheduleTab({Key? key}) : super(key: key);
@@ -16,53 +16,22 @@ class SetScheduleTab extends StatefulWidget {
   State<SetScheduleTab> createState() => _SetScheduleTabState();
 }
 
-class _SetScheduleTabState extends State<SetScheduleTab> {
-  bool _isNotiBoxShow1 = true;
-  bool _isNotiBoxShow2 = true;
-
-  _onNotiBox1ClosePressed() {
-    setState(() {
-      _isNotiBoxShow1 = false;
-    });
-  }
-
-  _onNotiBox2ClosePressed() {
-    setState(() {
-      _isNotiBoxShow2 = false;
-    });
-  }
-
-  Widget _buildNotiBox() {
-    bool _isSetTimeNotiboxShow = _isNotiBoxShow2 &&
-        context.watch<CreateScheduleStore>().scheduleList.isNotEmpty;
-    return Column(
-      children: [
-        if (_isNotiBoxShow1 || _isSetTimeNotiboxShow)
-          const SizedBox(height: 10),
-        if (_isNotiBoxShow1)
-          NotificationBox(
-            title: "일정을 추가하고, 조정하고, 시간을 정해보세요.",
-            onClosePressed: _onNotiBox1ClosePressed,
-          ),
-        if (_isNotiBoxShow1 && _isSetTimeNotiboxShow)
-          const SizedBox(height: 10),
-        if (_isSetTimeNotiboxShow)
-          NotificationBox(
-            title: "일정 또는 회색 영역을 눌러 전체 스케줄의 시간을 간편하게 조절하세요.",
-            onClosePressed: _onNotiBox2ClosePressed,
-          ),
-      ],
-    );
-  }
-
+class _SetScheduleTabState extends State<SetScheduleTab>
+    with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Stack(
       children: [
         Column(
-          children: [
-            _buildNotiBox(),
-            const Expanded(child: RecommendedSchedulesGrid()),
+          children: const [
+            NotificationBox(
+              title: "일정을 추가하고, 조정하고, 시간을 정해보세요.",
+            ),
+            NotificationBox(
+              title: "일정 또는 회색 영역을 눌러 전체 스케줄의 시간을 간편하게 조절하세요.",
+            ),
+            Expanded(child: RecommendedSchedulesGrid()),
           ],
         ),
         if (context.watch<CreateScheduleStore>().isCustomBlockBeingMade)
@@ -78,6 +47,9 @@ class _SetScheduleTabState extends State<SetScheduleTab> {
       ],
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class RecommendedSchedulesGrid extends StatelessWidget {
@@ -302,7 +274,6 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
                   borderRadius: defaultBoxRadius,
                   boxShadow: defaultBoxShadow),
               padding: const EdgeInsets.all(5),
-              width: timeLineWidth + 20,
               height: itemHeight / 1.5,
               child: TextField(
                 autofocus: true,
@@ -361,119 +332,8 @@ class SetScheduleStartsAt extends StatefulWidget {
 }
 
 class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
-  late DateTime _dateTime;
-  late Schedule currentlyDecidingSchedule;
-
-  @override
-  void initState() {
-    // if (context.watch<CreateScheduleStore>().isBeforeStartTap ||
-    //     context.watch<CreateScheduleStore>().scheduleList.isEmpty) {
-    //   // 스케줄 시작 전 회색영역 터치한 경우
-    //   context.read<CreateScheduleStore>().isBeforeStartTap = false;
-    //   setState(() {
-    //     currentlyDecidingSchedule = Schedule(
-    //         nameKor: "전체 일정 시작시간",
-    //         placeType: "dummy",
-    //         color: const Color.fromARGB(157, 69, 69, 69),
-    //         duration: Duration.zero);
-    //     _startTime = context.read<CreateScheduleStore>().scheduleListStartsAt;
-    //     _dateTime = _startTime;
-    //   });
-    // } else {
-    //   setState(() {
-    //     currentlyDecidingSchedule =
-    //         context.watch<CreateScheduleStore>().scheduleList[context
-    //             .watch<CreateScheduleStore>()
-    //             .indexOfcurrentlyDecidingStartsAtSchedule];
-    //     _startTime = currentlyDecidingSchedule.startsAt!;
-    //     _dateTime = _startTime;
-    //   });
-    // }
-    if (context.read<CreateScheduleStore>().scheduleList.isNotEmpty) {
-      _dateTime = context
-          .read<CreateScheduleStore>()
-          .scheduleList[context
-              .read<CreateScheduleStore>()
-              .indexOfcurrentlyDecidingStartsAtSchedule]
-          .startsAt!;
-    } else {
-      _dateTime = context.read<CreateScheduleStore>().scheduleListStartsAt;
-    }
-    super.initState();
-  }
-
-  DateTime _timePickerInitTime() {
-    try {
-      return context
-          .watch<CreateScheduleStore>()
-          .scheduleList[context
-              .watch<CreateScheduleStore>()
-              .indexOfcurrentlyDecidingStartsAtSchedule]
-          .startsAt!;
-    } catch (_) {
-      return context.watch<CreateScheduleStore>().scheduleListStartsAt;
-    }
-  }
-
-  late TimePickerSpinner _timePickerSpinner;
-
   @override
   Widget build(BuildContext context) {
-    // print(context.read<CreateScheduleStore>().scheduleListStartsAt);
-    // print(currentlyDecidingSchedule.startsAt);
-
-    if (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty &&
-        !context.watch<CreateScheduleStore>().isBeforeStartTap) {
-      currentlyDecidingSchedule =
-          context.watch<CreateScheduleStore>().scheduleList[context
-              .watch<CreateScheduleStore>()
-              .indexOfcurrentlyDecidingStartsAtSchedule];
-      setState(() {
-        _timePickerSpinner = TimePickerSpinner(
-          time: context
-              .watch<CreateScheduleStore>()
-              .scheduleList[context
-                  .watch<CreateScheduleStore>()
-                  .indexOfcurrentlyDecidingStartsAtSchedule]
-              .startsAt!,
-          is24HourMode: false,
-          normalTextStyle: mainFont(color: subTextColor),
-          highlightedTextStyle:
-              mainFont(color: primaryColor, fontWeight: FontWeight.w600),
-          itemHeight: 40,
-          isForce2Digits: true,
-          onTimeChange: (time) {
-            setState(() {
-              _dateTime = time;
-            });
-          },
-        );
-      });
-    } else {
-      currentlyDecidingSchedule = Schedule(
-          nameKor: "전체 일정 시작시간",
-          placeType: "dummy",
-          color: const Color.fromARGB(157, 69, 69, 69),
-          duration: Duration.zero);
-      context.read<CreateScheduleStore>().isBeforeStartTap = false;
-      setState(() {
-        _timePickerSpinner = TimePickerSpinner(
-          time: context.watch<CreateScheduleStore>().scheduleListStartsAt,
-          is24HourMode: false,
-          normalTextStyle: mainFont(color: subTextColor),
-          highlightedTextStyle:
-              mainFont(color: primaryColor, fontWeight: FontWeight.w600),
-          itemHeight: 40,
-          isForce2Digits: true,
-          onTimeChange: (time) {
-            setState(() {
-              _dateTime = time;
-            });
-          },
-        );
-      });
-    }
-
     return Container(
       color: Colors.white,
       child: Column(
@@ -485,12 +345,18 @@ class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
                 child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                        color: currentlyDecidingSchedule.color,
+                        color: context
+                            .watch<CreateScheduleStore>()
+                            .currentlyDecidingStartsAtSchedule
+                            .color,
                         borderRadius: defaultBoxRadius,
                         boxShadow: defaultBoxShadow),
                     padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
                     child: Text(
-                      currentlyDecidingSchedule.nameKor,
+                      context
+                          .watch<CreateScheduleStore>()
+                          .currentlyDecidingStartsAtSchedule
+                          .nameKor,
                       style: mainFont(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
@@ -530,13 +396,13 @@ class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
                 boxShadow: defaultBoxShadow),
             height: 140,
             alignment: Alignment.center,
-            child: _timePickerSpinner,
+            child: context.watch<CreateScheduleStore>().timePickerSpinner,
           ),
           Column(
             children: [
               if (context
                   .watch<CreateScheduleStore>()
-                  .checkIfScheduleListStartsAtSettable(_dateTime))
+                  .checkIfScheduleListStartsAtSettable())
                 const SizedBox(height: 23)
               else
                 const NotificationText(
@@ -546,11 +412,13 @@ class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
               ElevatedButton(
                   onPressed: context
                           .watch<CreateScheduleStore>()
-                          .checkIfScheduleListStartsAtSettable(_dateTime)
+                          .checkIfScheduleListStartsAtSettable()
                       ? () {
                           context
                               .read<CreateScheduleStore>()
-                              .setScheduleListStartsAt(_dateTime);
+                              .setScheduleListStartsAt(context
+                                  .read<CreateScheduleStore>()
+                                  .currentlySelectedTime);
                           context
                               .read<CreateScheduleStore>()
                               .onDecidingScheduleStartsAtEnd();

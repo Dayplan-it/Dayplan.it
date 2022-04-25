@@ -76,38 +76,3 @@ class ScheduleList {
     return list[0].startsAt!;
   }
 }
-
-///
-/// duration과 장소 이름만 가지는 객체
-/// isPrimary로 고정일정 / 변동일정을 구분
-///
-
-// class PlaceDurationOnly {
-//   PlaceDurationOnly(
-//       {required this.nameKor,
-//       required this.placeType,
-//       required this.color,
-//       required this.duration,
-//       this.isPrimary = false,
-//       this.startsAt});
-
-//   final String nameKor;
-//   final String placeType;
-//   final Color color;
-//   Duration duration;
-//   bool isPrimary;
-//   DateTime? startsAt;
-
-//   PlaceDurationOnly copy() => PlaceDurationOnly(
-//       nameKor: nameKor,
-//       placeType: placeType,
-//       color: color,
-//       duration: duration,
-//       isPrimary: isPrimary,
-//       startsAt: startsAt);
-
-//   double toHeight() {
-//     final double secondHeightConst = (itemHeight * hours.toDouble()) / 86400;
-//     return duration.inSeconds.toDouble() * secondHeightConst;
-//   }
-// }

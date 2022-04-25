@@ -1,30 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/schedule_class.dart';
+import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/scheduleBox.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 class TimeLine extends StatefulWidget {
-  const TimeLine({Key? key, required this.timeLineWidth}) : super(key: key);
-  final double timeLineWidth;
+  const TimeLine({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<TimeLine> createState() => _TimeLineState();
 }
 
 class _TimeLineState extends State<TimeLine> {
-  final ScrollController _scrollController = ScrollController(
-      initialScrollOffset: durationToHeight(const Duration(hours: 9)));
+  final GlobalKey _timeLineBoxAreaKey = GlobalKey();
+
+  _getAndSetTimeLineBoxAreaWidth() {
+    context.read<CreateScheduleStore>().setTimeLineBoxAreaWidth(
+        _timeLineBoxAreaKey.currentContext!.size!.width);
+  }
 
   @override
   void initState() {
-    super.initState();
-    _scrollController.addListener(() {
-      context.read<CreateScheduleStore>().timeLineScrollHeight =
-          _scrollController.position.pixels;
+    context.read<CreateScheduleStore>().timeLineScrollController =
+        ScrollController(
+            initialScrollOffset: durationToHeight(const Duration(hours: 9)));
+    context
+        .read<CreateScheduleStore>()
+        .timeLineScrollController
+        .addListener(() {
+      context.read<CreateScheduleStore>().timeLineScrollHeight = context
+          .read<CreateScheduleStore>()
+          .timeLineScrollController
+          .position
+          .pixels;
     });
+    super.initState();
+    WidgetsBinding.instance!
+        .addPostFrameCallback((timeStamp) => _getAndSetTimeLineBoxAreaWidth());
   }
 
   Widget _buildScheduleStartsAt() {
@@ -33,29 +49,32 @@ class _TimeLineState extends State<TimeLine> {
         const SizedBox(
           width: 42,
         ),
-        Column(
-          children: [
-            const SizedBox(
-              height: reorderDragTargetHeight / 2,
-            ),
-            GestureDetector(
-              onTap: () {
-                context.read<CreateScheduleStore>().onBeforeStartTap();
-                context
-                    .read<CreateScheduleStore>()
-                    .onDecidingScheduleStartsAtStart();
-              },
-              child: Container(
-                height: dateTimeToHeight(
-                    context.watch<CreateScheduleStore>().scheduleListStartsAt),
-                width: widget.timeLineWidth,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(157, 69, 69, 69),
-                  borderRadius: defaultBoxRadius,
+        Expanded(
+          child: Column(
+            children: [
+              const SizedBox(
+                height: reorderDragTargetHeight / 2,
+              ),
+              GestureDetector(
+                onTap: () {
+                  context.read<CreateScheduleStore>().onBeforeStartTap();
+                  context
+                      .read<CreateScheduleStore>()
+                      .onDecidingScheduleStartsAtStart();
+                },
+                child: Container(
+                  height: dateTimeToHeight(context
+                      .watch<CreateScheduleStore>()
+                      .scheduleListStartsAt),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(157, 69, 69, 69),
+                    borderRadius: defaultBoxRadius,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -82,7 +101,6 @@ class _TimeLineState extends State<TimeLine> {
                   ScheduleBox(
                     schedule: scheduleList[i],
                     index: i,
-                    itemWidth: widget.timeLineWidth,
                   ),
               ],
             ),
@@ -97,7 +115,6 @@ class _TimeLineState extends State<TimeLine> {
                             .indexOfDraggingScheduleBox)
                       OnScheduleBoxLongPress(
                         schedule: scheduleList[i],
-                        width: widget.timeLineWidth,
                       )
                     else
                       SizedBox(
@@ -124,34 +141,33 @@ class _TimeLineState extends State<TimeLine> {
           bottom: 0,
           // Scroll 위해서는 모든 방향 position 지정해주어야 작동함
           child: SingleChildScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            scrollDirection: Axis.vertical,
-            child: Row(
-              children: [
-                Stack(children: [
-                  TimelineBackground(timeLineWidth: widget.timeLineWidth),
-                  Positioned.fill(child: _buildScheduleStartsAt()),
-                  Positioned.fill(
-                      child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 42,
-                      ),
-                      Stack(children: [
+              controller:
+                  context.read<CreateScheduleStore>().timeLineScrollController,
+              physics: const BouncingScrollPhysics(),
+              scrollDirection: Axis.vertical,
+              child: Stack(children: [
+                const TimelineBackground(),
+                Positioned.fill(child: _buildScheduleStartsAt()),
+                Positioned.fill(
+                    child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 42,
+                    ),
+                    Expanded(
+                      key: _timeLineBoxAreaKey,
+                      child: Stack(children: [
                         _buildScheduleBoxTimeLine(),
                         if (context
                             .watch<CreateScheduleStore>()
                             .isScheduleBoxDragging)
                           const Positioned.fill(
                               child: TimeLineReorderDragTargetCol()),
-                      ])
-                    ],
-                  ))
-                ]),
-              ],
-            ),
-          ),
+                      ]),
+                    )
+                  ],
+                ))
+              ])),
         ),
       ],
     );
@@ -159,10 +175,9 @@ class _TimeLineState extends State<TimeLine> {
 }
 
 class TimelineBackground extends StatelessWidget {
-  const TimelineBackground({Key? key, required this.timeLineWidth})
-      : super(key: key);
-
-  final double timeLineWidth;
+  const TimelineBackground({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -193,39 +208,41 @@ class TimelineBackground extends StatelessWidget {
         const SizedBox(
           width: 5,
         ),
-        Column(
-          children: [
-            const SizedBox(
-              height: reorderDragTargetHeight / 2,
-            ),
-            Container(
-              decoration:
-                  BoxDecoration(borderRadius: BorderRadius.circular(20)),
-              width: timeLineWidth,
-              clipBehavior: Clip.hardEdge,
-              child: Column(
-                children: [
-                  for (int i = 0; i < hours; i++)
-                    Column(
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: itemHeight,
-                          color: skyBlue,
-                        ),
-                        const Divider(
-                          height: 0,
-                          indent: 10,
-                          endIndent: 10,
-                          thickness: 1,
-                          color: Colors.white,
-                        )
-                      ],
-                    )
-                ],
+        Expanded(
+          child: Column(
+            children: [
+              const SizedBox(
+                height: reorderDragTargetHeight / 2,
               ),
-            ),
-          ],
+              Container(
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(20)),
+                width: double.infinity,
+                clipBehavior: Clip.hardEdge,
+                child: Column(
+                  children: [
+                    for (int i = 0; i < hours; i++)
+                      Column(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: itemHeight,
+                            color: skyBlue,
+                          ),
+                          const Divider(
+                            height: 0,
+                            indent: 10,
+                            endIndent: 10,
+                            thickness: 1,
+                            color: Colors.white,
+                          )
+                        ],
+                      )
+                  ],
+                ),
+              ),
+            ],
+          ),
         )
       ],
     );

@@ -290,3 +290,18 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='
         data["route_type"] = 'transit'
         return data
 
+
+def place_autocomplete(inputStr, lat, lng, isRankByDistance):
+    '''
+    장소 검색시 사용되는 구글의 AutoComplete API
+    '''
+
+    url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?'\
+        + f'input={inputStr}'\
+        + f'&origin={lat} {lng}'\
+        + f'&language=ko{"&rankby=distance" if isRankByDistance else ""}'\
+        + f'&key={settings.GOOGLE_API_KEY}'
+    response = requests.get(url)
+    data = json.loads(response.text)
+
+    return data

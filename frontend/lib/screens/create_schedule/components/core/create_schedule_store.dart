@@ -1,6 +1,8 @@
+import 'package:dayplan_it/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/schedule_class.dart';
+import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 
 ///Create Schedule Screen을 위한 `Store`
 ///클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
@@ -55,6 +57,7 @@ class CreateScheduleStore extends ChangeNotifier {
 
   void onDecidingScheduleStartsAtStart() {
     isDecidingScheduleStartsAt = true;
+    tabController.animateTo(0);
     notifyListeners();
   }
 
@@ -65,9 +68,15 @@ class CreateScheduleStore extends ChangeNotifier {
 
   /// 현재 시작시간을 변경중인 스케줄의 인덱스
   late int indexOfcurrentlyDecidingStartsAtSchedule;
+  late Schedule currentlyDecidingStartsAtSchedule;
+  late TimePickerSpinner timePickerSpinner;
+  late DateTime currentlySelectedTime;
 
   void setIndexOfcurrentlyDecidingStartsAtSchedule(int index) {
     indexOfcurrentlyDecidingStartsAtSchedule = index;
+    setCurrentlyDecidingStartsAtSchedule();
+    currentlySelectedTime = currentlyDecidingStartsAtSchedule.startsAt!;
+    createTimePickerSpinner();
     notifyListeners();
   }
 
@@ -76,12 +85,57 @@ class CreateScheduleStore extends ChangeNotifier {
 
   void onBeforeStartTap() {
     isBeforeStartTap = true;
+    setCurrentlyDecidingStartsAtSchedule();
+    currentlySelectedTime = currentlyDecidingStartsAtSchedule.startsAt!;
+    createTimePickerSpinner();
+    notifyListeners();
+  }
+
+  void onBeforeStartTapEnd() {
+    isBeforeStartTap = false;
+    notifyListeners();
+  }
+
+  void setCurrentlyDecidingScheduleStartsAtBeforeStart() {
+    currentlyDecidingStartsAtSchedule = Schedule(
+        nameKor: "전체 일정 시작시간",
+        placeType: "dummy",
+        color: const Color.fromARGB(157, 69, 69, 69),
+        duration: Duration.zero,
+        startsAt: scheduleListStartsAt);
+    notifyListeners();
+  }
+
+  void setCurrentlyDecidingStartsAtSchedule() {
+    if (isBeforeStartTap) {
+      setCurrentlyDecidingScheduleStartsAtBeforeStart();
+    } else {
+      currentlyDecidingStartsAtSchedule =
+          scheduleList[indexOfcurrentlyDecidingStartsAtSchedule];
+    }
+    notifyListeners();
+  }
+
+  void createTimePickerSpinner() {
+    timePickerSpinner = TimePickerSpinner(
+        time: currentlyDecidingStartsAtSchedule.startsAt,
+        is24HourMode: false,
+        normalTextStyle: mainFont(color: subTextColor),
+        highlightedTextStyle:
+            mainFont(color: primaryColor, fontWeight: FontWeight.w600),
+        itemHeight: 40,
+        isForce2Digits: true,
+        onTimeChange: (time) {
+          currentlySelectedTime = time;
+        });
     notifyListeners();
   }
 
   /// 스케줄 시작시간을 사용자에게 입력받을 때
   /// 해당 시간이 적용이 가능한지 여부를 확인하는 함수 (bool)
-  bool checkIfScheduleListStartsAtSettable(DateTime startsAt) {
+  bool checkIfScheduleListStartsAtSettable() {
+    DateTime startsAt = currentlySelectedTime;
+
     bool _checkAfterStartsAt(DateTime startsAt) {
       Duration sum = Duration.zero;
       for (int i = indexOfcurrentlyDecidingStartsAtSchedule;
@@ -191,6 +245,7 @@ class CreateScheduleStore extends ChangeNotifier {
   void onScheduleBoxDragStart(int scheduleIndex) {
     isScheduleBoxDragging = true;
     indexOfDraggingScheduleBox = scheduleIndex;
+    tabController.animateTo(0);
     notifyListeners();
   }
 
@@ -227,6 +282,7 @@ class CreateScheduleStore extends ChangeNotifier {
       if (isUp == true) {
         // 윗쪽 핸들 아래로 당김
         if (index == 0) {
+          indexOfcurrentlyDecidingStartsAtSchedule = 0;
           if (scheduleList[0].duration - timeDelta >
               minimumScheduleBoxDuration) {
             scheduleList[0].duration -= timeDelta;
@@ -258,6 +314,7 @@ class CreateScheduleStore extends ChangeNotifier {
       if (isUp == true) {
         // 위쪽 핸들을 위로 당김
         if (index == 0) {
+          indexOfcurrentlyDecidingStartsAtSchedule = 0;
           if (scheduleList[0]
               .startsAt!
               .subtract(timeDelta)
@@ -375,8 +432,29 @@ class CreateScheduleStore extends ChangeNotifier {
   }
 
   /// 타임라인 스크롤 높이를 저장하는 변수
-  /// 쓸지 안쓸지 모름 컴쿰
   late double timeLineScrollHeight;
+
+  /// 타임라인 너비 조정용
+  /// Flex값이므로 %라고 생각하면 됨
+  int timelineWidthFlex = 47;
+  void setTimeLineWidthFlex(int flex) {
+    timelineWidthFlex = flex;
+    notifyListeners();
+  }
+
+  void setTimeLineWidthFlexByTabIndex(int tabIndex) {
+    setTimeLineWidthFlex([47, 30, 30][tabIndex]);
+  }
+
+  /// 타임라인의 박스가 들어가는 곳 너비를 넣는 변수
+  /// TimeLine 위젯에서 계산해서 넣고
+  /// OnScheduleBoxLongPress(isFeedback:true)에서 사용함
+  /// 타임라인 너비 조정용이 아님!!
+  late double timeLineBoxAreaWidth;
+  void setTimeLineBoxAreaWidth(double width) {
+    timeLineBoxAreaWidth = width;
+    notifyListeners();
+  }
 
   /// 커스텀 블록 생성중 여부를 확인하기 위한 변수
   bool isCustomBlockBeingMade = false;
@@ -397,9 +475,22 @@ class CreateScheduleStore extends ChangeNotifier {
   /// 스케줄 생성 스크린 pop시 호출
   void onPopCreateScheduleScreen() {
     clearScheduleList();
+    setCurrentlyDecidingScheduleStartsAtBeforeStart();
+    createTimePickerSpinner();
     onEndMakingCustomBlock();
     onScheduleBoxDragEnd();
     isBeforeStartTap = false;
+  }
+
+  ///
+  /// 이하 장소 선택 탭을 위한 Store
+  ///
+
+  /// 현재 장소를 선택중인 스케줄의 인덱스
+  int indexOfPlaceDecidingSchedule = 0;
+  void setIndexOfPlaceDecidingSchedule(int index) {
+    indexOfPlaceDecidingSchedule = index;
+    notifyListeners();
   }
 
   ///

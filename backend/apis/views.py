@@ -1,3 +1,4 @@
+from unittest import result
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
@@ -14,6 +15,8 @@ PARAM_ROUTE_LAT_ORI = 'lat_ori'
 PARAM_ROUTE_LNG_DEST = 'lng_dest'
 PARAM_ROUTE_LAT_DEST = 'lat_dest'
 PARAM_ROUTE_TYPE = 'route_type'
+PARAM_QUERY_FOR_AUTOCOMPLETE = 'input'
+PARAM_IS_RANKBY_DISTANCE = 'is_rankby_distance'
 
 
 class PlaceRecommend(APIView):
@@ -97,7 +100,7 @@ class MakeRoute(APIView):
         lat_dest = request.query_params[PARAM_ROUTE_LAT_DEST]
 
         # 쿼리에서 이동타입을 입력해줘도되고 안해줘도 가능
-        if 'route_type' in request.query_params:
+        if PARAM_ROUTE_TYPE in request.query_params:
             route_type = request.query_params[PARAM_ROUTE_TYPE]
             result = pointroute(lng_ori, lat_ori, lng_dest,
                                 lat_dest, mode=route_type)
@@ -107,3 +110,22 @@ class MakeRoute(APIView):
         # route type은 필수아님! 상황에 맞게 검색해주긴함
 
         return Response(result, status=HTTP_200_OK)
+
+
+class PlaceAutocomplete(APIView):
+
+    """
+    검색어의 자동완성을 위한 API
+    """
+
+    # @LoginConfirm
+    def get(self, request):
+        inputStr = request.query_params[PARAM_QUERY_FOR_AUTOCOMPLETE]
+        lat = request.query_params[PARAM_PLACE_LAT]
+        lng = request.query_params[PARAM_PLACE_LNG]
+
+        isRankByDistance = False
+        if PARAM_IS_RANKBY_DISTANCE in request.query_params:
+            isRankByDistance = request.query_params[PARAM_IS_RANKBY_DISTANCE] == "true"
+
+        return Response(place_autocomplete(inputStr, lat, lng, isRankByDistance), status=HTTP_200_OK)

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/schedule_class.dart';
+import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
@@ -10,12 +10,10 @@ class ScheduleBox extends StatelessWidget {
     Key? key,
     required this.schedule,
     required this.index,
-    required this.itemWidth,
   }) : super(key: key);
 
   final Schedule schedule;
   final int index;
-  final double itemWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +24,7 @@ class ScheduleBox extends StatelessWidget {
             borderRadius: defaultBoxRadius,
             boxShadow: defaultBoxShadow),
         height: schedule.toHeight(),
-        width: itemWidth,
+        width: double.infinity,
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
           Padding(
@@ -93,6 +91,7 @@ class ScheduleBox extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
+                      context.read<CreateScheduleStore>().onBeforeStartTapEnd();
                       context
                           .read<CreateScheduleStore>()
                           .setIndexOfcurrentlyDecidingStartsAtSchedule(index);
@@ -102,7 +101,6 @@ class ScheduleBox extends StatelessWidget {
                     },
                     child: LongPressDraggable(
                       feedback: OnScheduleBoxLongPress(
-                        width: itemWidth,
                         schedule: schedule,
                         isFeedback: true,
                       ),
@@ -138,12 +136,10 @@ class OnScheduleBoxLongPress extends StatelessWidget {
   const OnScheduleBoxLongPress({
     Key? key,
     required this.schedule,
-    required this.width,
     this.isFeedback = false,
   }) : super(key: key);
 
   final Schedule schedule;
-  final double width;
   final bool isFeedback;
 
   @override
@@ -152,9 +148,13 @@ class OnScheduleBoxLongPress extends StatelessWidget {
       decoration: BoxDecoration(
           color: schedule.color.withAlpha((isFeedback ? 150 : 255)),
           borderRadius: defaultBoxRadius,
-          border: Border.all(color: Colors.blue, width: 3)),
+          border: Border.all(color: Colors.blue, width: 4)),
       height: schedule.toHeight(),
-      width: width,
+      width: isFeedback
+          ? context.watch<CreateScheduleStore>().timeLineBoxAreaWidth
+          : double.infinity,
+      // 다른 컨테이너들은 모두 Expanded로 너비는 명시할 필요가 없지만
+      // isFeedback = true인 경우 부모 위젯이 없어 너비를 직접 명시해주어야 함
       alignment: Alignment.center,
       child: Padding(
         padding: const EdgeInsets.all(8.0),

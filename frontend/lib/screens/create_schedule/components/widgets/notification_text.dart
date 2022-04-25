@@ -69,49 +69,60 @@ class NotificationText extends StatelessWidget {
   }
 }
 
-class NotificationBox extends StatelessWidget {
+class NotificationBox extends StatefulWidget {
   const NotificationBox(
       {Key? key,
       required this.title,
-      required this.onClosePressed,
       this.isRed = false,
       this.isInstruction = false})
       : super(key: key);
 
   final String title;
-  final VoidCallback onClosePressed;
   final bool isRed;
   final bool isInstruction;
 
   @override
+  State<NotificationBox> createState() => _NotificationBoxState();
+}
+
+class _NotificationBoxState extends State<NotificationBox> {
+  bool _isNotiBoxShow = true;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: defaultBoxShadow,
-        borderRadius: defaultBoxRadius,
-      ),
-      width: double.infinity,
-      child: Row(
-        children: [
-          Expanded(
-            child: NotificationText(
-              title: title,
-              isRed: isRed,
-              isInstruction: isInstruction,
-              makePaddingZero: true,
+    return _isNotiBoxShow
+        ? Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Container(
+              padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: defaultBoxShadow,
+                borderRadius: defaultBoxRadius,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: NotificationText(
+                      title: widget.title,
+                      isRed: widget.isRed,
+                      isInstruction: widget.isInstruction,
+                      makePaddingZero: true,
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: () => setState(() {
+                            _isNotiBoxShow = false;
+                          }),
+                      icon: const Icon(
+                        Icons.close,
+                        color: subTextColor,
+                        size: 16,
+                      ))
+                ],
+              ),
             ),
-          ),
-          IconButton(
-              onPressed: onClosePressed,
-              icon: const Icon(
-                Icons.close,
-                color: subTextColor,
-                size: 16,
-              ))
-        ],
-      ),
-    );
+          )
+        : const SizedBox();
   }
 }

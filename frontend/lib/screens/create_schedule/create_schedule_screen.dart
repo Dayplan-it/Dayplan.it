@@ -41,25 +41,26 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
                 "${widget.date.month.toString()}월 ${widget.date.day.toString()}일",
             isHomePage: false,
           ),
-          body: CreateScheduleScreenBody(
-            date: widget.date,
-          )),
+          body: const CreateScheduleScreenBody()),
     );
   }
 }
 
 class CreateScheduleScreenBody extends StatelessWidget {
-  const CreateScheduleScreenBody({Key? key, required this.date})
-      : super(key: key);
-  final DateTime date;
+  const CreateScheduleScreenBody({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
         padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
-        child: Row(children: const [
-          Expanded(flex: 47, child: TimeLine(timeLineWidth: timeLineWidth)),
-          Expanded(flex: 53, child: CreateScheduleScreenRightSide())
+        child: Row(children: [
+          Expanded(
+              flex: context.watch<CreateScheduleStore>().timelineWidthFlex,
+              child: const TimeLine()),
+          const SizedBox(
+            width: 8,
+          ),
+          const Expanded(flex: 53, child: CreateScheduleScreenRightSide())
         ]));
   }
 }
@@ -88,6 +89,13 @@ class _CreateScheduleScreenRightSideState
     ));
   }
 
+  void _onTabChange() {
+    setState(() {
+      index = context.read<CreateScheduleStore>().tabController.index;
+    });
+    context.read<CreateScheduleStore>().setTimeLineWidthFlexByTabIndex(index);
+  }
+
   @override
   void initState() {
     context.read<CreateScheduleStore>().tabController = TabController(
@@ -96,9 +104,7 @@ class _CreateScheduleScreenRightSideState
     );
 
     context.read<CreateScheduleStore>().tabController.addListener(() {
-      setState(() {
-        index = context.read<CreateScheduleStore>().tabController.index;
-      });
+      _onTabChange();
     });
 
     super.initState();

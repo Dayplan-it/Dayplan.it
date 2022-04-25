@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 
 /// Create Schedule Screen을 위한 상수, 함수들
 
@@ -15,16 +14,8 @@ const double reorderDragTargetHeight = itemHeight / 5;
 /// 최소한의 스케줄 블록 사이즈를 Duration으로 결정
 const Duration minimumScheduleBoxDuration = Duration(minutes: 30);
 
-/// 타임라인의 너비 (Rough)
-const double timeLineWidth = 120;
-
 /// 스케줄박스 위아래 핸들
 const double upDownHandleHeight = 14;
-
-/// 타임라인의 너비 (Detail)
-const double detailTimeLineWidth = 100;
-
-const double scheduleBoxHandleWidth = 22;
 
 /// BorderRadius 기본값
 BorderRadius defaultBoxRadius = BorderRadius.circular(20);
@@ -63,10 +54,4 @@ String printDuration(Duration duration) {
   String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
   String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
   return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
-}
-
-Future<Position> getLocation() async {
-  Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high);
-  return position;
 }
