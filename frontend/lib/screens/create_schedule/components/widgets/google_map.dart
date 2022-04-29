@@ -36,7 +36,7 @@ class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
         GoogleMap(
             onMapCreated: widget.onMapCreated,
             onTap: (position) {
-              widget.customInfoWindowController.hideInfoWindow!();
+              widget.customInfoWindowController.hideAllInfoWindow!();
             },
             onCameraMove: (position) {
               widget.customInfoWindowController.onCameraMove!();
@@ -67,45 +67,50 @@ Marker markerWithCustomInfoWindow(
     MarkerId markerId,
     LatLng placeLatLng,
     ModifiedCustomInfoWindowController customInfoWindowController,
-    String title) {
+    String title,
+    VoidCallback onTap) {
+  customInfoWindowController.addInfoWindow!(
+      InkWell(
+        onTap: () => onTap(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flex(
+                mainAxisAlignment: MainAxisAlignment.center,
+                direction: Axis.horizontal,
+                children: [
+                  Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        borderRadius: defaultBoxRadius,
+                        boxShadow: defaultBoxShadow,
+                        color: primaryColor),
+                    child: Row(
+                      children: [
+                        Text(
+                          title,
+                          style: mainFont(
+                              color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+            CustomPaint(
+              size: const Size(20, 10),
+              painter: DrawTriangleShape(),
+            )
+          ],
+        ),
+      ),
+      placeLatLng,
+      markerId);
   return Marker(
     markerId: markerId,
     position: placeLatLng,
     onTap: () {
-      customInfoWindowController.addInfoWindow!(
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flex(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  direction: Axis.horizontal,
-                  children: [
-                    Container(
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          borderRadius: defaultBoxRadius,
-                          boxShadow: defaultBoxShadow,
-                          color: primaryColor),
-                      child: Row(
-                        children: [
-                          Text(
-                            title,
-                            style: mainFont(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ]),
-              CustomPaint(
-                size: const Size(20, 10),
-                painter: DrawTriangleShape(),
-              )
-            ],
-          ),
-          placeLatLng);
+      customInfoWindowController.showInfoWindow!(markerId);
     },
   );
 }

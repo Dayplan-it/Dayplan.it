@@ -687,6 +687,14 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 장소 검색 후 선택해서 디테일 화면을 볼때
+  /// 토글용 변수
+  bool isLookingPlaceDetail = false;
+  void toggleIsLookingPlaceDetail() {
+    isLookingPlaceDetail = !isLookingPlaceDetail;
+    notifyListeners();
+  }
+
   ///
   /// 이하 각종 컨트롤러
   ///

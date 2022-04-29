@@ -160,13 +160,14 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
 
   void _addMarker(LatLng placeLatLng, String title,
       {String markerIdStr = 'myMarker'}) {
+    _onTap() {
+      context.read<CreateScheduleStore>().toggleIsLookingPlaceDetail();
+      print(context.read<CreateScheduleStore>().isLookingPlaceDetail);
+    }
+
     final MarkerId markerId = MarkerId(markerIdStr);
     final Marker marker = markerWithCustomInfoWindow(
-      markerId,
-      placeLatLng,
-      _customInfoWindowController,
-      title,
-    );
+        markerId, placeLatLng, _customInfoWindowController, title, _onTap);
 
     // Marker(
     //   markerId: markerId,
@@ -218,6 +219,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     setState(() {
       markers = <MarkerId, Marker>{};
     });
+    _customInfoWindowController.deleteAllInfoWindow!();
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -264,7 +266,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
             _clearMarker();
           });
         },
-        onTap: () => _customInfoWindowController.hideInfoWindow!(),
+        onTap: () => _customInfoWindowController.hideAllInfoWindow!(),
       ),
       const SizedBox(
         height: 5,
@@ -339,10 +341,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                           ['main_text']);
                                   _mapController.moveCamera(
                                       CameraUpdate.newLatLng(placeLatLng));
-                                  // 구글맵 문제로 showMarkerInfoWindow를 바로 실행하면
-                                  // PlatformException이 발생함
-                                  // 따라서 임의로 딜레이를 줌
-                                  _customInfoWindowController.showInfoWindow!();
                                 },
                                 style: ListTileStyle.drawer,
                               );
