@@ -17,6 +17,7 @@ PARAM_ROUTE_LAT_DEST = 'lat_dest'
 PARAM_ROUTE_TYPE = 'route_type'
 PARAM_QUERY_FOR_AUTOCOMPLETE = 'input'
 PARAM_IS_RANKBY_DISTANCE = 'is_rankby_distance'
+PARAM_SHOULD_GET_IMG = 'should_get_img'
 
 
 class PlaceRecommend(APIView):
@@ -64,13 +65,18 @@ class PlaceDetail(APIView):
     place_id를 받아 장소의 자세한 정보를 주는 API
     """
 
-    @LoginConfirm
+    # @LoginConfirm
     def get(self, request):
         # 예시데이터
         # ChIJKbC0o06ifDURYATbX7adyKg
         place_id = request.query_params[PARAM_PLACE_ID]
 
-        return Response(place_detail(place_id), status=HTTP_200_OK)
+        if PARAM_SHOULD_GET_IMG in request.query_params:
+            shouldGetImg = request.query_params[PARAM_SHOULD_GET_IMG]
+        else:
+            shouldGetImg = False
+
+        return Response(place_detail(place_id, shouldGetImg=shouldGetImg), status=HTTP_200_OK)
 
 
 class MakeRoute(APIView):

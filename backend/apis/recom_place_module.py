@@ -198,10 +198,10 @@ def get_nearby_place(lng, lat, type, distance=1800):
     return gdf
 
 
-def place_detail(place_id):
+def place_detail(place_id, shouldGetImg):
     detail_str = 'https://maps.googleapis.com/maps/api/place/details/json'\
         + '?place_id='+str(place_id)\
-        + '&fields=formatted_address,name,geometry,review,photo,rating,user_ratings_total,international_phone_number'\
+        + '&fields=formatted_address,name,geometry,review,photo,rating,user_ratings_total,international_phone_number&language=ko'\
         + '&key='+settings.GOOGLE_API_KEY
     response = requests.get(detail_str)
     data = json.loads(response.text)
@@ -210,23 +210,29 @@ def place_detail(place_id):
     lng = results['geometry']['location']['lng']
     lat = results['geometry']['location']['lat']
     name = results['name']
-    rating = results['rating']
-    user_ratings_total = results['user_ratings_total']
+    if ('rating' in results.keys()):
+        rating = results['rating']
+        user_ratings_total = results['user_ratings_total']
+    else:
+        rating = []
+        user_ratings_total = 0
     photo = []
-    for i in results['photos'][:2]:
-        photo_str = 'https://maps.googleapis.com/maps/api/place/photo'\
-            + f'?maxwidth={MAX_PHOTO_WIDTH}'\
-            + '&photo_reference='+i['photo_reference']\
-            + '&key='+settings.GOOGLE_API_KEY
-        photo.append(photo_str)
+    if (shouldGetImg):
+        for i in results['photos'][:2]:
+            photo_str = 'https://maps.googleapis.com/maps/api/place/photo'\
+                + f'?maxwidth={MAX_PHOTO_WIDTH}'\
+                + '&photo_reference='+i['photo_reference']\
+                + '&key='+settings.GOOGLE_API_KEY
+            photo.append(photo_str)
 
     reviews = []
-    for i in results['reviews']:
-        temp = {}
-        temp['rating'] = i['rating']
-        temp['text'] = i['text']
-        temp['relative_time_description'] = i['relative_time_description']
-        reviews.append(temp)
+    if ('reviews' in results.keys()):
+        for i in results['reviews']:
+            temp = {}
+            temp['rating'] = i['rating']
+            temp['text'] = i['text']
+            temp['relative_time_description'] = i['relative_time_description']
+            reviews.append(temp)
 
     # insta
     insta_str = f'https://www.instagram.com/explore/tags/{parse.quote(name)}/'

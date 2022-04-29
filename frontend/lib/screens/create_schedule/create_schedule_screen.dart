@@ -6,7 +6,6 @@ import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/notification_text.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/timeLine_vertical.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/tabbar/set_schedule_tab.dart';
 
@@ -46,8 +45,25 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
   }
 }
 
-class CreateScheduleScreenBody extends StatelessWidget {
+class CreateScheduleScreenBody extends StatefulWidget {
   const CreateScheduleScreenBody({Key? key}) : super(key: key);
+
+  @override
+  State<CreateScheduleScreenBody> createState() =>
+      _CreateScheduleScreenBodyState();
+}
+
+class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
+    with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    // context.read<CreateScheduleStore>().animationController =
+    //     AnimationController(duration: Duration(seconds: 5), vsync: this);
+    // context.read<CreateScheduleStore>().animation = IntTween(begin: 47, end: 30)
+    //     .animate(context.read<CreateScheduleStore>().animationController);
+    //_animation.addListener(() => setState(() {}));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +72,7 @@ class CreateScheduleScreenBody extends StatelessWidget {
         child: Row(children: [
           Expanded(
               flex: context.watch<CreateScheduleStore>().timelineWidthFlex,
+              //context.watch<CreateScheduleStore>().animation.value,
               child: const TimeLine()),
           const SizedBox(
             width: 8,
@@ -94,6 +111,7 @@ class _CreateScheduleScreenRightSideState
       index = context.read<CreateScheduleStore>().tabController.index;
     });
     context.read<CreateScheduleStore>().setTimeLineWidthFlexByTabIndex(index);
+    //context.read<CreateScheduleStore>().animateTimeLine();
   }
 
   @override

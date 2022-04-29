@@ -22,7 +22,14 @@ class CreateScheduleStore with ChangeNotifier {
     for (Schedule schedule in scheduleList) {
       sum += schedule.duration;
     }
+    sum += scheduleListStartsAt.difference(scheduleDate);
     return sum;
+  }
+
+  /// 고정 / 유동 토글용 함수
+  void toggleScheduleFixedOrNot(int scheduleIndex) {
+    scheduleList[scheduleIndex].isFixed = !scheduleList[scheduleIndex].isFixed;
+    notifyListeners();
   }
 
   /// 전체 스케줄의 시작시간을 저장하는 변수
@@ -38,6 +45,15 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 스케줄을 삭제할 때 호출하는 함수
   void removeSchedule(int scheduleIndex) {
+    if (_isFixedExistsDownside(scheduleIndex)) {
+      Duration removedDuration = scheduleList[scheduleIndex].duration;
+      if (scheduleIndex == 0) {
+        scheduleListStartsAt = scheduleListStartsAt.add(removedDuration);
+      } else {
+        scheduleList[scheduleIndex - 1].duration += removedDuration;
+      }
+    }
+
     scheduleList.removeAt(scheduleIndex);
     calSchedulesStartsAndEndsAt();
 
@@ -270,6 +286,24 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isFixedExistsDownside(int _index) {
+    for (int i = _index + 1; i < scheduleList.length; i++) {
+      if (scheduleList[i].isFixed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isFixedExistsUpside(int _index) {
+    for (int i = _index - 1; i >= 0; i--) {
+      if (scheduleList[i].isFixed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// 위, 아래 화살표를 드래그 할 시 스케쥴 duration 또한 바꾸는 내용
   /// 경우의 수가 많아 복잡하며, 버그 발생 확률 높으므로 주의를 요함
   /// 두가지 타입의 코드가 있음
@@ -279,6 +313,10 @@ class CreateScheduleStore with ChangeNotifier {
   void changeDurationOfScheduleForUpDownBtn(
       int index, double delta, bool isUp) {
     Duration timeDelta = heightToDuration(delta.abs());
+
+    if (tabController.index != 0) {
+      tabController.animateTo(0);
+    }
 
     // 1번 타입
 
@@ -298,20 +336,57 @@ class CreateScheduleStore with ChangeNotifier {
             setScheduleListStartsAt(
                 scheduleList[0].endsAt!.subtract(minimumScheduleBoxDuration));
           }
-        } else if (scheduleDuration + timeDelta < const Duration(days: 1)) {
-          scheduleList[index - 1].duration += timeDelta;
+        } else if (!scheduleList[index - 1].isFixed) {
+          if (_isFixedExistsDownside(index)) {
+            if (scheduleList[index].duration - timeDelta >=
+                minimumScheduleBoxDuration) {
+              scheduleList[index - 1].duration += timeDelta;
+              scheduleList[index].duration -= timeDelta;
+            } else {
+              scheduleList[index - 1].duration +=
+                  scheduleList[index].duration - minimumScheduleBoxDuration;
+              scheduleList[index].duration = minimumScheduleBoxDuration;
+            }
+          } else {
+            if (scheduleDuration + timeDelta <= const Duration(days: 1)) {
+              scheduleList[index - 1].duration += timeDelta;
+            } else {
+              scheduleList[index - 1].duration +=
+                  (const Duration(days: 1) - scheduleDuration);
+            }
+          }
         } else {
-          scheduleList[index - 1].duration +=
-              (const Duration(days: 1) - scheduleDuration);
+          // 아무것도 안함
         }
       } else {
         // 아랫쪽 핸들 아래로 당김
-        if (scheduleDuration + timeDelta < const Duration(days: 1)) {
-          scheduleList[index].duration += timeDelta;
-        } else {
-          scheduleList[index].duration +=
-              (const Duration(days: 1) - scheduleDuration);
-        }
+        if (index == scheduleList.length - 1) {
+          if (scheduleDuration + timeDelta < const Duration(days: 1)) {
+            scheduleList[index].duration += timeDelta;
+          } else {
+            scheduleList[index].duration +=
+                (const Duration(days: 1) - scheduleDuration);
+          }
+        } else if (!scheduleList[index + 1].isFixed) {
+          if (_isFixedExistsDownside(index)) {
+            if (scheduleList[index + 1].duration - timeDelta >=
+                minimumScheduleBoxDuration) {
+              scheduleList[index].duration += timeDelta;
+              scheduleList[index + 1].duration -= timeDelta;
+            } else {
+              scheduleList[index].duration +=
+                  scheduleList[index + 1].duration - minimumScheduleBoxDuration;
+              scheduleList[index + 1].duration = minimumScheduleBoxDuration;
+            }
+          } else {
+            if (scheduleDuration + timeDelta < const Duration(days: 1)) {
+              scheduleList[index].duration += timeDelta;
+            } else {
+              scheduleList[index].duration +=
+                  (const Duration(days: 1) - scheduleDuration);
+            }
+          }
+        } else {}
       }
     } else {
       // delta가 음수로, duration이 감소하는 케이스이므로
@@ -333,22 +408,136 @@ class CreateScheduleStore with ChangeNotifier {
                 scheduleList[0].endsAt!.difference(scheduleDate);
             setScheduleListStartsAt(scheduleDate);
           }
-        } else if (scheduleList[index - 1].duration - timeDelta >
-            minimumScheduleBoxDuration) {
-          scheduleList[index - 1].duration -= timeDelta;
+        } else if (!scheduleList[index - 1].isFixed) {
+          if (_isFixedExistsUpside(index) || _isFixedExistsDownside(index)) {
+            if (scheduleList[index - 1].duration - timeDelta >=
+                minimumScheduleBoxDuration) {
+              scheduleList[index - 1].duration -= timeDelta;
+              scheduleList[index].duration += timeDelta;
+            } else {
+              scheduleList[index].duration +=
+                  scheduleList[index - 1].duration - minimumScheduleBoxDuration;
+              scheduleList[index - 1].duration = minimumScheduleBoxDuration;
+            }
+          } else {
+            if (scheduleList[index - 1].duration - timeDelta >=
+                minimumScheduleBoxDuration) {
+              scheduleList[index - 1].duration -= timeDelta;
+            } else {
+              scheduleList[index - 1].duration = minimumScheduleBoxDuration;
+            }
+          }
         } else {
-          scheduleList[index - 1].duration = minimumScheduleBoxDuration;
+          // 아무것도 안함
         }
       } else {
         // 아래쪽 핸들을 위로 당김
-        if (scheduleList[index].duration - timeDelta >
-            minimumScheduleBoxDuration) {
-          scheduleList[index].duration -= timeDelta;
-        } else {
-          scheduleList[index].duration = minimumScheduleBoxDuration;
-        }
+        if (index == scheduleList.length - 1) {
+          if (scheduleList[index].duration - timeDelta >=
+              minimumScheduleBoxDuration) {
+            scheduleList[index].duration -= timeDelta;
+          } else {
+            scheduleList[index].duration = minimumScheduleBoxDuration;
+          }
+        } else if (!scheduleList[index + 1].isFixed) {
+          if (_isFixedExistsDownside(index)) {
+            if (scheduleList[index].duration - timeDelta >=
+                minimumScheduleBoxDuration) {
+              scheduleList[index].duration -= timeDelta;
+              scheduleList[index + 1].duration += timeDelta;
+            } else {
+              scheduleList[index + 1].duration +=
+                  scheduleList[index].duration - minimumScheduleBoxDuration;
+              scheduleList[index].duration = minimumScheduleBoxDuration;
+            }
+          } else {
+            if (scheduleList[index].duration - timeDelta >=
+                minimumScheduleBoxDuration) {
+              scheduleList[index].duration -= timeDelta;
+            } else {
+              scheduleList[index].duration = minimumScheduleBoxDuration;
+            }
+          }
+        } else {}
       }
     }
+
+    /// 1-1번 타입
+    // if (delta > 0) {
+    //   // 아래로 당기는 경우
+    //   Duration scheduleDuration = getScheduleDuration();
+    //   if (isUp == true) {
+    //     // 윗쪽 핸들 아래로 당김
+    //     if (index == 0) {
+    //       indexOfcurrentlyDecidingStartsAtSchedule = 0;
+    //       if (scheduleList[0].duration - timeDelta >
+    //           minimumScheduleBoxDuration) {
+    //         scheduleList[0].duration -= timeDelta;
+    //         setScheduleListStartsAt(scheduleList[0].startsAt!.add(timeDelta));
+    //       } else {
+    //         scheduleList[0].duration = minimumScheduleBoxDuration;
+    //         setScheduleListStartsAt(
+    //             scheduleList[0].endsAt!.subtract(minimumScheduleBoxDuration));
+    //       }
+    //     } else if (!scheduleList[index - 1].isFixed) {
+    //       if (scheduleDuration + timeDelta < const Duration(days: 1)) {
+    //         scheduleList[index - 1].duration += timeDelta;
+    //       } else {
+    //         scheduleList[index - 1].duration +=
+    //             (const Duration(days: 1) - scheduleDuration);
+    //       }
+    //     } else {
+    //       // 아무것도 안함
+    //     }
+    //   } else {
+    //     // 아랫쪽 핸들 아래로 당김
+    //     if (scheduleDuration + timeDelta < const Duration(days: 1)) {
+    //       scheduleList[index].duration += timeDelta;
+    //     } else {
+    //       scheduleList[index].duration +=
+    //           (const Duration(days: 1) - scheduleDuration);
+    //     }
+    //   }
+    // } else {
+    //   // delta가 음수로, duration이 감소하는 케이스이므로
+    //   // 감소 전에 minimumScheduleBoxDuration과 비교해 최소높이가 되는지 여부를 확인하는 과정이 추가됨
+    //   // 위로 당기는 경우
+    //   if (isUp == true) {
+    //     // 위쪽 핸들을 위로 당김
+    //     if (index == 0) {
+    //       indexOfcurrentlyDecidingStartsAtSchedule = 0;
+    //       if (scheduleList[0]
+    //           .startsAt!
+    //           .subtract(timeDelta)
+    //           .isAfter(scheduleDate)) {
+    //         scheduleList[0].duration += timeDelta;
+    //         setScheduleListStartsAt(
+    //             scheduleList[0].startsAt!.subtract(timeDelta));
+    //       } else {
+    //         scheduleList[0].duration =
+    //             scheduleList[0].endsAt!.difference(scheduleDate);
+    //         setScheduleListStartsAt(scheduleDate);
+    //       }
+    //     } else if (!scheduleList[index - 1].isFixed) {
+    //       if (scheduleList[index - 1].duration - timeDelta >
+    //           minimumScheduleBoxDuration) {
+    //         scheduleList[index - 1].duration -= timeDelta;
+    //       } else {
+    //         scheduleList[index - 1].duration = minimumScheduleBoxDuration;
+    //       }
+    //     } else {
+    //       // 아무것도 안함
+    //     }
+    //   } else {
+    //     // 아래쪽 핸들을 위로 당김
+    //     if (scheduleList[index].duration - timeDelta >
+    //         minimumScheduleBoxDuration) {
+    //       scheduleList[index].duration -= timeDelta;
+    //     } else {
+    //       scheduleList[index].duration = minimumScheduleBoxDuration;
+    //     }
+    //   }
+    // }
 
     /// 2번 타입
 
@@ -507,4 +696,16 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 타임라인 스크롤 컨트롤
   late ScrollController timeLineScrollController;
+
+  // late AnimationController animationController;
+  // late Animation animation;
+
+  // animateTimeLine() {
+  //   if (tabController.index == 0) {
+  //     animationController.forward();
+  //   } else {
+  //     animationController.reverse();
+  //   }
+  //   notifyListeners();
+  // }
 }

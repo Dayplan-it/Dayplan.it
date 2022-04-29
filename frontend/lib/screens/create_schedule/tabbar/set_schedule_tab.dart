@@ -23,17 +23,7 @@ class _SetScheduleTabState extends State<SetScheduleTab>
     super.build(context);
     return Stack(
       children: [
-        Column(
-          children: const [
-            NotificationBox(
-              title: "일정을 추가하고, 조정하고, 시간을 정해보세요.",
-            ),
-            NotificationBox(
-              title: "일정 또는 회색 영역을 눌러 전체 스케줄의 시간을 간편하게 조절하세요.",
-            ),
-            Expanded(child: RecommendedSchedulesGrid()),
-          ],
-        ),
+        const RecommendedSchedulesGrid(),
         if (context.watch<CreateScheduleStore>().isCustomBlockBeingMade)
           const Positioned.fill(child: CreateCustomBlock()),
         if (context.watch<CreateScheduleStore>().isDecidingScheduleStartsAt)
@@ -44,6 +34,17 @@ class _SetScheduleTabState extends State<SetScheduleTab>
             padding: EdgeInsets.only(top: 10),
             child: DeleteScheduleArea(),
           )),
+        // Positioned.fill(
+        //     child: Column(
+        //         mainAxisAlignment: MainAxisAlignment.end,
+        //         children: const [
+        //       NotificationBox(
+        //         title: "일정을 추가하고, 조정하고, 시간을 정해보세요.",
+        //       ),
+        //       NotificationBox(
+        //         title: "일정 또는 회색 영역을 눌러 전체 스케줄의 시간을 간편하게 조절하세요.",
+        //       ),
+        //     ])),
       ],
     );
   }
@@ -72,8 +73,8 @@ class RecommendedSchedulesGrid extends StatelessWidget {
     }
 
     // 박스 사이즈는 Expended로, 직접 결정해줄 필요 없음
-    return Container(
-      padding: const EdgeInsets.all(10),
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
       child: Column(children: [
         Expanded(
           child: GridView.builder(
@@ -106,7 +107,7 @@ class RecommendedSchedulesGrid extends StatelessWidget {
                     style: mainFont(
                       color: place.color,
                       fontWeight: FontWeight.w700,
-                      fontSize: 11.5,
+                      fontSize: 12,
                     ),
                   ),
                 );
@@ -320,10 +321,6 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
   }
 }
 
-/// TimePickerSpinner를 이용해서 시간을 선택하는 부분인데,
-/// 블록을 새로 선택할 때마다 타임피커의 time이 바뀌게 하고싶어서 여러가지 시도해봤지만
-/// 실패하여 우선은 작동은 되는 상태로 둠
-/// 추후 개선이 필요
 class SetScheduleStartsAt extends StatefulWidget {
   const SetScheduleStartsAt({Key? key}) : super(key: key);
 

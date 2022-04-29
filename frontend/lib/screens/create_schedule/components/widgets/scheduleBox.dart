@@ -1,3 +1,4 @@
+import 'package:dayplan_it/main.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +19,36 @@ class ScheduleBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isEmpty = (schedule.placeType == "empty");
+    Widget _fixedToggle(String title) {
+      return Positioned(
+        top: itemHeight / 10,
+        right: itemHeight / 10,
+        child: GestureDetector(
+          onTap: () =>
+              context.read<CreateScheduleStore>().tabController.index == 0
+                  ? context
+                      .read<CreateScheduleStore>()
+                      .toggleScheduleFixedOrNot(index)
+                  : null,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
+            alignment: Alignment.center,
+            height: durationToHeight(minimumScheduleBoxDuration) / 2,
+            decoration: BoxDecoration(
+                color: const Color.fromARGB(83, 255, 255, 255),
+                borderRadius: BorderRadius.circular(30)),
+            child: Text(
+              title,
+              style: mainFont(
+                  color: const Color.fromARGB(255, 255, 255, 255),
+                  fontSize: durationToHeight(minimumScheduleBoxDuration) / 3.5,
+                  fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
         decoration: BoxDecoration(
             color: schedule.color,
@@ -43,91 +74,94 @@ class ScheduleBox extends StatelessWidget {
                             fontSize: itemHeight / 5,
                             letterSpacing: 1),
                       ),
-                    schedule.toHeight() > 60
-                        ? Column(
-                            children: [
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              Text(
-                                "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
-                                style: mainFont(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                    fontSize: itemHeight / 7,
-                                    letterSpacing: 1),
-                              ),
-                              Text(
-                                ((schedule.duration.inMinutes >= 60)
-                                        ? schedule.duration.inHours.toString() +
-                                            "시간 "
-                                        : "") +
-                                    ((schedule.duration.inMinutes % 60) != 0
-                                        ? (schedule.duration.inMinutes % 60)
-                                                .toString() +
-                                            "분"
-                                        : ""),
-                                style: mainFont(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                    fontSize: itemHeight / 7,
-                                    letterSpacing: 1),
-                              ),
-                            ],
-                          )
-                        : const SizedBox()
+                    if (schedule.toHeight() > 60)
+                      Column(
+                        children: [
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
+                            style: mainFont(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontSize: itemHeight / 7,
+                                letterSpacing: 1),
+                          ),
+                          Text(
+                            ((schedule.duration.inMinutes >= 60)
+                                    ? schedule.duration.inHours.toString() +
+                                        "시간 "
+                                    : "") +
+                                ((schedule.duration.inMinutes % 60) != 0
+                                    ? (schedule.duration.inMinutes % 60)
+                                            .toString() +
+                                        "분"
+                                    : ""),
+                            style: mainFont(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontSize: itemHeight / 7,
+                                letterSpacing: 1),
+                          ),
+                        ],
+                      )
                   ],
                 ),
               ),
             ),
           ),
-          Positioned.fill(
-            child: Column(
-              children: [
-                ScheduleBoxUpDownHandle(
-                  isUp: true,
-                  index: index,
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      context.read<CreateScheduleStore>().onBeforeStartTapEnd();
-                      context
-                          .read<CreateScheduleStore>()
-                          .setIndexOfcurrentlyDecidingStartsAtSchedule(index);
-                      context
-                          .read<CreateScheduleStore>()
-                          .onDecidingScheduleStartsAtStart();
-                    },
-                    child: LongPressDraggable(
-                      feedback: OnScheduleBoxLongPress(
-                        schedule: schedule,
-                        isFeedback: true,
-                      ),
-                      delay: const Duration(milliseconds: 100),
-                      data: index,
-                      onDragEnd: (DraggableDetails details) => context
-                          .read<CreateScheduleStore>()
-                          .onScheduleBoxDragEnd(),
-                      onDragStarted: () => context
-                          .read<CreateScheduleStore>()
-                          .onScheduleBoxDragStart(index),
-                      onDraggableCanceled: (velocity, offset) => context
-                          .read<CreateScheduleStore>()
-                          .onScheduleBoxDragEnd(),
-                      child: Container(
-                        color: const Color.fromRGBO(0, 0, 0, 0),
+          if (!context.read<CreateScheduleStore>().scheduleList[index].isFixed)
+            Positioned.fill(
+              child: Column(
+                children: [
+                  ScheduleBoxUpDownHandle(
+                    isUp: true,
+                    index: index,
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        context
+                            .read<CreateScheduleStore>()
+                            .onBeforeStartTapEnd();
+                        context
+                            .read<CreateScheduleStore>()
+                            .setIndexOfcurrentlyDecidingStartsAtSchedule(index);
+                        context
+                            .read<CreateScheduleStore>()
+                            .onDecidingScheduleStartsAtStart();
+                      },
+                      child: LongPressDraggable(
+                        feedback: OnScheduleBoxLongPress(
+                          schedule: schedule,
+                          isFeedback: true,
+                        ),
+                        delay: const Duration(milliseconds: 100),
+                        data: index,
+                        onDragEnd: (DraggableDetails details) => context
+                            .read<CreateScheduleStore>()
+                            .onScheduleBoxDragEnd(),
+                        onDragStarted: () => context
+                            .read<CreateScheduleStore>()
+                            .onScheduleBoxDragStart(index),
+                        onDraggableCanceled: (velocity, offset) => context
+                            .read<CreateScheduleStore>()
+                            .onScheduleBoxDragEnd(),
+                        child: Container(
+                          color: const Color.fromRGBO(0, 0, 0, 0),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                ScheduleBoxUpDownHandle(
-                  isUp: false,
-                  index: index,
-                ),
-              ],
+                  ScheduleBoxUpDownHandle(
+                    isUp: false,
+                    index: index,
+                  ),
+                ],
+              ),
             ),
-          ),
+          schedule.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
         ]));
   }
 }
@@ -171,39 +205,37 @@ class OnScheduleBoxLongPress extends StatelessWidget {
                       fontSize: itemHeight / 5,
                       letterSpacing: 1),
                 ),
-                schedule.toHeight() > 60
-                    ? Column(
-                        children: [
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
-                            style: mainFont(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                                fontSize: itemHeight / 7,
-                                letterSpacing: 1),
-                          ),
-                          Text(
-                            ((schedule.duration.inMinutes >= 60)
-                                    ? schedule.duration.inHours.toString() +
-                                        "시간 "
-                                    : "") +
-                                ((schedule.duration.inMinutes % 60) != 0
-                                    ? (schedule.duration.inMinutes % 60)
-                                            .toString() +
-                                        "분"
-                                    : ""),
-                            style: mainFont(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                                fontSize: itemHeight / 7,
-                                letterSpacing: 1),
-                          ),
-                        ],
-                      )
-                    : const SizedBox()
+                if (schedule.toHeight() > 60)
+                  Column(
+                    children: [
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
+                        style: mainFont(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            fontSize: itemHeight / 7,
+                            letterSpacing: 1),
+                      ),
+                      Text(
+                        ((schedule.duration.inMinutes >= 60)
+                                ? schedule.duration.inHours.toString() + "시간 "
+                                : "") +
+                            ((schedule.duration.inMinutes % 60) != 0
+                                ? (schedule.duration.inMinutes % 60)
+                                        .toString() +
+                                    "분"
+                                : ""),
+                        style: mainFont(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            fontSize: itemHeight / 7,
+                            letterSpacing: 1),
+                      ),
+                    ],
+                  )
               ],
             ),
           ),
@@ -270,6 +302,33 @@ class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
   Widget build(BuildContext context) {
     return DragTarget(
       builder: (context, candidateData, rejectedData) {
+        /// isFixed의 순서 조정시 로직은
+        /// 구현되지 않음
+        /// 추후 추가로 구현이 필요함
+
+        // var scheduleList = context.read<CreateScheduleStore>().scheduleList;
+        // int index = (widget.targetId / 2).floor();
+        // if (index == 0 || scheduleList.length == index) {
+        //   // return const SizedBox(
+        //   //   height: reorderDragTargetHeight,
+        //   // );
+        // } else if (index != 0 && scheduleList.length != 1) {
+        //   if (scheduleList[index].isFixed || scheduleList[index - 1].isFixed) {
+        //     return const SizedBox(
+        //       height: reorderDragTargetHeight,
+        //     );
+        //   } else if (index != scheduleList.length - 1) {
+        //     if (scheduleList[index + 1].isFixed) {
+        //       return const SizedBox(
+        //         height: reorderDragTargetHeight,
+        //       );
+        //     }
+        //   }
+        // } else {
+        //   return const SizedBox(
+        //     height: reorderDragTargetHeight,
+        //   );
+        // }
         return isHovered
             ? Container(
                 height: reorderDragTargetHeight,

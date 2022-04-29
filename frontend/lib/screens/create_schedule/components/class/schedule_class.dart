@@ -15,6 +15,7 @@ class Schedule {
       required this.placeType,
       required this.color,
       required this.duration,
+      this.isFixed = false,
       this.startsAt,
       this.endsAt,
       this.place});
@@ -23,6 +24,7 @@ class Schedule {
   final String placeType;
   final Color color;
   Duration duration;
+  bool isFixed;
   DateTime? startsAt;
   DateTime? endsAt;
   LatLng? place;
@@ -48,31 +50,5 @@ class Schedule {
   void changeAndSetEndsAt(DateTime endsAt) {
     this.endsAt = endsAt;
     startsAt = endsAt.subtract(duration);
-  }
-}
-
-/// 스케줄 리스트 관리 클래스
-class ScheduleList {
-  ScheduleList({required this.scheduleDate});
-  final DateTime scheduleDate;
-
-  late DateTime scheduleListStartsAt;
-  List<Schedule> list = [];
-
-  void addSchedule(Schedule schedule) {
-    list.add(schedule);
-  }
-
-  void setScheduleListStartsAt(DateTime startsAt) {
-    if (list.isNotEmpty) {
-      for (Schedule schedule in list) {
-        schedule.changeAndSetStartsAt(startsAt);
-        startsAt = schedule.endsAt!;
-      }
-    }
-  }
-
-  DateTime getScheduleListStartsAt() {
-    return list[0].startsAt!;
   }
 }
