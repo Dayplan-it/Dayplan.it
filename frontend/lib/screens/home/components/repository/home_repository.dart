@@ -1,10 +1,13 @@
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/notification/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeRepository {
   Future<Map<String, List<dynamic>>> getScheduleDetail(id, date) async {
@@ -124,6 +127,7 @@ class HomeRepository {
 
       List<DateTime> datetime = [];
       for (int i = 0; i < list.length; i++) {
+        //datetime 저장하고 알람설정
         datetime.add(DateTime.fromMillisecondsSinceEpoch(list[i] * 1000));
       }
 

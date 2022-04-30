@@ -1,3 +1,4 @@
+import 'package:dayplan_it/notification/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/home/components/calender.dart';
 import 'package:dayplan_it/screens/home/components/schedule.dart';
@@ -17,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    initNotification();
     _homeRepository.getScheduleList(context);
   }
 

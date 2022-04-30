@@ -41,6 +41,8 @@ dependencies:
   flutter_polyline_points: ^1.0.0
   flutter_calendar_week: ^2.1.0
   kumi_popup_window: ^2.0.0-nullsafety
+  flutter_local_notifications: ^9.4.1
+  flutter_native_timezone: ^2.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

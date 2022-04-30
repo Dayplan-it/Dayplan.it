@@ -1,10 +1,9 @@
-import 'package:dayplan_it/screens/home/components/notificationpage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 
-class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const DayplanitAppBar({Key? key}) : super(key: key);
+class DayplanitAppBarWithBack extends StatelessWidget
+    implements PreferredSizeWidget {
+  const DayplanitAppBarWithBack({Key? key}) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(50);
@@ -32,17 +31,9 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NotificationPage()),
-            );
+            Navigator.pop(context);
           },
-          icon: const Icon(CupertinoIcons.bell_fill),
-          color: primaryColor,
-        ),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.settings),
+          icon: const Icon(Icons.arrow_back_ios),
           color: primaryColor,
         ),
       ],
