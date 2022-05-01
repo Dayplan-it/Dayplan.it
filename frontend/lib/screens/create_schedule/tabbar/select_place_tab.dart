@@ -158,7 +158,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
       final response = await Dio().get(
           '$commonUrl/api/placerecommend?lat=${position.latitude}&lng=${position.longitude}&place_type=$placeType');
       if (response.statusCode == 200) {
-        print(response.data);
         return response.data;
       } else {
         throw Exception('서버에 문제가 발생했습니다');
@@ -542,28 +541,27 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                         boxShadow: defaultBoxShadow,
                         color: Colors.white),
                     child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child:
-                            // Column(children: [
-                            //   Expanded(
-                            //       child: FutureBuilder<Map>(
-                            //     future: _fetchPlaceDetail(context
-                            //         .read<CreateScheduleStore>()
-                            //         .selectedPlaceId),
-                            //     builder: (context, snapshot) {
-                            //       if (snapshot.hasData) {
-                            //         return PlaceDetail(data: snapshot.data!);
-                            //       }
-                            //       return const Center(
-                            //         child: CircularProgressIndicator(
-                            //           color: primaryColor,
-                            //         ),
-                            //       );
-                            //     },
-                            //   )),
-                            SquareButton(title: "이 장소로 결정", onPressed: () {})
-                        //]),
-                        ),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(children: [
+                        Expanded(
+                            child: FutureBuilder<Map>(
+                          future: _fetchPlaceDetail(context
+                              .read<CreateScheduleStore>()
+                              .selectedPlaceId),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              return PlaceDetail(data: snapshot.data!);
+                            }
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: primaryColor,
+                              ),
+                            );
+                          },
+                        )),
+                        SquareButton(title: "이 장소로 결정", onPressed: () {})
+                      ]),
+                    ),
                   ),
                 ),
               ],
@@ -626,8 +624,6 @@ class _ConvexHullControlState extends State<ConvexHullControl> {
       width: double.infinity,
       child: CupertinoSegmentedControl(
           padding: const EdgeInsets.only(bottom: 5, left: 5, right: 5),
-          // borderColor: primaryColor,
-          // selectedColor: primaryColor,
           children: _convexTypes,
           groupValue: _convexType,
           onValueChanged: (int convexHullIndex) async {
