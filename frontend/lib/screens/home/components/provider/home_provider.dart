@@ -20,7 +20,7 @@ class HomeProvider extends ChangeNotifier {
   //구글맵 geometry관련 변수
   Map<MarkerId, Marker> _markers = {};
   Map<PolylineId, Polyline> _polylines = {};
-
+  bool _showNoSchedule = true;
   //Getter
   int get id => _id;
   DateTime get nowDate => _nowDate;
@@ -30,6 +30,7 @@ class HomeProvider extends ChangeNotifier {
   CameraPosition get initialLocation => _initialLocation;
   Map<MarkerId, Marker> get markers => _markers;
   Map<PolylineId, Polyline> get polylines => _polylines;
+  bool get showNoSchedule => _showNoSchedule;
 
   ///구글맵geometry 저장 및 카메라위치 설정
   setGeom(data) {
@@ -79,6 +80,11 @@ class HomeProvider extends ChangeNotifier {
           decoration: const Icon(Icons.fiber_manual_record,
               color: Colors.red, size: 10)));
     }
+    notifyListeners();
+  }
+
+  setNoSchedult(boo) {
+    _showNoSchedule = boo;
     notifyListeners();
   }
 }

@@ -65,6 +65,10 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
 
             responseDetail.then((value) {
               if (value.length > 2) {
+                //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
+                Provider.of<HomeProvider>(context, listen: false)
+                    .setNoSchedult(false);
+
                 Provider.of<HomeProvider>(context, listen: false)
                     .setScheduleDetail(value);
                 Map<dynamic, dynamic> mapdata =
@@ -72,8 +76,15 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
 
                 Provider.of<HomeProvider>(context, listen: false)
                     .setGeom(mapdata);
-              } else {}
-            }).catchError((onError) {});
+              } else {
+                //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
+                Provider.of<HomeProvider>(context, listen: false)
+                    .setNoSchedult(true);
+              }
+            }).catchError((onError) {
+              Provider.of<HomeProvider>(context, listen: false)
+                  .setNoSchedult(true);
+            });
           },
           monthViewBuilder: (DateTime time) => Align(
             alignment: FractionalOffset.center,
