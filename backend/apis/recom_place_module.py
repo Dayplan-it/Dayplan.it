@@ -66,8 +66,8 @@ def get_nearby_place(startNode, lng, lat, type, distance=1800):
     nearbystr = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'\
         + f'?location={str(lat)},{str(lng)}'\
         + '&type='+type\
-        + '&radius='+str(distance)\
-        + '&key='+settings.GOOGLE_API_KEY
+        # + '&rankby=distance'\
+    + '&key='+settings.GOOGLE_API_KEY
     # main branch settings에 GOOGLE_API_KEY가 있음
 
     response = requests.get(nearbystr)
@@ -158,7 +158,10 @@ def place_detail(place_id):
     lng = results['geometry']['location']['lng']
     lat = results['geometry']['location']['lat']
     name = results['name']
-    rating = results['rating']
+    if len(results['rating']) == 0:
+        rating = '-'
+    else:
+        rating = results['rating']
     user_ratings_total = results['user_ratings_total']
     photo = []
     for i in results['photos'][:2]:
