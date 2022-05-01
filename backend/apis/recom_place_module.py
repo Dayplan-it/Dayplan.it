@@ -165,7 +165,7 @@ def place_detail(place_id, shouldGetImg):
         rating = []
         user_ratings_total = 0
     photo = []
-    if (shouldGetImg):
+    if (shouldGetImg and 'photos' in results.keys()):
         for i in results['photos'][:2]:
             photo_str = 'https://maps.googleapis.com/maps/api/place/photo'\
                 + f'?maxwidth={MAX_PHOTO_WIDTH}'\

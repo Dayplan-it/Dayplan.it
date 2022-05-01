@@ -87,7 +87,7 @@ Marker markerWithCustomInfoWindow(
     ModifiedCustomInfoWindowController customInfoWindowController,
     String title,
     String? rating,
-    double? minute,
+    int? minute,
     VoidCallback onTap) {
   customInfoWindowController.addInfoWindow!(
     InkWell(
@@ -126,9 +126,7 @@ Marker markerWithCustomInfoWindow(
                                     BorderRadius.circular(double.infinity),
                                 color: Colors.white),
                             child: Text(
-                              minute.floor().toString() +
-                                  "분" +
-                                  (minute == 25.0 ? " 이상" : ""),
+                              minute == 25 ? "20분 이상" : minute.toString() + "분",
                               style: mainFont(
                                   color: subTextColor,
                                   fontWeight: FontWeight.w700),
@@ -150,13 +148,13 @@ Marker markerWithCustomInfoWindow(
                                 const Icon(
                                   Icons.star,
                                   color: pointColor,
-                                  size: 10,
+                                  size: 12,
                                 ),
                                 const SizedBox(
                                   width: 2,
                                 ),
                                 Text(
-                                  rating == "-" ? rating : rating,
+                                  rating.toString(),
                                   style: mainFont(
                                       color: pointColor,
                                       fontWeight: FontWeight.w700),

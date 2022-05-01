@@ -4,7 +4,6 @@ import 'package:dayplan_it/screens/create_schedule/components/core/create_schedu
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 ///Create Schedule Screen을 위한 `Store`
 ///클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
@@ -680,6 +679,10 @@ class CreateScheduleStore with ChangeNotifier {
     onEndMakingCustomBlock();
     onScheduleBoxDragEnd();
     setTimeLineWidthFlexByTabIndex(0);
+    setIndexOfPlaceDecidingSchedule(0);
+    onPlaceRecommendedEnd();
+    onDecidingScheduleStartsAtEnd();
+    onLookingPlaceDetailEnd();
     isBeforeStartTap = false;
   }
 
@@ -752,8 +755,22 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 현재 선택된 장소의 플레이스 id
   String selectedPlaceId = "";
-  void setSelectedPlaceId(String placeId) {
+  late String selectedPlaceName;
+  late LatLng selectedPlace;
+  void setSelectedPlace(String placeId, String placeName, LatLng place) {
     selectedPlaceId = placeId;
+    selectedPlaceName = placeName;
+    selectedPlace = place;
+    notifyListeners();
+  }
+
+  /// 장소 결정시
+  void setPlaceForSchedule() {
+    scheduleList[indexOfPlaceDecidingSchedule].place = selectedPlace;
+    scheduleList[indexOfPlaceDecidingSchedule].placeName = selectedPlaceName;
+    scheduleList[indexOfPlaceDecidingSchedule].placeId = selectedPlaceId;
+    onLookingPlaceDetailEnd();
+    onPlaceRecommendedEnd();
     notifyListeners();
   }
 
@@ -771,7 +788,7 @@ class CreateScheduleStore with ChangeNotifier {
   }
 
   void onLookingPlaceDetailStart() {
-    isLookingPlaceDetail = false;
+    isLookingPlaceDetail = true;
     notifyListeners();
   }
 
@@ -832,7 +849,7 @@ class CreateScheduleStore with ChangeNotifier {
     }
     customInfoWindowController.googleMapController!.animateCamera(
         CameraUpdate.newLatLngZoom(placeRecommendPoint,
-            [18.0, 17.0, 14.0, 14.0, 13.0][convexHullIndex]));
+            [18.0, 16.5, 15.0, 14.5, 14.0][convexHullIndex]));
     customInfoWindowController.updateInfoWindow!();
     return markersReturn;
   }

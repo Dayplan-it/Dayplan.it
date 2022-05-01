@@ -14,6 +14,7 @@ import 'package:dayplan_it/screens/create_schedule/components/core/create_schedu
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class SelectPlaceTab extends StatefulWidget {
   const SelectPlaceTab({Key? key}) : super(key: key);
@@ -137,10 +138,11 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     }
   }
 
-  Future<Map> _fetchPlaceDetail(String placeId) async {
+  Future<Map> _fetchPlaceDetail(String placeId,
+      {bool shouldGetImg = false}) async {
     try {
-      final response =
-          await Dio().get('$commonUrl/api/placedetail?place_id=$placeId');
+      final response = await Dio().get(
+          '$commonUrl/api/placedetail?place_id=$placeId&should_get_img=$shouldGetImg');
       if (response.statusCode == 200) {
         return response.data;
       } else {
@@ -186,8 +188,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     });
   }
 
-  void _addMarker(
-      LatLng placeLatLng, String title, String? rating, double? minute,
+  void _addMarker(LatLng placeLatLng, String title, String? rating, int? minute,
       {required String markerIdStr}) {
     final MarkerId markerId = MarkerId(markerIdStr);
 
@@ -205,7 +206,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   }
 
   Marker _createMarker(LatLng placeLatLng, String title, String? rating,
-      double? minute, String placeId) {
+      int? minute, String placeId) {
     final MarkerId markerId = MarkerId(placeId);
     _onTap() async {
       context.read<CreateScheduleStore>().toggleIsLookingPlaceDetail();
@@ -215,7 +216,9 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
 
       // _customInfoWindowController.hideInfoWindow!(markerId);
       // _customInfoWindowController.updateInfoWindow!();
-      context.read<CreateScheduleStore>().setSelectedPlaceId(placeId);
+      context
+          .read<CreateScheduleStore>()
+          .setSelectedPlace(placeId, title, placeLatLng);
     }
 
     return markerWithCustomInfoWindow(markerId, placeLatLng,
@@ -234,18 +237,39 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     _customInfoWindowController.googleMapController = _mapController;
   }
 
-  Future<void> getPlaceRecommendForUserLoc() async {
-    setState(() {
-      convex = [[], [], [], [], []];
-    });
-    _clearMarker();
-
+  Future<void> _getPlaceRecommendForUserLoc() async {
     // 버튼 누를때마다 유저의 위치를 가져오도록 하고싶지만
     // 그렇게 하면 버튼 눌림이 씹히는 현상이 있어 삭제함
     // await _getUserLoc();
 
     context.read<CreateScheduleStore>().setPlaceRecommendPoint(
         LatLng(_userPosition.latitude, _userPosition.longitude));
+    await _createPlaceRecommendMarker();
+  }
+
+  Future<void> _getPlaceRecommendUsingOtherPlace() async {
+    int indexOfScheduleHasPlace =
+        context.read<CreateScheduleStore>().checkAndGetIndexForPlaceRecommend();
+
+    context.read<CreateScheduleStore>().setPlaceRecommendPoint(context
+        .read<CreateScheduleStore>()
+        .scheduleList[indexOfScheduleHasPlace]
+        .place!);
+    await _createPlaceRecommendMarker();
+  }
+
+  Future<void> _getPlaceRecommendUsingSearchedPlace() async {
+    setState(() {
+      _isSearchFound = false;
+    });
+    await _createPlaceRecommendMarker();
+  }
+
+  Future<void> _createPlaceRecommendMarker() async {
+    setState(() {
+      convex = [[], [], [], [], []];
+    });
+    _clearMarker();
 
     List recommendedPlaces = await _fetchPlaceRecommend(context
         .read<CreateScheduleStore>()
@@ -286,8 +310,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
           place["minute"],
           place["place_id"]);
       setState(() {
-        convex[[5.0, 10.0, 15.0, 20.0, 25.0].indexOf(place["minute"])]
-            .add(markerId);
+        convex[[5, 10, 15, 20, 25].indexOf(place["minute"])].add(markerId);
       });
     }
 
@@ -305,6 +328,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   }
 
   bool _isSearchPressed = false;
+  bool _isSearchFound = false;
   late GoogleMapController _mapController;
   final ModifiedCustomInfoWindowController _customInfoWindowController =
       ModifiedCustomInfoWindowController();
@@ -345,13 +369,14 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                   _textFieldController.clear();
                   FocusScope.of(context).unfocus();
                 });
-                await Future.delayed(Duration(milliseconds: 1100));
+                await Future.delayed(const Duration(milliseconds: 1100));
                 _customInfoWindowController.updateInfoWindow!();
               },
               onSubmitted: (value) {
                 setState(() {
                   _input = value;
                   _isSearchPressed = true;
+                  _isSearchFound = false;
                   _autocomplete = _fetchAutoComplete(_input);
                   _clearMarker();
                 });
@@ -360,7 +385,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 // InfoWindow의 위치를 변경해야 하는데,
                 // 키보드 높이의 변경된 값을 얻으려면 약간의 딜레이가 필요함
                 // 추후 퍼포먼스 보고 값을 바꿀 수 있음
-                await Future.delayed(Duration(milliseconds: 1000));
+                await Future.delayed(const Duration(milliseconds: 1000));
                 _customInfoWindowController.updateInfoWindow!();
               },
             ),
@@ -377,7 +402,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
               convex: convex,
               setMarker: _setMarker)),
       Expanded(
-        flex: 1,
         child: Stack(
           children: [
             ClipRRect(
@@ -480,16 +504,24 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                       placeDetail['lat'], placeDetail['lng']);
                                   setState(() {
                                     _isSearchPressed = false;
+                                    _isSearchFound = true;
                                   });
                                   _addMarker(
                                       placeLatLng,
                                       result[index]['structured_formatting']
                                           ['main_text'],
-                                      null,
+                                      placeDetail['rating'].toString(),
                                       null,
                                       markerIdStr: result[index]['place_id']);
+                                  _customInfoWindowController
+                                      .showAllInfoWindow!();
+                                  _textFieldController.clear();
                                   _mapController.moveCamera(
-                                      CameraUpdate.newLatLng(placeLatLng));
+                                      CameraUpdate.newLatLngZoom(
+                                          placeLatLng, 17));
+                                  context
+                                      .read<CreateScheduleStore>()
+                                      .setPlaceRecommendPoint(placeLatLng);
                                 },
                                 style: ListTileStyle.drawer,
                               );
@@ -504,70 +536,302 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                       }),
                 ),
               ),
+            if (context.watch<CreateScheduleStore>().isLookingPlaceDetail)
+              Positioned.fill(
+                child: PlaceDetail(
+                    fetchPlaceDetail: _fetchPlaceDetail,
+                    customInfoWindowController: _customInfoWindowController,
+                    clearMarker: _clearMarker),
+              ),
           ],
         ),
       ),
       Visibility(
-          visible: !context.watch<CreateScheduleStore>().isLookingPlaceDetail,
+          visible: !context.watch<CreateScheduleStore>().isLookingPlaceDetail &&
+              !_isSearchPressed &&
+              !_isSearchFound,
           child: Column(
             children: [
               SquareButtonWithLoading(
                 title: "내 위치를 중심으로 추천받기",
-                futureFunction: getPlaceRecommendForUserLoc,
+                futureFunction: _getPlaceRecommendForUserLoc,
                 activate: true,
               ),
               SquareButtonWithLoading(
                 title: "다른 장소를 중심으로 추천받기",
-                futureFunction: () async {},
+                futureFunction: _getPlaceRecommendUsingOtherPlace,
                 activate: context
-                    .watch<CreateScheduleStore>()
-                    .checkAndGetIndexForPlaceRecommend(),
+                        .watch<CreateScheduleStore>()
+                        .checkAndGetIndexForPlaceRecommend()
+                        .runtimeType ==
+                    int,
               ),
             ],
           )),
       Visibility(
-          visible: context.watch<CreateScheduleStore>().isLookingPlaceDetail,
-          child: Expanded(
-            flex: 4,
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 5,
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: defaultBoxRadius,
-                        boxShadow: defaultBoxShadow,
-                        color: Colors.white),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(children: [
-                        Expanded(
-                            child: FutureBuilder<Map>(
-                          future: _fetchPlaceDetail(context
-                              .read<CreateScheduleStore>()
-                              .selectedPlaceId),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return PlaceDetail(data: snapshot.data!);
-                            }
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: primaryColor,
-                              ),
-                            );
-                          },
-                        )),
-                        SquareButton(title: "이 장소로 결정", onPressed: () {})
-                      ]),
-                    ),
+          visible: _isSearchFound,
+          child: Column(
+            children: [
+              SquareButtonWithLoading(
+                title: "이 위치를 중심으로 추천받기",
+                futureFunction: _getPlaceRecommendUsingSearchedPlace,
+                activate: true,
+              ),
+              SquareButton(
+                title: "취소",
+                isCancle: true,
+                activate: true,
+                onPressed: () {
+                  setState(() {
+                    _isSearchFound = false;
+                    _clearMarker();
+                    _mapController.animateCamera(CameraUpdate.newLatLngZoom(
+                        LatLng(_userPosition.latitude, _userPosition.longitude),
+                        15));
+                  });
+                },
+              ),
+            ],
+          )),
+    ]);
+  }
+}
+
+class PlaceDetail extends StatefulWidget {
+  const PlaceDetail(
+      {Key? key,
+      required this.fetchPlaceDetail,
+      required this.customInfoWindowController,
+      required this.clearMarker})
+      : super(key: key);
+
+  final Future<Map> Function(String, {bool shouldGetImg}) fetchPlaceDetail;
+  final ModifiedCustomInfoWindowController customInfoWindowController;
+  final Function clearMarker;
+
+  @override
+  State<PlaceDetail> createState() => _PlaceDetailState();
+}
+
+class _PlaceDetailState extends State<PlaceDetail> {
+  bool isLoaded = false;
+
+  Widget _detailPage(Map data) {
+    return Stack(
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 20, 10, 8),
+              child: Text(
+                data["name"],
+                style: mainFont(fontWeight: FontWeight.w800, fontSize: 22),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.star,
+                    color: pointColor,
+                    size: 20,
                   ),
+                  Text(
+                    data["rating"].toString(),
+                    style: mainFont(
+                        color: pointColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    "${data["user_ratings_total"].toString()}개의 리뷰",
+                    style: mainFont(
+                        color: subTextColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: data["reviews"].length,
+                itemBuilder: (context, index) =>
+                    _buildReviewBox(data["reviews"][index]),
+              ),
+            ),
+            if (data["photo"].isNotEmpty)
+              const SizedBox(
+                height: 50,
+              )
+          ],
+        ),
+        if (data["photo"].isNotEmpty)
+          DraggableScrollableSheet(
+            initialChildSize: 0.13,
+            minChildSize: 0.13,
+            maxChildSize: data["photo"].length == 1 ? 0.45 : 0.7,
+            expand: true,
+            builder: (context, scrollController) {
+              return Container(
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: defaultBoxShadow,
+                      borderRadius: defaultBoxRadius),
+                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                  child: ClipRRect(
+                    borderRadius: defaultBoxRadius,
+                    child: ListView.builder(
+                        physics: const ClampingScrollPhysics(),
+                        controller: scrollController,
+                        itemCount: data["photo"].length + 1,
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return const Icon(
+                              Icons.drag_handle,
+                              color: subTextColor,
+                              size: 17,
+                            );
+                          }
+
+                          return Padding(
+                            padding:
+                                EdgeInsets.only(top: (index - 1 == 0 ? 0 : 5)),
+                            child: ClipRRect(
+                              borderRadius: defaultBoxRadius,
+                              child: Image.network(
+                                data["photo"][index - 1],
+                                filterQuality: FilterQuality.high,
+                                loadingBuilder:
+                                    (context, imgWidget, loadingProgress) {
+                                  if (loadingProgress == null) {
+                                    return imgWidget;
+                                  }
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      color: primaryColor,
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        }),
+                  ));
+            },
+          )
+      ],
+    );
+  }
+
+  Widget _buildReviewBox(Map review) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                RatingBarIndicator(
+                    itemBuilder: (context, index) => const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                    itemCount: 5,
+                    itemSize: 15,
+                    direction: Axis.horizontal,
+                    rating: review["rating"].toDouble()),
+                const SizedBox(
+                  width: 5,
                 ),
+                UnconstrainedBox(
+                  child: Text(
+                    review["relative_time_description"],
+                    style: mainFont(color: subTextColor, fontSize: 11.5),
+                  ),
+                )
               ],
             ),
-          ))
-    ]);
+            Text(
+              review["text"],
+              style: mainFont(color: Colors.black, fontSize: 13),
+              textAlign: TextAlign.start,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+              borderRadius: defaultBoxRadius,
+              boxShadow: defaultBoxShadow,
+              color: Colors.white),
+          padding: const EdgeInsets.all(8.0),
+          child: Column(children: [
+            Expanded(
+                child: FutureBuilder<Map>(
+              future: widget.fetchPlaceDetail(
+                  context.read<CreateScheduleStore>().selectedPlaceId,
+                  shouldGetImg: true),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return _detailPage(snapshot.data!);
+                }
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                  ),
+                );
+              },
+            )),
+            SquareButton(
+              title: "이 장소로 결정",
+              onPressed: () {
+                context.read<CreateScheduleStore>().setPlaceForSchedule();
+                widget.clearMarker();
+                widget.customInfoWindowController.deleteAllInfoWindow!();
+              },
+              activate: true,
+            )
+          ]),
+        ),
+        Positioned(
+            top: 3,
+            right: 3,
+            child: IconButton(
+                onPressed: () => context
+                    .read<CreateScheduleStore>()
+                    .onLookingPlaceDetailEnd(),
+                icon: const Icon(
+                  Icons.close,
+                  color: subTextColor,
+                  size: 20,
+                )))
+      ],
+    );
   }
 }
 
@@ -609,7 +873,7 @@ class _ConvexHullControlState extends State<ConvexHullControl> {
     ),
     4: Column(children: [
       Text(
-        '25분',
+        '20분',
         style: mainFont(),
       ),
       Text(
@@ -636,28 +900,5 @@ class _ConvexHullControlState extends State<ConvexHullControl> {
                     widget.convex, convexHullIndex));
           }),
     );
-  }
-}
-
-class PlaceDetail extends StatefulWidget {
-  PlaceDetail({Key? key, required this.data}) : super(key: key);
-  final Map data;
-
-  @override
-  State<PlaceDetail> createState() => _PlaceDetailState();
-}
-
-class _PlaceDetailState extends State<PlaceDetail> {
-  _launchUrl(String url) async {
-    if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
