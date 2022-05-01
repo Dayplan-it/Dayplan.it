@@ -40,8 +40,7 @@ class PlaceRecommend(APIView):
         start_node, S_start, end_node, S_end = extract_closest_node(lng, lat)
         # nearby+dijkstra로 걸리는 시간 계산
         places_gdf = get_nearby_place(start_node, lng, lat, place_type)
-        places_gdf = places_gdf.fillna(0).to_wkt()
-        places_gdf = places_gdf.drop('geometry', axis=1)
+        places_gdf = places_gdf.fillna(5)
         places_ordered = [row.to_dict()
                           for index, row in places_gdf.iterrows()]
 

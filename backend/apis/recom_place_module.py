@@ -99,18 +99,21 @@ def get_nearby_place(startNode, lng, lat, type, distance=1800):
     for i in range(len(node_list)):
         for j in range(len(cost)):
             if node_list[i] == cost[j][0]:
-                new_list[i]['minute'] = cost[j][1]*0.015
-
+                if cost[j][1]*0.015 <= 5:
+                    new_list[i]['minute'] = 5
+                elif cost[j][1]*0.015 > 5 and cost[j][1]*0.015 <= 10:
+                    new_list[i]['minute'] = 10
+                elif cost[j][1]*0.015 > 10 and cost[j][1]*0.015 <= 15:
+                    new_list[i]['minute'] = 15
+                elif cost[j][1]*0.015 > 15 and cost[j][1]*0.015 <= 20:
+                    new_list[i]['minute'] = 20
+                elif cost[j][1]*0.015 > 20:
+                    new_list[i]['minute'] = 25
     # Geodataframe 변환
     df = pd.DataFrame(new_list, columns=[
                       'name', 'lng', 'lat', 'place_id', 'rating', 'user_ratings_total', 'minute'])
-    gdf = gpd.GeoDataFrame(
-        df[['name', 'lng', 'lat', 'place_id',
-            'rating', 'user_ratings_total', 'minute']],
-        geometry=gpd.points_from_xy(df.lng, df.lat))
-    gdf.set_crs(epsg=settings.SRID, inplace=True)
 
-    return gdf
+    return df
 
 
 def getMinuteList(pointList):
