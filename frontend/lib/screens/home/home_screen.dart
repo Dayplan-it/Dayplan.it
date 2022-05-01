@@ -5,6 +5,7 @@ import 'package:dayplan_it/screens/home/components/schedule.dart';
 import 'package:dayplan_it/screens/home/components/googlemap.dart';
 import 'package:dayplan_it/components/floating_btn.dart';
 import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
+import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final HomeRepository _homeRepository = HomeRepository();
+
   @override
   void initState() {
     super.initState();

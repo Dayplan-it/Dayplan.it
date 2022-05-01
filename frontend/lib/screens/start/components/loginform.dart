@@ -56,7 +56,7 @@ class _LoginFormState extends State<LoginForm> {
                                     _usernameController.text,
                                     _passwordController.text);
                             //일단 토큰을 서버에서 받아오기 전까지 로딩창 띄우기
-                            responseLogin.then((val) {
+                            responseLogin.then((val) async {
                               if (val[1] == 200) {
                                 setState(() {
                                   showProgress = false;

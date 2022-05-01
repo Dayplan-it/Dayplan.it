@@ -1,4 +1,3 @@
-import 'package:dayplan_it/notification/notification.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -6,13 +5,11 @@ import 'package:dayplan_it/screens/start/landingpage.dart';
 import 'package:dayplan_it/screens/start/signuppage.dart';
 import 'package:dayplan_it/screens/start/loginpage.dart';
 import 'package:dayplan_it/screens/mainpage.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   runApp(MultiProvider(
     providers: [
-      ChangeNotifierProvider(
-        create: (BuildContext context) => LoginProvider(),
-      ),
       ChangeNotifierProvider(
         create: (BuildContext context) => HomeProvider(),
       )

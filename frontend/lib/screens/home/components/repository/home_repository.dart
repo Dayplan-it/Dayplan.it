@@ -1,8 +1,6 @@
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/notification/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
@@ -24,8 +22,10 @@ class HomeRepository {
     final List<String> type = [];
     final timestamp1 = date2.millisecondsSinceEpoch;
     var dio = Dio();
-    var url =
-        '$commonUrl/schedules/find?user_id=$id&date=${timestamp1 ~/ 1000}';
+    var prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('apiToken');
+    dio.options.headers['Authorization'] = "Token " + token.toString();
+    var url = '$commonUrl:8000/schedules/find?date=${timestamp1 ~/ 1000}';
     Response response = await dio.get(url);
     var res = response.data;
 
@@ -120,8 +120,13 @@ class HomeRepository {
   getScheduleList(context) async {
     int id = Provider.of<HomeProvider>(context, listen: false).id;
     var dio = Dio();
-    var url = '$commonUrl/schedules/findlist?user_id=$id';
+    var url = '$commonUrl:8000/schedules/findlist';
+    //사용자토큰가져오기
+    var prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('apiToken');
+    dio.options.headers['Authorization'] = "Token " + token.toString();
     var response = await dio.get(url);
+
     if (response.statusCode == 200) {
       List<int> list = response.data["found_schedule_dates"].cast<int>();
 

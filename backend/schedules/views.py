@@ -8,7 +8,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NO
 from schedules.api.schedule_modules import findSchedule, findAllSchedule, createSchedule, createOrders
 from routes.api.route_modules import createPlace, createRoute, createStep, createTransitDetail
 from schedules import models as schedule_models
-
+from users.jwt_decoder import token2userid
 
 # Define Param Names
 PARAM_USER_ID = 'user_id'
@@ -55,7 +55,8 @@ class FindScheduleAPIView(APIView):
     # @LoginConfirm
     def get(self, request):
         try:
-            user_id = int(request.query_params[PARAM_USER_ID])
+            token = request.META.get('HTTP_AUTHORIZATION')
+            user_id = token2userid(token)
             date = datetime.fromtimestamp(
                 int(request.query_params[PARAM_DATE])).date()
 
@@ -80,7 +81,8 @@ class FindScheduleListAPIView(APIView):
     # @LoginConfirm
     def get(self, request):
         try:
-            user_id = int(request.query_params[PARAM_USER_ID])
+            token = request.META.get('HTTP_AUTHORIZATION')[6:]
+            user_id = token2userid(token)
 
             return Response(findAllSchedule(user_id=user_id), status=HTTP_200_OK)
 
@@ -110,7 +112,8 @@ class DeleteScheduleAPIView(APIView):
 
     def delete(self, request):
         try:
-            user_id = request.data[KEY_USER_ID]
+            token = request.META.get('HTTP_AUTHORIZATION')[6:]
+            user_id = token2userid(token)
             date = datetime.fromtimestamp(
                 int(request.data[KEY_DATE])).date()
 
@@ -156,18 +159,19 @@ class CreateScheduleAPIView(APIView):
 
     def post(self, request):
         try:
-            request.data[KEY_USER] = request.data[KEY_USER_ID]
+            token = request.META.get('HTTP_AUTHORIZATION')[6:]
+            user_id = token2userid(token)
             request.data[KEY_DATE] = datetime.fromtimestamp(
                 int(request.data[KEY_DATE])).date()
 
             self.checkScheduleAndUserExists(
-                request.data[KEY_USER], request.data[KEY_DATE])
+                user_id, request.data[KEY_DATE])
 
             created_id = {}
 
             # 1. Schedule 생성
             schedule_dict = {
-                KEY_USER: request.data[KEY_USER],
+                KEY_USER: user_id,
                 KEY_DATE: request.data[KEY_DATE],
                 KEY_SCHEDULE_TITLE: request.data[KEY_SCHEDULE_TITLE],
             }
@@ -229,5 +233,5 @@ class CreateScheduleAPIView(APIView):
             return JsonResponse({"message": "INVALID_VALUE"}, status=HTTP_400_BAD_REQUEST)
         except MultipleObjectsReturned:
             logger.error(
-                f'{request.data[KEY_USER]}의 {request.data[KEY_DATE]} 스케쥴이 이미 있습니다.')
+                f'{user_id}의 {request.data[KEY_DATE]} 스케쥴이 이미 있습니다.')
             return JsonResponse({"message": "SCHEDULE_ALREADY_EXISTS"}, status=HTTP_400_BAD_REQUEST)
