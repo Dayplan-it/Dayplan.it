@@ -5,6 +5,7 @@ import geopandas as gpd
 from django.db import connection
 from django.conf import settings
 from urllib import parse
+import time
 
 
 MAX_PHOTO_WIDTH = 600
@@ -15,101 +16,22 @@ def extract_closest_node(lng, lat):
     가장 가까운 노드를 찾는 함수
     가장 가까운 노드의 번호를 리턴
     """
-
-    query = f"select link_len as len,distance,strt_node_,ST_LineLocatePoint(ab.geom, 'SRID={settings.SRID};POINT({lng} {lat})'::geometry) as split,end_node_i\
-            from (select ST_LineMerge(geom) as geom,link_len,distance,strt_node_,end_node_i\
-            from(SELECT link_len,geom,strt_node_,end_node_i,ST_DISTANCE(ST_Transform(geom,2097),ST_Transform(ST_GeomFromText('SRID={settings.SRID};POINT({lng} {lat})', {settings.SRID}), 2097)) AS distance\
-            FROM link2\
-            ORDER BY distance\
-            LIMIT 1) as a) as ab"
+    query = f"SELECT streets.strt_node_, end_node_i,\
+            streets.geom <-> 'SRID={settings.SRID};POINT({lng} {lat})'::geometry AS Distance\
+            FROM link2 streets\
+            ORDER BY Distance\
+            LIMIT 1"
     with connection.cursor() as cursor:
         cursor.execute(query)
         row = cursor.fetchall()
-    len = float(row[0][0])
-    strt_node = int(row[0][2])
-    seg = float(row[0][3])
-    dist = float(row[0][1])
-    end_node = float(row[0][4])
+    strt_node = int(row[0][0])
+    dist = float(row[0][2])
+    end_node = int(row[0][1])
     # 점에서 가장가까운 링크까지의 거리와 링크분할점에서 출발노드까지의 거리 보정상수
     # 사소한 오차 발견하여 임시적으로 시작노드까지의 거리 오차보정부분 삭제
     S_start = -dist
     S_end = -dist
     return strt_node, S_start, end_node, S_end
-
-
-def get_convexhull(node, S):
-    """
-    Travel Time 기준으로 convexhull을 찾는 함수
-    """
-    # 링크까지거리 보정
-    query_extract_convexhull = f"(select 20::INTEGER as minute, ST_AsText(st_convexhull(st_union(geom))) as geom\
-                                    from\
-                                    (SELECT (SELECT geom FROM node2 b where b.node_id=a.node::bigint) as geom\
-                                    FROM pgr_drivingDistance('\
-                                        SELECT link_id::int4 AS id,\
-                                        strt_node_::int4 AS source,\
-                                        end_node_i::int4 AS target,\
-                                        link_len::float8 AS cost,\
-                                        link_len::float8 AS reverse_cost\
-                                        FROM link2',\
-                                    {node},\
-                                    {1000+S}) a) c) \
-                                    UNION\
-                                    (select 15::INTEGER as gid, ST_AsText(st_convexhull(st_union(geom))) as geom\
-                                    from\
-                                    (SELECT (SELECT geom FROM node2 b where b.node_id=a.node::bigint) as geom\
-                                    FROM pgr_drivingDistance('\
-                                        SELECT link_id::int4 AS id,\
-                                        strt_node_::int4 AS source,\
-                                        end_node_i::int4 AS target,\
-                                        link_len::float8 AS cost,\
-                                        link_len::float8 AS reverse_cost\
-                                        FROM link2',\
-                                    {node},\
-                                    {667+S}) a) c)\
-                                    UNION\
-                                    (select 10::INTEGER as gid, ST_AsText(st_convexhull(st_union(geom))) as geom\
-                                    from\
-                                    (SELECT (SELECT geom FROM node2 b where b.node_id=a.node::bigint) as geom\
-                                    FROM pgr_drivingDistance('\
-                                        SELECT link_id::int4 AS id,\
-                                        strt_node_::int4 AS source,\
-                                        end_node_i::int4 AS target,\
-                                        link_len::float8 AS cost,\
-                                        link_len::float8 AS reverse_cost\
-                                        FROM link2',\
-                                    {node},\
-                                    {333+S}) a) c)\
-                                    UNION\
-                                    (select 5::INTEGER as gid, ST_AsText(st_convexhull(st_union(geom))) as geom\
-                                    from\
-                                    (SELECT (SELECT geom FROM node2 b where b.node_id=a.node::bigint) as geom\
-                                    FROM pgr_drivingDistance('\
-                                        SELECT link_id::int4 AS id,\
-                                        strt_node_::int4 AS source,\
-                                        end_node_i::int4 AS target,\
-                                        link_len::float8 AS cost,\
-                                        link_len::float8 AS reverse_cost\
-                                        FROM link2',\
-                                    {node},\
-                                    {140+S}) a) c)"
-    with connection.cursor() as cursor:
-        cursor.execute(query_extract_convexhull)
-        row = cursor.fetchall()
-
-    geometry_temp = []
-    minute_temp = []
-    for i in range(4):
-        geometry_temp.append(row[i][1])
-        minute_temp.append(row[i][0])
-    geometry_temp2 = gpd.GeoSeries.from_wkt(geometry_temp)
-    data = {
-        'minute': minute_temp,
-        'geometry': geometry_temp2
-    }
-    convex_gdf = gpd.GeoDataFrame(
-        data, geometry='geometry').set_crs(epsg=settings.SRID, inplace=True)
-    return convex_gdf
 
 
 def dijkstra_distance(ori_lng, ori_lat, des_lng, des_lat):
@@ -140,27 +62,7 @@ def dijkstra_distance(ori_lng, ori_lat, des_lng, des_lat):
     return corrected_distance, geom
 
 
-def get_nearby_place(lng, lat, type, distance=1800):
-    # 구글 place_type 참고하여 만듬
-    # place_type = [
-    #     (0, 'bowling_alley', '볼링장'),
-    #     (1, 'cafe', '카페'),
-    #     (2, 'car_repair', '자동차수리'),
-    #     (3, 'car_wash', '세차장'),
-    #     (4, 'church', '교회'),
-    #     (5, 'department_store', '백화점'),
-    #     (6, 'drugstore', '약국1'),
-    #     (7, 'gym', '헬스장'),
-    #     (8, 'hospital', '병원'),
-    #     (9, 'laundry', '세탁소'),
-    #     (10, 'pharmacy', '약국2'),
-    #     (11, 'police', '경찰'),
-    #     (12, 'post_office', '우체국'),
-    #     (13, 'restaurant', '식당'),
-    #     (14, 'convenience_store', '편의점'),
-    #     (15, 'supermarket', '마트')
-    # ]
-
+def get_nearby_place(startNode, lng, lat, type, distance=1800):
     nearbystr = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'\
         + f'?location={str(lat)},{str(lng)}'\
         + '&type='+type\
@@ -175,16 +77,29 @@ def get_nearby_place(lng, lat, type, distance=1800):
     results = data['results']
     new_list = []
 
+    # 좌표 목록!
+    points = []
     # 사전형으로 변환
     for result in results:
         dic = {}
         dic['name'] = result['name']
         dic['lng'] = str(result['geometry']['location']['lng'])
         dic['lat'] = str(result['geometry']['location']['lat'])
+        points.append(
+            [str(result['geometry']['location']['lng']), str(result['geometry']['location']['lat'])])
         dic['place_id'] = result['place_id']
         dic['rating'] = result['rating'] if 'rating' in result else '-'
         dic['user_ratings_total'] = result['user_ratings_total'] if 'user_ratings_total' in result else '-'
         new_list.append(dic)
+
+    # 이부분에서 걸리는 시간 받아서 데이터프레임 저장
+    node_list = getMinuteList(points)
+    cost = calMinute(node_list, startNode)
+
+    for i in range(len(node_list)):
+        for j in range(len(cost)):
+            if node_list[i] == cost[j][0]:
+                new_list[i]['minute'] = cost[j][1]*0.015
 
     # Geodataframe 변환
     df = pd.DataFrame(new_list, columns=[
@@ -198,6 +113,36 @@ def get_nearby_place(lng, lat, type, distance=1800):
     return gdf
 
 
+def getMinuteList(pointList):
+
+    end_node_list = []
+    for point in pointList:
+        start_node, S_start, end_node, S_end = extract_closest_node(
+            point[0], point[1])
+        end_node_list.append(end_node)
+    return end_node_list
+
+
+def calMinute(nodeList, startNode):
+    query = f"SELECT end_vid,max(agg_cost) FROM pgr_bddijkstra('\
+                    SELECT link_id::int4 AS id,\
+                    strt_node_::int4 AS source,\
+                    end_node_i::int4 AS target,\
+                    link_len::float8 AS cost,\
+                    link_len::float8 AS reverse_cost\
+                    FROM link2',\
+                {startNode}, \
+                ARRAY{nodeList},\
+                FALSE) as a Join link2 as b on  a.edge=b.link_id\
+                GROUP BY end_vid"
+
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        row = cursor.fetchall()
+
+    return row
+
+
 def place_detail(place_id):
     detail_str = 'https://maps.googleapis.com/maps/api/place/details/json'\
         + '?place_id='+str(place_id)\
@@ -206,7 +151,7 @@ def place_detail(place_id):
     response = requests.get(detail_str)
     data = json.loads(response.text)
     results = data['result']
-    #EPSG : 900913
+    # EPSG : 900913
     lng = results['geometry']['location']['lng']
     lat = results['geometry']['location']['lat']
     name = results['name']
@@ -289,4 +234,3 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='
         data = json.loads(response.text)['routes'][0]['legs'][0]
         data["route_type"] = 'transit'
         return data
-

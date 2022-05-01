@@ -20,7 +20,6 @@ class PlaceRecommend(APIView):
 
     """
     lng, lat값과 place_type을 받아
-    convex_hull을 5분, 10분, 15분, 20분 단위로 생성,
     각 장소별로 convex_hull값을 부여하는 API
     """
     @LoginConfirm
@@ -34,21 +33,10 @@ class PlaceRecommend(APIView):
         place_type = request.query_params[PARAM_PLACE_TYPE]
         # 기준위치와 가장 가까운 노드를 결정한다.
         start_node, S_start, end_node, S_end = extract_closest_node(lng, lat)
-        # nearby로 장소를 가져온다.(타입입력가능)
-        places_gdf = get_nearby_place(lng, lat, place_type)
-        # 노드를 기준으로 20분,15분거리, 10분거리, 5분거리 컨벡스홀을 반환한다.
-        convex_gdf = get_convexhull(start_node, S_start)
-        # 데이터프레임에 distnace정보 삽입
-
-        for minutes in [20, 15, 10, 5]:
-            for i in range(len(places_gdf)):
-                if places_gdf['geometry'].iloc[i].within(convex_gdf.loc[convex_gdf['minute'] == minutes, 'geometry'].iloc[0]):
-                    places_gdf['minute'].iloc[i] = minutes
-        places_gdf = places_gdf.fillna(25).to_wkt()
-
-        # Dataframe을 바로 JSON으로 렌더링하면 dict로 바뀌는 과정에서 key별로 생성이 돼버림
-        # 따라서, row별로 dict들의 array로 바꿔주는 과정이 필요
-
+        # nearby+dijkstra로 걸리는 시간 계산
+        places_gdf = get_nearby_place(start_node, lng, lat, place_type)
+        places_gdf = places_gdf.fillna(0).to_wkt()
+        places_gdf = places_gdf.drop('geometry', axis=1)
         places_ordered = [row.to_dict()
                           for index, row in places_gdf.iterrows()]
 
