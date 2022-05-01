@@ -10,8 +10,7 @@ const backgroundColor = Colors.white;
 const DayplanitLogoFont = GoogleFonts.poppins; // 로고용 폰트
 const mainFont = GoogleFonts.notoSans;
 const double dafaultPadding = 20.0;
-
-const commonUrl = 'http://127.0.0.1:8000';
+const commonUrl = 'http://127.0.0.1';
 
 /// 공통컴포넌트 스타일
 class DayplanitStyles {

@@ -1,40 +1,34 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({Key? key}) : super(key: key);
-
   @override
   State<LandingPage> createState() => _LandingPageState();
 }
 
 class _LandingPageState extends State<LandingPage> {
-  String _hasToken = "null";
-
+  bool _hasToken = false; //토큰의 유무 판별하는 state
   @override
   void initState() {
     super.initState();
-
-    //이부분에서 로그인체크하고 로그인되어있을 떄 사용자정보 불러옴
-    Timer(const Duration(seconds: 2), () async {
-      await _getToken();
-
-      if (_hasToken == "null") {
-        Navigator.pushReplacementNamed(context, '/login');
-      } else {
-        Navigator.pushReplacementNamed(context, '/main');
-      }
-      //이부분에서 로그인 체크하여 로그인페이지갈지 메인페이지갈지 결정
-      //로컬저장소에서 토큰확인, 토큰 사용가능한지 확인
-    });
+    _checkToken();
   }
 
-  _getToken() async {
+  ///@brief 로컬 토큰 유무 검사 후 페이지 이동
+  ///@return void
+  ///@param void
+  _checkToken() async {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
     setState(() {
-      _hasToken = (_prefs.getString('apiToken') ?? "null");
+      _hasToken = (_prefs.getString('apiToken') == null ? false : true);
     });
+
+    if (_hasToken == false) {
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      Navigator.pushReplacementNamed(context, '/main');
+    }
   }
 
   @override

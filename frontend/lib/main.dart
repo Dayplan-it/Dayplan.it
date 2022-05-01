@@ -1,13 +1,11 @@
 import 'package:dayplan_it/notification/notification.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:dayplan_it/screens/home/home_screen.dart';
-import 'package:dayplan_it/screens/start/login_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/start/landingpage.dart';
 import 'package:dayplan_it/screens/start/signuppage.dart';
 import 'package:dayplan_it/screens/start/loginpage.dart';
 import 'package:dayplan_it/screens/mainpage.dart';
-import 'package:provider/provider.dart';
 
 Future<void> main() async {
   runApp(MultiProvider(
@@ -38,11 +36,11 @@ class _MyAppState extends State<MyApp> {
       title: 'Dayplan.it',
       routes: <String, WidgetBuilder>{
         '/main': (BuildContext context) => const MainPage(),
-        '/login': (BuildContext context) => const LoginPage(),
+        '/login': (BuildContext context) => LoginPage(),
         '/signup': (BuildContext context) => SignupPage(),
         '/home': (BuildContext context) => HomeScreen(),
       },
-      home: MainPage(),
+      home: LandingPage(),
     );
   }
 }
