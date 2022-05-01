@@ -167,6 +167,7 @@ class _CreateScheduleScreenRightSideState
         ),
         Expanded(
           child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
             controller: context.read<CreateScheduleStore>().tabController,
             children: [
               const SetScheduleTab(),

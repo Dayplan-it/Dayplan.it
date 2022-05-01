@@ -189,28 +189,19 @@ class _DeleteScheduleAreaState extends State<DeleteScheduleArea> {
         List<dynamic> accepted,
         List<dynamic> rejected,
       ) {
-        return isHovered
-            ? Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    borderRadius: defaultBoxRadius, color: pointColor),
-                child: const Icon(
-                  Icons.cancel_outlined,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              )
-            : Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    borderRadius: defaultBoxRadius,
-                    color: const Color.fromARGB(212, 39, 39, 39)),
-                child: const Icon(
-                  Icons.cancel_outlined,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              );
+        return Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+              borderRadius: defaultBoxRadius,
+              color: isHovered
+                  ? pointColor
+                  : const Color.fromARGB(212, 39, 39, 39)),
+          child: const Icon(
+            Icons.cancel_outlined,
+            color: Colors.white,
+            size: 30,
+          ),
+        );
       },
       onWillAccept: (data) {
         setState(() {
@@ -370,9 +361,15 @@ class _SetScheduleStartsAtState extends State<SetScheduleStartsAt> {
                     padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
                     child: Text(
                       context
-                          .watch<CreateScheduleStore>()
-                          .currentlyDecidingStartsAtSchedule
-                          .nameKor,
+                                  .watch<CreateScheduleStore>()
+                                  .currentlyDecidingStartsAtSchedule
+                                  .placeType !=
+                              "empty"
+                          ? context
+                              .watch<CreateScheduleStore>()
+                              .currentlyDecidingStartsAtSchedule
+                              .nameKor
+                          : "빈 스케줄",
                       style: mainFont(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,

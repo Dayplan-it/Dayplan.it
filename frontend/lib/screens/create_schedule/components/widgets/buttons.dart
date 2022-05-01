@@ -32,3 +32,63 @@ class SquareButton extends StatelessWidget {
         ));
   }
 }
+
+class SquareButtonWithLoading extends StatefulWidget {
+  const SquareButtonWithLoading({
+    Key? key,
+    required this.title,
+    this.activate = false,
+    required this.futureFunction,
+  }) : super(key: key);
+  final String title;
+  final bool activate;
+  final Future<void> Function() futureFunction;
+
+  @override
+  State<SquareButtonWithLoading> createState() =>
+      _SquareButtonWithLoadingState();
+}
+
+class _SquareButtonWithLoadingState extends State<SquareButtonWithLoading> {
+  bool isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+        onPressed: (widget.activate
+            ? () async {
+                setState(() {
+                  isLoading = true;
+                });
+                await widget.futureFunction();
+                setState(() {
+                  isLoading = false;
+                });
+              }
+            : null),
+        style: ElevatedButton.styleFrom(
+            primary: primaryColor,
+            minimumSize: const Size(double.maxFinite, 40),
+            shape: RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              widget.title,
+              style: mainFont(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            if (isLoading)
+              const SizedBox(
+                height: 10,
+                width: 10,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+              ),
+          ],
+        ));
+  }
+}

@@ -27,7 +27,8 @@ class PlaceRecommend(APIView):
     convex_hull을 5분, 10분, 15분, 20분 단위로 생성,
     각 장소별로 convex_hull값을 부여하는 API
     """
-    @LoginConfirm
+    # @LoginConfirm
+
     def get(self, request):
         # 예시데이터
         #lng = 126.99446459234908

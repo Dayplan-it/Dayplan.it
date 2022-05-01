@@ -10,6 +10,13 @@
     <key>NSLocationUsageDescription</key>
     <string>Older devices need location.</string>
 
+    <!-- http https 요청 -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+      <string>https</string>
+      <string>http</string>
+    </array>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

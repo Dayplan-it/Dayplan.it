@@ -18,7 +18,7 @@ def extract_closest_node(lng, lat):
 
     query = f"select link_len as len,distance,strt_node_,ST_LineLocatePoint(ab.geom, 'SRID={settings.SRID};POINT({lng} {lat})'::geometry) as split,end_node_i\
             from (select ST_LineMerge(geom) as geom,link_len,distance,strt_node_,end_node_i\
-            from(SELECT link_len,geom,strt_node_,end_node_i,ST_DISTANCE(ST_Transform(geom,2097),ST_Transform(ST_GeomFromText('SRID={settings.SRID};POINT({lng} {lat})', {settings.SRID}), 2097)) AS distance\
+            from(SELECT link_len,st_geomfromtext as geom,strt_node_,end_node_i,ST_DISTANCE(ST_Transform(st_geomfromtext,2097),ST_Transform(ST_GeomFromText('SRID={settings.SRID};POINT({lng} {lat})', {settings.SRID}), 2097)) AS distance\
             FROM link2\
             ORDER BY distance\
             LIMIT 1) as a) as ab"
@@ -165,6 +165,7 @@ def get_nearby_place(lng, lat, type, distance=1800):
         + f'?location={str(lat)},{str(lng)}'\
         + '&type='+type\
         + '&radius='+str(distance)\
+        + '&language=ko'\
         + '&key='+settings.GOOGLE_API_KEY
     # main branch settings에 GOOGLE_API_KEY가 있음
 

@@ -18,7 +18,9 @@ class Schedule {
       this.isFixed = false,
       this.startsAt,
       this.endsAt,
-      this.place});
+      this.place,
+      this.placeName,
+      this.placeId});
 
   final String nameKor;
   final String placeType;
@@ -28,6 +30,8 @@ class Schedule {
   DateTime? startsAt;
   DateTime? endsAt;
   LatLng? place;
+  String? placeName;
+  String? placeId;
 
   Schedule copy() => Schedule(
       nameKor: nameKor,
@@ -36,7 +40,9 @@ class Schedule {
       duration: duration,
       startsAt: startsAt,
       endsAt: endsAt,
-      place: place);
+      place: place,
+      placeName: placeName,
+      placeId: placeId);
 
   double toHeight() {
     return durationToHeight(duration);
@@ -50,5 +56,11 @@ class Schedule {
   void changeAndSetEndsAt(DateTime endsAt) {
     this.endsAt = endsAt;
     startsAt = endsAt.subtract(duration);
+  }
+
+  void setPlace(LatLng place, String placeName, String placeId) {
+    this.place = place;
+    this.placeName = placeName;
+    this.placeId = placeId;
   }
 }

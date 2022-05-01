@@ -1,7 +1,10 @@
-import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 ///Create Schedule Screen을 위한 `Store`
 ///클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
@@ -58,11 +61,14 @@ class CreateScheduleStore with ChangeNotifier {
     calSchedulesStartsAndEndsAt();
 
     // 스케줄 시작시간을 조정중에 삭제할 경우
-    // 경우에 따라 indexOfcurrentlyDecidingStartsAtSchedule을 바꿔줘야 함
+    // 경우에 따라 indexOfcurrentlyDecidingStartsAtSchedule, indexOfPlaceDecidingSchedule을 바꿔줘야 함
     if (isDecidingScheduleStartsAt) {
       if (indexOfcurrentlyDecidingStartsAtSchedule != 0) {
         indexOfcurrentlyDecidingStartsAtSchedule--;
       }
+    }
+    if (indexOfPlaceDecidingSchedule != 0) {
+      indexOfPlaceDecidingSchedule--;
     }
     notifyListeners();
   }
@@ -673,6 +679,7 @@ class CreateScheduleStore with ChangeNotifier {
     setCurrentlyDecidingScheduleStartsAtBeforeStart();
     onEndMakingCustomBlock();
     onScheduleBoxDragEnd();
+    setTimeLineWidthFlexByTabIndex(0);
     isBeforeStartTap = false;
   }
 
@@ -687,12 +694,147 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
+  /// ## 현재 상황에서 추천에 필요한 좌표를 반환하는 함수
+  /// ~~~json
+  /// { "type": PlaceType(String), "latlng": LatLng}
+  /// ~~~
+  /// 추천에 사용할 좌표가 전혀 없다면 사용자의 현 위치를 반환함(`"type":"userPosition"`)
+  ///
+  /// `indexOfPlaceDecidingSchedule`이 사용됨을 참고
+  Future<Map<String, dynamic>> getLatLngForPlaceRecommend() async {
+    if (indexOfPlaceDecidingSchedule != 0) {
+      for (int i = indexOfPlaceDecidingSchedule - 1; i >= 0; i--) {
+        if (scheduleList[i].place != null) {
+          return {
+            "type": scheduleList[i].placeType,
+            "latlng": scheduleList[i].place!
+          };
+        }
+      }
+    }
+    for (int i = indexOfPlaceDecidingSchedule + 1;
+        i < scheduleList.length;
+        i++) {
+      if (scheduleList[i].place != null) {
+        return {
+          "type": scheduleList[i].placeType,
+          "latlng": scheduleList[i].place!
+        };
+      }
+    }
+
+    return {
+      "type": scheduleList[indexOfPlaceDecidingSchedule].placeType,
+      "latlng": await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high)
+    };
+  }
+
+  /// '다른 장소를 중심으로 추천받기'가 가능한지 여부를 체크하는 함수
+  dynamic checkAndGetIndexForPlaceRecommend() {
+    if (indexOfPlaceDecidingSchedule != 0) {
+      for (int i = indexOfPlaceDecidingSchedule - 1; i >= 0; i--) {
+        if (scheduleList[i].place != null) {
+          return i;
+        }
+      }
+    }
+    for (int i = indexOfPlaceDecidingSchedule + 1;
+        i < scheduleList.length;
+        i++) {
+      if (scheduleList[i].place != null) {
+        return i;
+      }
+    }
+
+    return false;
+  }
+
+  /// 현재 선택된 장소의 플레이스 id
+  String selectedPlaceId = "";
+  void setSelectedPlaceId(String placeId) {
+    selectedPlaceId = placeId;
+    notifyListeners();
+  }
+
   /// 장소 검색 후 선택해서 디테일 화면을 볼때
   /// 토글용 변수
   bool isLookingPlaceDetail = false;
   void toggleIsLookingPlaceDetail() {
     isLookingPlaceDetail = !isLookingPlaceDetail;
     notifyListeners();
+  }
+
+  void onLookingPlaceDetailEnd() {
+    isLookingPlaceDetail = false;
+    notifyListeners();
+  }
+
+  void onLookingPlaceDetailStart() {
+    isLookingPlaceDetail = false;
+    notifyListeners();
+  }
+
+  void setSchedulePlace(
+      int scheduleIndex, LatLng place, String placeName, String placeId) {
+    scheduleList[scheduleIndex].setPlace(place, placeName, placeId);
+    notifyListeners();
+  }
+
+  /// 장소 추천시 사용하는 flag
+  bool isPlaceRecommended = false;
+
+  void onPlaceRecommendedEnd() {
+    isPlaceRecommended = false;
+    notifyListeners();
+  }
+
+  /// 장소 추천 기준점
+  late LatLng placeRecommendPoint;
+  void setPlaceRecommendPoint(LatLng point) {
+    placeRecommendPoint = point;
+    notifyListeners();
+  }
+
+  /// convex hull index
+  // int convexHullIndex = 0;
+  // void setConvexHullIndex(int _convexHullIndex) {
+  //   convexHullIndex = _convexHullIndex;
+  //   notifyListeners();
+  // }
+
+  /// 추천된 장소 리스트
+  Map<MarkerId, Marker> markersStored = <MarkerId, Marker>{};
+
+  Map<MarkerId, Marker> onPlaceRecommened(
+      ModifiedCustomInfoWindowController customInfoWindowController,
+      List<List<MarkerId>> convex,
+      Map<MarkerId, Marker> markers) {
+    isPlaceRecommended = true;
+
+    markersStored = markers;
+
+    notifyListeners();
+    return setConvexHullVisibility(customInfoWindowController, convex, 0);
+  }
+
+  Map<MarkerId, Marker> setConvexHullVisibility(
+      ModifiedCustomInfoWindowController customInfoWindowController,
+      List<List<MarkerId>> convex,
+      int convexHullIndex) {
+    Map<MarkerId, Marker> markersReturn = {};
+    customInfoWindowController.hideAllInfoWindow!();
+    for (int index = 0; index <= convexHullIndex; index++) {
+      for (MarkerId markerId in convex[index]) {
+        markersReturn[markerId] = markersStored[markerId]!;
+        customInfoWindowController.showInfoWindow!(markerId);
+      }
+    }
+    customInfoWindowController.googleMapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(placeRecommendPoint,
+            [18.0, 17.0, 14.0, 14.0, 13.0][convexHullIndex]));
+    customInfoWindowController.updateInfoWindow!();
+    return markersReturn;
   }
 
   ///

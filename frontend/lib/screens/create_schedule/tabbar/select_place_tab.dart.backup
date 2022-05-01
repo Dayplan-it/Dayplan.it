@@ -152,23 +152,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     }
   }
 
-  Future<List> _fetchPlaceRecommend(String placeType) async {
-    LatLng position = context.read<CreateScheduleStore>().placeRecommendPoint;
-    try {
-      final response = await Dio().get(
-          '$commonUrl/api/placerecommend?lat=${position.latitude}&lng=${position.longitude}&place_type=$placeType');
-      if (response.statusCode == 200) {
-        print(response.data);
-        return response.data;
-      } else {
-        throw Exception('서버에 문제가 발생했습니다');
-      }
-    } catch (error) {
-      print(error);
-      throw error;
-    }
-  }
-
   Future<Widget> _buildGoogleMap() async {
     await _getUserLoc();
     return MapWithCustomInfoWindow(
@@ -181,46 +164,26 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
 
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
-  void _setMarker(Map<MarkerId, Marker> newMarkers) {
-    setState(() {
-      markers = newMarkers;
-    });
-  }
-
-  void _addMarker(
-      LatLng placeLatLng, String title, String? rating, double? minute,
-      {required String markerIdStr}) {
+  void _addMarker(LatLng placeLatLng, String title,
+      {String markerIdStr = 'myMarker'}) {
     final MarkerId markerId = MarkerId(markerIdStr);
-
-    final Marker marker = _createMarker(
-      placeLatLng,
-      title,
-      rating,
-      minute,
-      markerIdStr,
-    );
-
-    setState(() {
-      markers[markerId] = marker;
-    });
-  }
-
-  Marker _createMarker(LatLng placeLatLng, String title, String? rating,
-      double? minute, String placeId) {
-    final MarkerId markerId = MarkerId(placeId);
     _onTap() async {
       context.read<CreateScheduleStore>().toggleIsLookingPlaceDetail();
 
       await _customInfoWindowController.googleMapController!
           .animateCamera(CameraUpdate.newLatLng(placeLatLng));
 
-      // _customInfoWindowController.hideInfoWindow!(markerId);
-      // _customInfoWindowController.updateInfoWindow!();
-      context.read<CreateScheduleStore>().setSelectedPlaceId(placeId);
+      _customInfoWindowController.showInfoWindow!(markerId);
+      _customInfoWindowController.updateInfoWindow!();
+      context.read<CreateScheduleStore>().setSelectedPlaceId(markerIdStr);
     }
 
-    return markerWithCustomInfoWindow(markerId, placeLatLng,
-        _customInfoWindowController, title, rating, minute, _onTap);
+    final Marker marker = markerWithCustomInfoWindow(
+        markerId, placeLatLng, _customInfoWindowController, title, _onTap);
+
+    setState(() {
+      markers[markerId] = marker;
+    });
   }
 
   void _clearMarker() {
@@ -233,69 +196,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
     _customInfoWindowController.googleMapController = _mapController;
-  }
-
-  Future<void> getPlaceRecommendForUserLoc() async {
-    setState(() {
-      convex = [[], [], [], [], []];
-    });
-    _clearMarker();
-
-    // 버튼 누를때마다 유저의 위치를 가져오도록 하고싶지만
-    // 그렇게 하면 버튼 눌림이 씹히는 현상이 있어 삭제함
-    // await _getUserLoc();
-
-    context.read<CreateScheduleStore>().setPlaceRecommendPoint(
-        LatLng(_userPosition.latitude, _userPosition.longitude));
-
-    List recommendedPlaces = await _fetchPlaceRecommend(context
-        .read<CreateScheduleStore>()
-        .scheduleList[
-            context.read<CreateScheduleStore>().indexOfPlaceDecidingSchedule]
-        .placeType);
-
-    /// 별점 역순으로 정렬해서
-    /// MarkerWindow를 별점순으로 겹치게끔 함 (추후 Stack되므로 역순정렬)
-    for (int i = 0; i < recommendedPlaces.length; i++) {
-      for (int j = i + 1; j < recommendedPlaces.length; j++) {
-        double ratingI = recommendedPlaces[i]["rating"].toString() != "-"
-            ? (recommendedPlaces[i]["rating"].runtimeType == int
-                ? recommendedPlaces[i]["rating"].toDouble()
-                : recommendedPlaces[i]["rating"])
-            : 0.0;
-        double ratingJ = recommendedPlaces[j]["rating"].toString() != "-"
-            ? (recommendedPlaces[j]["rating"].runtimeType == int
-                ? recommendedPlaces[j]["rating"].toDouble()
-                : recommendedPlaces[j]["rating"])
-            : 0.0;
-
-        if (ratingI > ratingJ) {
-          var temp = recommendedPlaces[i];
-          recommendedPlaces[i] = recommendedPlaces[j];
-          recommendedPlaces[j] = temp;
-        }
-      }
-    }
-
-    Map<MarkerId, Marker> createdMarkers = {};
-    for (Map place in recommendedPlaces) {
-      MarkerId markerId = MarkerId(place["place_id"]);
-      createdMarkers[markerId] = _createMarker(
-          LatLng(double.parse(place["lat"]), double.parse(place["lng"])),
-          place["name"],
-          place["rating"].toString(),
-          place["minute"],
-          place["place_id"]);
-      setState(() {
-        convex[[5.0, 10.0, 15.0, 20.0, 25.0].indexOf(place["minute"])]
-            .add(markerId);
-      });
-    }
-
-    setState(() {
-      markers = context.read<CreateScheduleStore>().onPlaceRecommened(
-          _customInfoWindowController, convex, createdMarkers);
-    });
   }
 
   @override
@@ -314,69 +214,51 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   late Future<dynamic> _autocomplete;
   late String _input;
 
-  /// convex hull에 맞게 들어가는 2차원 List
-  /// 0, 1, 2, 3, 4순으로 각각 5, 10, 15, 20, 25분 이상
-  List<List<MarkerId>> convex = [[], [], [], [], []];
-
   final TextEditingController _textFieldController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     int _indexOfPlaceDecidingSchedule =
         context.watch<CreateScheduleStore>().indexOfPlaceDecidingSchedule;
-
     return Column(children: [
+      Visibility(
+        visible: !context.watch<CreateScheduleStore>().isLookingPlaceDetail,
+        child: CupertinoSearchTextField(
+          controller: _textFieldController,
+          autocorrect: false,
+          onChanged: (value) {
+            setState(() {
+              _input = value;
+            });
+          },
+          onSuffixTap: () async {
+            setState(() {
+              _textFieldController.clear();
+              FocusScope.of(context).unfocus();
+            });
+            await Future.delayed(Duration(milliseconds: 1100));
+            _customInfoWindowController.updateInfoWindow!();
+          },
+          onSubmitted: (value) {
+            setState(() {
+              _input = value;
+              _isSearchPressed = true;
+              _autocomplete = _fetchAutoComplete(_input);
+              _clearMarker();
+            });
+          },
+          onTap: () async {
+            // InfoWindow의 위치를 변경해야 하는데,
+            // 키보드 높이의 변경된 값을 얻으려면 약간의 딜레이가 필요함
+            // 추후 퍼포먼스 보고 값을 바꿀 수 있음
+            await Future.delayed(Duration(milliseconds: 1000));
+            _customInfoWindowController.updateInfoWindow!();
+          },
+        ),
+      ),
       const SizedBox(
         height: 5,
       ),
-      Visibility(
-        visible: !context.watch<CreateScheduleStore>().isLookingPlaceDetail,
-        child: Column(
-          children: [
-            CupertinoSearchTextField(
-              controller: _textFieldController,
-              autocorrect: false,
-              onChanged: (value) {
-                setState(() {
-                  _input = value;
-                });
-              },
-              onSuffixTap: () async {
-                setState(() {
-                  _textFieldController.clear();
-                  FocusScope.of(context).unfocus();
-                });
-                await Future.delayed(Duration(milliseconds: 1100));
-                _customInfoWindowController.updateInfoWindow!();
-              },
-              onSubmitted: (value) {
-                setState(() {
-                  _input = value;
-                  _isSearchPressed = true;
-                  _autocomplete = _fetchAutoComplete(_input);
-                  _clearMarker();
-                });
-              },
-              onTap: () async {
-                // InfoWindow의 위치를 변경해야 하는데,
-                // 키보드 높이의 변경된 값을 얻으려면 약간의 딜레이가 필요함
-                // 추후 퍼포먼스 보고 값을 바꿀 수 있음
-                await Future.delayed(Duration(milliseconds: 1000));
-                _customInfoWindowController.updateInfoWindow!();
-              },
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-          ],
-        ),
-      ),
-      Visibility(
-          visible: context.watch<CreateScheduleStore>().isPlaceRecommended,
-          child: ConvexHullControl(
-              customInfoWindowController: _customInfoWindowController,
-              convex: convex,
-              setMarker: _setMarker)),
       Expanded(
         flex: 1,
         child: Stack(
@@ -486,8 +368,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                       placeLatLng,
                                       result[index]['structured_formatting']
                                           ['main_text'],
-                                      null,
-                                      null,
                                       markerIdStr: result[index]['place_id']);
                                   _mapController.moveCamera(
                                       CameraUpdate.newLatLng(placeLatLng));
@@ -508,24 +388,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
           ],
         ),
       ),
-      Visibility(
-          visible: !context.watch<CreateScheduleStore>().isLookingPlaceDetail,
-          child: Column(
-            children: [
-              SquareButtonWithLoading(
-                title: "내 위치를 중심으로 추천받기",
-                futureFunction: getPlaceRecommendForUserLoc,
-                activate: true,
-              ),
-              SquareButtonWithLoading(
-                title: "다른 장소를 중심으로 추천받기",
-                futureFunction: () async {},
-                activate: context
-                    .watch<CreateScheduleStore>()
-                    .checkAndGetIndexForPlaceRecommend(),
-              ),
-            ],
-          )),
       Visibility(
           visible: context.watch<CreateScheduleStore>().isLookingPlaceDetail,
           child: Expanded(
@@ -570,76 +432,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
             ),
           ))
     ]);
-  }
-}
-
-class ConvexHullControl extends StatefulWidget {
-  const ConvexHullControl(
-      {Key? key,
-      required ModifiedCustomInfoWindowController customInfoWindowController,
-      required this.convex,
-      required this.setMarker})
-      : _customInfoWindowController = customInfoWindowController,
-        super(key: key);
-
-  final ModifiedCustomInfoWindowController _customInfoWindowController;
-  final List<List<MarkerId>> convex;
-  final Function(Map<MarkerId, Marker>) setMarker;
-
-  @override
-  State<ConvexHullControl> createState() => _ConvexHullControlState();
-}
-
-class _ConvexHullControlState extends State<ConvexHullControl> {
-  int _convexType = 0;
-  final Map<int, Widget> _convexTypes = {
-    0: Text(
-      '5분',
-      style: mainFont(),
-    ),
-    1: Text(
-      '10분',
-      style: mainFont(),
-    ),
-    2: Text(
-      '15분',
-      style: mainFont(),
-    ),
-    3: Text(
-      '20분',
-      style: mainFont(),
-    ),
-    4: Column(children: [
-      Text(
-        '25분',
-        style: mainFont(),
-      ),
-      Text(
-        '이상',
-        style: mainFont(),
-      ),
-    ])
-  };
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: CupertinoSegmentedControl(
-          padding: const EdgeInsets.only(bottom: 5, left: 5, right: 5),
-          // borderColor: primaryColor,
-          // selectedColor: primaryColor,
-          children: _convexTypes,
-          groupValue: _convexType,
-          onValueChanged: (int convexHullIndex) async {
-            setState(() {
-              _convexType = convexHullIndex;
-            });
-            widget.setMarker(context
-                .read<CreateScheduleStore>()
-                .setConvexHullVisibility(widget._customInfoWindowController,
-                    widget.convex, convexHullIndex));
-          }),
-    );
   }
 }
 

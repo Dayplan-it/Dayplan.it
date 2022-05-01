@@ -1,4 +1,3 @@
-import 'package:dayplan_it/main.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:provider/provider.dart';
@@ -74,8 +73,9 @@ class ScheduleBox extends StatelessWidget {
                             fontSize: itemHeight / 5,
                             letterSpacing: 1),
                       ),
-                    if (schedule.toHeight() > 60)
-                      Column(
+                    Visibility(
+                      visible: schedule.toHeight() > 60,
+                      child: Column(
                         children: [
                           const SizedBox(
                             height: 5,
@@ -105,14 +105,19 @@ class ScheduleBox extends StatelessWidget {
                                 letterSpacing: 1),
                           ),
                         ],
-                      )
+                      ),
+                    )
                   ],
                 ),
               ),
             ),
           ),
-          if (!context.read<CreateScheduleStore>().scheduleList[index].isFixed)
-            Positioned.fill(
+          Visibility(
+            visible: !context
+                .read<CreateScheduleStore>()
+                .scheduleList[index]
+                .isFixed,
+            child: Positioned.fill(
               child: Column(
                 children: [
                   ScheduleBoxUpDownHandle(
@@ -122,22 +127,37 @@ class ScheduleBox extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        context
-                            .read<CreateScheduleStore>()
-                            .onBeforeStartTapEnd();
-                        context
-                            .read<CreateScheduleStore>()
-                            .setIndexOfcurrentlyDecidingStartsAtSchedule(index);
-                        context
-                            .read<CreateScheduleStore>()
-                            .onDecidingScheduleStartsAtStart();
+                        if (context
+                                .read<CreateScheduleStore>()
+                                .tabController
+                                .index ==
+                            0) {
+                          context
+                              .read<CreateScheduleStore>()
+                              .onBeforeStartTapEnd();
+                          context
+                              .read<CreateScheduleStore>()
+                              .setIndexOfcurrentlyDecidingStartsAtSchedule(
+                                  index);
+                          context
+                              .read<CreateScheduleStore>()
+                              .onDecidingScheduleStartsAtStart();
+                        } else if (context
+                                .read<CreateScheduleStore>()
+                                .tabController
+                                .index ==
+                            1) {
+                          context
+                              .read<CreateScheduleStore>()
+                              .setIndexOfPlaceDecidingSchedule(index);
+                        }
                       },
                       child: LongPressDraggable(
                         feedback: OnScheduleBoxLongPress(
                           schedule: schedule,
                           isFeedback: true,
                         ),
-                        delay: const Duration(milliseconds: 100),
+                        delay: const Duration(milliseconds: 300),
                         data: index,
                         onDragEnd: (DraggableDetails details) => context
                             .read<CreateScheduleStore>()
@@ -161,6 +181,7 @@ class ScheduleBox extends StatelessWidget {
                 ],
               ),
             ),
+          ),
           schedule.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
         ]));
   }
@@ -197,16 +218,18 @@ class OnScheduleBoxLongPress extends StatelessWidget {
             fit: BoxFit.fitWidth,
             child: Column(
               children: [
-                Text(
-                  schedule.nameKor,
-                  style: mainFont(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      fontSize: itemHeight / 5,
-                      letterSpacing: 1),
-                ),
-                if (schedule.toHeight() > 60)
-                  Column(
+                if (schedule.nameKor.isNotEmpty)
+                  Text(
+                    schedule.nameKor,
+                    style: mainFont(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        fontSize: itemHeight / 5,
+                        letterSpacing: 1),
+                  ),
+                Visibility(
+                  visible: schedule.toHeight() > 60,
+                  child: Column(
                     children: [
                       const SizedBox(
                         height: 5,
@@ -235,7 +258,8 @@ class OnScheduleBoxLongPress extends StatelessWidget {
                             letterSpacing: 1),
                       ),
                     ],
-                  )
+                  ),
+                )
               ],
             ),
           ),
@@ -329,23 +353,16 @@ class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
         //     height: reorderDragTargetHeight,
         //   );
         // }
-        return isHovered
-            ? Container(
-                height: reorderDragTargetHeight,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: defaultBoxRadius,
-                  color: const Color.fromARGB(232, 129, 197, 253),
-                ),
-              )
-            : Container(
-                height: reorderDragTargetHeight,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: defaultBoxRadius,
-                  color: const Color.fromARGB(148, 33, 149, 243),
-                ),
-              );
+        return Container(
+          height: reorderDragTargetHeight,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: defaultBoxRadius,
+            color: isHovered
+                ? const Color.fromARGB(232, 129, 197, 253)
+                : const Color.fromARGB(148, 33, 149, 243),
+          ),
+        );
       },
       onWillAccept: (data) {
         setState(() {
