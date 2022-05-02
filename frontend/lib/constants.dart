@@ -22,13 +22,11 @@ class DayplanitStyles {
         obscureText: obscureText,
         controller: controller,
         decoration: InputDecoration(
-            filled: true,
-            labelText: labeText,
-            enabledBorder: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                borderSide: BorderSide(
-                  color: Color.fromARGB(255, 5, 93, 164),
-                ))));
+          filled: true,
+          labelText: labeText,
+          fillColor: const Color.fromARGB(255, 255, 255, 255),
+          border: const UnderlineInputBorder(),
+        ));
   }
 
   ///AlertDialog 스타일

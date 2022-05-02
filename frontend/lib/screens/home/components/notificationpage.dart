@@ -56,7 +56,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               color: Color.fromARGB(255, 251, 251, 251),
                             ),
                             Container(
-                                height: deviceheight * 0.35,
+                                height: deviceheight * 0.8,
                                 width: devicewidth * 0.8,
                                 child: ListView.separated(
                                   padding: const EdgeInsets.all(5),

@@ -6,7 +6,8 @@ class LoginHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Center(
+        child: Column(
       children: [
         Image.asset(
           'assets/icons/loginpage_icon.png',
@@ -14,37 +15,29 @@ class LoginHeader extends StatelessWidget {
           height: 0.15 * MediaQuery.of(context).size.height,
           fit: BoxFit.fitWidth,
         ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              const SizedBox(width: 30),
-              Text(
-                'Sign in',
-                style: mainFont(
-                    textStyle: const TextStyle(color: Colors.black),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 45),
-              ),
-            ],
-          ),
+        Row(
+          children: [
+            Text(
+              'Sign in',
+              style: mainFont(
+                  textStyle: const TextStyle(color: Colors.black),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 45),
+            ),
+          ],
         ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              const SizedBox(width: 30),
-              Text(
-                '로그인을 해주세요!',
-                style: mainFont(
-                    textStyle: const TextStyle(
-                        color: Color.fromARGB(255, 124, 124, 124)),
-                    fontSize: 20),
-              )
-            ],
-          ),
+        Row(
+          children: [
+            Text(
+              '로그인을 해주세요!',
+              style: mainFont(
+                  textStyle: const TextStyle(
+                      color: Color.fromARGB(255, 124, 124, 124)),
+                  fontSize: 20),
+            )
+          ],
         ),
       ],
-    );
+    ));
   }
 }

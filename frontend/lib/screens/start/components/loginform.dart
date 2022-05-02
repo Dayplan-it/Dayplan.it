@@ -31,12 +31,12 @@ class _LoginFormState extends State<LoginForm> {
                 key: formkey,
                 child: Column(
                   children: <Widget>[
-                    const SizedBox(height: 70.0),
+                    const SizedBox(height: 50.0),
                     dayplanitStyles.getTextField(
                         _usernameController, false, 'Email'),
                     const SizedBox(height: 20),
                     dayplanitStyles.getTextField(
-                        _passwordController, true, 'Email'),
+                        _passwordController, true, 'password'),
                     ButtonBar(
                       children: <Widget>[
                         //폼의 모든내용을 지우는 CANCEL버튼

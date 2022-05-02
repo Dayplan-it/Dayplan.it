@@ -132,7 +132,7 @@ class Detailpopup {
       PolylineId id = PolylineId(route['polyline']);
       if (geom.isNotEmpty) {
         for (var point in geom) {
-          LatLng temp = LatLng(point.longitude, point.latitude);
+          LatLng temp = LatLng(point.latitude, point.longitude);
           polylineCoordinates.add(temp);
         }
       }
@@ -158,7 +158,7 @@ class Detailpopup {
       PolylineId id = PolylineId(route['polyline']);
       if (geom.isNotEmpty) {
         for (var point in geom) {
-          LatLng temp = LatLng(point.longitude, point.latitude);
+          LatLng temp = LatLng(point.latitude, point.longitude);
           polylineCoordinates.add(temp);
         }
       }

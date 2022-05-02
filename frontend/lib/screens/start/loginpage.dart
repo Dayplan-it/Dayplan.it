@@ -14,7 +14,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(10, 30, 10, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 30, 20, 0),
             child: Column(
               children: const [
                 //로그인 Header

@@ -55,7 +55,7 @@ class FindScheduleAPIView(APIView):
     # @LoginConfirm
     def get(self, request):
         try:
-            token = request.META.get('HTTP_AUTHORIZATION')
+            token = request.META.get('HTTP_AUTHORIZATION')[6:]
             user_id = token2userid(token)
             date = datetime.fromtimestamp(
                 int(request.query_params[PARAM_DATE])).date()
@@ -220,6 +220,7 @@ class CreateScheduleAPIView(APIView):
                             created_step[KEY_ID])
 
                         if created_step[KEY_TRAVEL_MODE] == TYPE_TRANSIT:
+
                             created_transit_detail = createTransitDetail(
                                 step_id=created_step[KEY_ID], transit_detail=request.data[KEY_ORDER][i][KEY_STEP][j][KEY_TRANSIT_DETAIL], depart_loc=created_step[KEY_START_LOC], arrive_loc=created_step[KEY_END_LOC])
                             created_id["created_transit_detail_id"].append(

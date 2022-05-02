@@ -64,6 +64,7 @@ class HomeRepository {
     result['end_time'] = endTime;
     result['type'] = type;
     result['geom'] = geom;
+
     result['detail'] = detail;
 
     return result;
@@ -96,7 +97,7 @@ class HomeRepository {
 
         if (geom.isNotEmpty) {
           for (var point in geom) {
-            LatLng temp = LatLng(point.longitude, point.latitude);
+            LatLng temp = LatLng(point.latitude, point.longitude);
             polylineCoordinates.add(temp);
           }
         }
@@ -117,8 +118,7 @@ class HomeRepository {
   }
 
   //userid로 사용자의 일정정보 조회  API 요청
-  getScheduleList(context) async {
-    int id = Provider.of<HomeProvider>(context, listen: false).id;
+  Future<bool> getScheduleList(context) async {
     var dio = Dio();
     var url = '$commonUrl:8000/schedules/findlist';
     //사용자토큰가져오기
@@ -139,5 +139,6 @@ class HomeRepository {
       Provider.of<HomeProvider>(context, listen: false)
           .setallschdulelist(datetime);
     }
+    return true;
   }
 }
