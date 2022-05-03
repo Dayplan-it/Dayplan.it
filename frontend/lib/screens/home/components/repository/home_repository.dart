@@ -25,7 +25,7 @@ class HomeRepository {
     var prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('apiToken');
     dio.options.headers['Authorization'] = "Token " + token.toString();
-    var url = '$commonUrl:8000/schedules/find?date=${timestamp1 ~/ 1000}';
+    var url = '$commonUrl/schedules/find?date=${timestamp1 ~/ 1000}';
     Response response = await dio.get(url);
     var res = response.data;
 
@@ -120,7 +120,7 @@ class HomeRepository {
   //userid로 사용자의 일정정보 조회  API 요청
   Future<bool> getScheduleList(context) async {
     var dio = Dio();
-    var url = '$commonUrl:8000/schedules/findlist';
+    var url = '$commonUrl/schedules/findlist';
     //사용자토큰가져오기
     var prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('apiToken');
