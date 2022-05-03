@@ -212,8 +212,8 @@ def place_detail(place_id, shouldGetImg):
 
 def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', should_use_depart_time=True, time='now'):
     '''
-    최단경로 2500미터 이하 = 다익스트라 도보검색
-    최단경로 2500미터 이상 = 대중교통 검색
+    최단경로 1000미터 이하 = 다익스트라 도보검색
+    최단경로 1000미터 이상 = 대중교통 검색
     이동수단, 이동시간 입력가능 
     '''
 
@@ -235,8 +235,8 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', should_use_de
     polyline = route[1]
     duration_minute = distance*0.015
 
-    # 최단거리가 2500미터 이하일 때 도보검색
-    if distance <= 2500:
+    # 최단거리가 1000미터 이하일 때 도보검색
+    if distance <= 1000:
         depart_time_out = 0
         arrival_time_out = 0
 
@@ -267,14 +267,14 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', should_use_de
             "distance": {"text": f"{distance/1000:.1f} km", "value": round(distance)},
             "duration": {"text": f"{round(duration_minute)} 분", "value": round(duration_minute*60)},
             "start_address": "",
-            "start_location": {"lat": ori_lat, "lng": ori_lng},
+            "start_location": {"lat": float(ori_lat), "lng": float(ori_lng)},
             "end_address": "",
-            "end_location": {"lat": des_lat, "lng": des_lng},
+            "end_location": {"lat": float(des_lat), "lng": float(des_lng)},
             "steps": [{
                 "duration": {"text": f"{round(duration_minute)} 분", "value": round(duration_minute*60)},
                 "distance": {"text": f"{distance/1000:.1f} km", "value": round(distance)},
-                "start_location": {"lat": ori_lat, "lng": ori_lng},
-                "end_location": {"lat": des_lat, "lng": des_lng},
+                "start_location": {"lat": float(ori_lat), "lng": float(ori_lng)},
+                "end_location": {"lat": float(des_lat), "lng": float(des_lng)},
                 "polyline": {"points": polyline},
                 "html_instructions": find_address_by_latlng(des_lat, des_lng) + "까지 도보",
                 "travel_mode": "WALKING",
@@ -284,7 +284,7 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', should_use_de
                 "points": polyline
             }
         }
-    # 최단거리가 2500이상시 대중교통 검색
+    # 최단거리가 1000이상시 대중교통 검색
     else:
         URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
             'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
@@ -292,7 +292,6 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', should_use_de
             'mode=transit&language=ko&'\
             f"{'departure_time=' + time if should_use_depart_time else 'arrival_time=' + time}" \
             '&key='+settings.GOOGLE_API_KEY
-        print(URL)
         response = requests.get(URL)
         rootData = json.loads(response.text)
         data = rootData['routes'][0]['legs'][0]

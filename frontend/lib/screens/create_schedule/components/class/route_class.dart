@@ -39,10 +39,10 @@ abstract class Step {
       : distance = double.parse(
             (json['distance']!['value'] / 1000).toStringAsFixed(3)),
         duration = Duration(seconds: json['duration']!['value']),
-        departStopLatLng = LatLng(double.parse(json['start_location']!['lat']),
-            double.parse(json['start_location']!['lng'])),
-        arrivalStopLatLng = LatLng(double.parse(json['end_location']!['lat']),
-            double.parse(json['end_location']!['lng'])),
+        departStopLatLng = LatLng(
+            json['start_location']!['lat'], json['start_location']!['lng']),
+        arrivalStopLatLng =
+            LatLng(json['end_location']!['lat'], json['end_location']!['lng']),
         polyline = json['polyline']!['points'],
         instruction = json['html_instructions']!;
 
@@ -92,7 +92,8 @@ class TransitStep extends Step {
   TransitStep.fromJson({required Map<String, dynamic> json})
       : departStopName = json['transit_details']!['departure_stop']['name'],
         arrivalStopName = json['transit_details']!['arrival_stop']['name'],
-        color = Color(json['transit_details']!['line']['color']),
+        color = Color(int.parse(json['transit_details']!['line']['color']
+            .replaceFirst('#', '0xFF'))),
         numStops = json['transit_details']!['num_stops'],
         transitShortName = json['transit_details']!['line']['short_name'],
         transitName = json['transit_details']!['line']['name'],
@@ -107,24 +108,29 @@ class TransitStep extends Step {
         super.fromJson(json);
 
   @override
-  Map toJson() => {
-        "travel_mode": "TR",
-        "duration": printDuration(duration),
-        "distance": distance,
-        "instruction": instruction,
-        "polyline": polyline,
-        "transit_detail": {
-          "transit_type": transitType,
-          "transit_name": transitName,
-          "transit_short_name": transitShortName,
-          "departure_stop_name": departStopName,
-          "departure_time": printDateTime(departTime),
-          "arrival_stop_name": arrivalStopName,
-          "arrival_time": printDateTime(arrivalTime),
-          "num_stops": numStops,
-          "transit_color": color.toString()
-        }
-      };
+  Map toJson() {
+    String colorStr = '#${color.red.toRadixString(16).padLeft(2, '0')}'
+        '${color.green.toRadixString(16).padLeft(2, '0')}'
+        '${color.blue.toRadixString(16).padLeft(2, '0')}';
+    return {
+      "travel_mode": "TR",
+      "duration": printDuration(duration),
+      "distance": distance,
+      "instruction": instruction,
+      "polyline": polyline,
+      "transit_detail": {
+        "transit_type": transitType,
+        "transit_name": transitName,
+        "transit_short_name": transitShortName,
+        "departure_stop_name": departStopName,
+        "departure_time": printDateTime(departTime),
+        "arrival_stop_name": arrivalStopName,
+        "arrival_time": printDateTime(arrivalTime),
+        "num_stops": numStops,
+        "transit_color": colorStr
+      }
+    };
+  }
 }
 
 /// Walking Step
@@ -194,10 +200,10 @@ class RouteOrder {
       : distance = double.parse(
             (json['distance']!['value'] / 1000).toStringAsFixed(3)),
         duration = Duration(seconds: json['duration']!['value']),
-        departLatLng = LatLng(double.parse(json['start_location']!['lat']),
-            double.parse(json['start_location']!['lng'])),
-        arrivalLatLng = LatLng(double.parse(json['end_location']!['lat']),
-            double.parse(json['end_location']!['lng'])),
+        departLatLng = LatLng(
+            json['start_location']!['lat'], json['start_location']!['lng']),
+        arrivalLatLng =
+            LatLng(json['end_location']!['lat'], json['end_location']!['lng']),
         startsAt = DateTime.fromMillisecondsSinceEpoch(
             json['departure_time']['value'] * 1000),
         endsAt = DateTime.fromMillisecondsSinceEpoch(

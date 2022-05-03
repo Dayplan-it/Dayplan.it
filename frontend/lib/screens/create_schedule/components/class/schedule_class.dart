@@ -145,6 +145,7 @@ class ScheduleCreated {
     return tempScheduleCreated;
   }
 
+  /// [Place] , [RouteOrder]
   late List<dynamic> list;
 
   late DateTime date;

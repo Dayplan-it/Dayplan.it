@@ -15,7 +15,7 @@ class CreateScheduleStore with ChangeNotifier {
   late DateTime scheduleDate;
 
   /// 스케줄 리스트
-  List<dynamic> scheduleList = [];
+  List<Place> scheduleList = [];
   void clearScheduleList() {
     scheduleList = [];
     notifyListeners();

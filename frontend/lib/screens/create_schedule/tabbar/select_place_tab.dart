@@ -136,7 +136,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
         throw Exception('서버에 문제가 발생했습니다');
       }
     } catch (error) {
-      print(error);
+      rethrow;
     }
   }
 
@@ -151,8 +151,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
         throw Exception('서버에 문제가 발생했습니다');
       }
     } catch (error) {
-      print(error);
-      throw error;
+      rethrow;
     }
   }
 
@@ -167,8 +166,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
         throw Exception('서버에 문제가 발생했습니다');
       }
     } catch (error) {
-      print(error);
-      throw error;
+      rethrow;
     }
   }
 
@@ -211,6 +209,10 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
       int? minute, String placeId) {
     final MarkerId markerId = MarkerId(placeId);
     _onTap() async {
+      context
+          .read<CreateScheduleStore>()
+          .setSelectedPlace(placeId, title, placeLatLng);
+
       context.read<CreateScheduleStore>().toggleIsLookingPlaceDetail();
 
       await _customInfoWindowController.googleMapController!
@@ -218,20 +220,18 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
 
       // _customInfoWindowController.hideInfoWindow!(markerId);
       // _customInfoWindowController.updateInfoWindow!();
-      context
-          .read<CreateScheduleStore>()
-          .setSelectedPlace(placeId, title, placeLatLng);
     }
 
     return markerWithCustomInfoWindow(markerId, placeLatLng,
         _customInfoWindowController, title, rating, minute, _onTap);
   }
 
-  void _clearMarker() {
+  void _clearMarker() async {
     setState(() {
       markers = <MarkerId, Marker>{};
     });
     _customInfoWindowController.deleteAllInfoWindow!();
+    await Future.delayed(Duration(milliseconds: 500));
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -872,10 +872,10 @@ class _PlaceDetailState extends State<PlaceDetail> {
             )),
             SquareButton(
               title: "이 장소로 결정",
-              onPressed: () {
-                context.read<CreateScheduleStore>().setPlaceForSchedule();
-                widget.clearMarker();
+              onPressed: () async {
+                await widget.clearMarker();
                 widget.customInfoWindowController.deleteAllInfoWindow!();
+                context.read<CreateScheduleStore>().setPlaceForSchedule();
                 setState(() {
                   isLoaded = false;
                 });

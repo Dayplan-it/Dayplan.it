@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+
 import 'package:flutter/material.dart';
 
 import 'package:dio/dio.dart';
@@ -100,21 +103,128 @@ class _MapForRouteFindState extends State<MapForRouteFind> {
               scheduleDate: context.read<CreateScheduleStore>().scheduleDate));
       // print(context.read<CreateScheduleStore>().scheduleCreated.toJson());
       // print(context.read<CreateScheduleStore>().scheduleCreated.list);
-      setState(() {
-        isChanged = true;
-      });
+
+      for (var order
+          in context.read<CreateScheduleStore>().scheduleCreated.list) {
+        if (order.runtimeType == RouteOrder) {
+          _addPolyLine(
+              decodePolyline(order.polyline)
+                  .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+                  .toList(),
+              order.polyline,
+              Colors.blue,
+              8);
+        } else {
+          _addMarker(
+            order.place,
+            order.placeId,
+          );
+        }
+      }
     }
   }
 
-  bool isChanged = false;
+  _addPolyLine(List<LatLng> polylineCoordinates, String lineId, Color color,
+      int lineWidth) {
+    PolylineId id = PolylineId(lineId);
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: color,
+      points: polylineCoordinates,
+      width: lineWidth,
+    );
+
+    setState(() {
+      polylines[id] = polyline;
+    });
+  }
+
+  _addMarker(LatLng position, String markerId) {
+    MarkerId id = MarkerId(markerId);
+    Marker marker = Marker(markerId: id, position: position);
+
+    setState(() {
+      markers[id] = marker;
+    });
+  }
+
+  Map<MarkerId, Marker> markers = {};
+  Map<PolylineId, Polyline> polylines = {};
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SquareButtonWithLoading(
-          title: "경로 생성하기",
-          futureFunction: _createSchedule,
-          activate: context.watch<CreateScheduleStore>().isRouteCreateAble()),
+    return Column(
+      children: [
+        if (context.watch<CreateScheduleStore>().isScheduleCreated) ...[
+          const Expanded(flex: 1, child: SizedBox.shrink()),
+          Expanded(
+              flex: 15,
+              child: ClipRRect(
+                borderRadius: defaultBoxRadius,
+                child: Stack(
+                  children: [
+                    GoogleMap(
+                        onTap: (position) async {
+                          // if (FocusScope.of(context).hasFocus) {
+                          //   FocusScope.of(context).unfocus();
+                          //   // InfoWindow의 위치를 변경해야 하는데,
+                          //   // 키보드 높이의 변경된 값을 얻으려면 약간의 딜레이가 필요함
+                          //   // 추후 퍼포먼스 보고 값을 바꿀 수 있음
+                          //   await Future.delayed(const Duration(milliseconds: 1000));
+                          //   widget.customInfoWindowController.updateInfoWindow!();
+                          // }
+                          // else {
+                          //   // widget.customInfoWindowController.hideAllInfoWindow!();
+
+                          //   context.read<CreateScheduleStore>().onLookingPlaceDetailEnd();
+                          //   await Future.delayed(const Duration(milliseconds: 1000));
+                          //   widget.customInfoWindowController.updateInfoWindow!();
+                          // }
+                        },
+                        onCameraMove: (position) {},
+                        myLocationEnabled: true,
+                        // myLocationButtonEnabled:
+                        //     context.watch<CreateScheduleStore>().isLookingPlaceDetail
+                        //         ? false
+                        //         : true,
+                        gestureRecognizers: <
+                            Factory<OneSequenceGestureRecognizer>>{
+                          Factory<OneSequenceGestureRecognizer>(
+                            () => EagerGestureRecognizer(),
+                          ),
+                        },
+                        rotateGesturesEnabled: false,
+                        tiltGesturesEnabled: false,
+                        markers: Set<Marker>.of(markers.values),
+                        polylines: Set<Polyline>.of(polylines.values),
+                        initialCameraPosition: CameraPosition(
+                            target: context
+                                .read<CreateScheduleStore>()
+                                .scheduleCreated
+                                .list[0]
+                                .place,
+                            zoom: 15)),
+                    // ModifiedCustomInfoWindow(
+                    //   controller: widget.customInfoWindowController,
+                    //   offset: 40,
+                    // ),
+                  ],
+                ),
+              )),
+        ],
+        Expanded(
+          flex: 3,
+          child: Center(
+            child: SquareButtonWithLoading(
+                title: context.watch<CreateScheduleStore>().isScheduleCreated
+                    ? "경로 다시 생성하기"
+                    : "경로 생성하기",
+                futureFunction: _createSchedule,
+                activate:
+                    context.watch<CreateScheduleStore>().isRouteCreateAble()),
+          ),
+        ),
+      ],
     );
   }
 }
