@@ -686,7 +686,7 @@ class CreateScheduleStore with ChangeNotifier {
     onDecidingScheduleStartsAtEnd();
     onLookingPlaceDetailEnd();
     onCreateRouteTabEnd();
-    clearScheduleCreated();
+    // clearScheduleCreated();
     isBeforeStartTap = false;
   }
 

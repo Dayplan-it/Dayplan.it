@@ -73,7 +73,13 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
         actions: isHomePage
             ? [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const NotificationPage()),
+                    );
+                  },
                   icon: const Icon(CupertinoIcons.bell_fill),
                   color: primaryColor,
                 ),

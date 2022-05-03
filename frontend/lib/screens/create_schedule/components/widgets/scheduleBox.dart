@@ -515,6 +515,7 @@ class RouteBox extends StatelessWidget {
           height: route.toHeight(),
           width: double.infinity,
           clipBehavior: Clip.antiAlias,
+          padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
           child: (route.toHeight() > 10)
               ? Center(
                   child: FittedBox(

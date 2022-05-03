@@ -10,7 +10,7 @@ class HomeProvider extends ChangeNotifier {
   //사용자의 모든 일정리스트로 불러옴
   List<DateTime> _allSchedule = [];
   //현재 사용자가 선택한 날짜를 나타내는 변수(default = 오늘)
-  DateTime _nowDate = DateTime.now().add(Duration(days: 0));
+  DateTime _nowDate = DateTime.now();
   List<DecorationItem> _decorationList = [];
   //일정하나의 상세일정
   Map<String, List<dynamic>> _scheduLedetail = {};

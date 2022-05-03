@@ -48,9 +48,9 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
               fontWeight: FontWeight.w600),
 
           ///날짜를 클릭했을 때 해당 날짜 지도, 스케줄, provider 설정
-          onDatePressed: (DateTime datetime) async {
+          onDatePressed: (DateTime date) async {
             ///provider 현재날짜설정
-
+            DateTime datetime = DateTime(date.year, date.month, date.day);
             Provider.of<HomeProvider>(context, listen: false)
                 .selectDate(datetime);
 

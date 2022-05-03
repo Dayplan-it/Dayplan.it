@@ -60,9 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(padding: EdgeInsets.all(0.007 * deviceheight)),
             const Googlemap(),
           ])),
-      floatingActionButton: DayplanitFloatingBtn(
-        date: Provider.of<HomeProvider>(context, listen: true).nowDate,
-      ),
+      floatingActionButton: DayplanitFloatingBtn(),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }

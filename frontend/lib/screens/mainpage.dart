@@ -25,7 +25,9 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const DayplanitAppBar(),
+      appBar: const DayplanitAppBar(
+        isHomePage: true,
+      ),
       body: screenList[_selectedIndex],
       bottomNavigationBar: DayplaitBottomNavBar(
         selectedIndex: _selectedIndex,
