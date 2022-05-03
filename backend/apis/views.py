@@ -1,6 +1,7 @@
+from unittest import result
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from .recom_place_module import *
 from users.utils import LoginConfirm
 
@@ -14,6 +15,11 @@ PARAM_ROUTE_LAT_ORI = 'lat_ori'
 PARAM_ROUTE_LNG_DEST = 'lng_dest'
 PARAM_ROUTE_LAT_DEST = 'lat_dest'
 PARAM_ROUTE_TYPE = 'route_type'
+PARAM_QUERY_FOR_AUTOCOMPLETE = 'input'
+PARAM_IS_RANKBY_DISTANCE = 'is_rankby_distance'
+PARAM_SHOULD_GET_IMG = 'should_get_img'
+PARAM_SHOULD_USE_DEPART_TIME = 'should_use_depart_time'
+PARAM_TIME = 'time'
 
 
 class PlaceRecommend(APIView):
@@ -22,7 +28,8 @@ class PlaceRecommend(APIView):
     lng, lat값과 place_type을 받아
     각 장소별로 convex_hull값을 부여하는 API
     """
-    @LoginConfirm
+    # @LoginConfirm
+
     def get(self, request):
         # 예시데이터
         #lng = 126.99446459234908
@@ -48,13 +55,18 @@ class PlaceDetail(APIView):
     place_id를 받아 장소의 자세한 정보를 주는 API
     """
 
-    @LoginConfirm
+    # @LoginConfirm
     def get(self, request):
         # 예시데이터
         # ChIJKbC0o06ifDURYATbX7adyKg
         place_id = request.query_params[PARAM_PLACE_ID]
 
-        return Response(place_detail(place_id), status=HTTP_200_OK)
+        if PARAM_SHOULD_GET_IMG in request.query_params:
+            shouldGetImg = request.query_params[PARAM_SHOULD_GET_IMG]
+        else:
+            shouldGetImg = False
+
+        return Response(place_detail(place_id, shouldGetImg=shouldGetImg), status=HTTP_200_OK)
 
 
 class MakeRoute(APIView):
@@ -75,7 +87,7 @@ class MakeRoute(APIView):
     #
     #       x['steps']            -상세경로
 
-    @LoginConfirm
+    # @LoginConfirm
     def get(self, request):
         # 두 지점의 위치정보와 이동타입을 를 쿼리로 입력
         lng_ori = request.query_params[PARAM_ROUTE_LNG_ORI]
@@ -83,14 +95,58 @@ class MakeRoute(APIView):
         lng_dest = request.query_params[PARAM_ROUTE_LNG_DEST]
         lat_dest = request.query_params[PARAM_ROUTE_LAT_DEST]
 
+        should_use_depart_time = True
+        if PARAM_SHOULD_USE_DEPART_TIME in request.query_params:
+            should_use_depart_time = request.query_params[PARAM_SHOULD_USE_DEPART_TIME] == "true"
+
+        time = None
+
+        if PARAM_TIME in request.query_params:
+            time = request.query_params[PARAM_TIME]
+        else:
+            time = "now"
+
         # 쿼리에서 이동타입을 입력해줘도되고 안해줘도 가능
-        if 'route_type' in request.query_params:
+        if PARAM_ROUTE_TYPE in request.query_params:
             route_type = request.query_params[PARAM_ROUTE_TYPE]
             result = pointroute(lng_ori, lat_ori, lng_dest,
-                                lat_dest, mode=route_type)
+                                lat_dest, mode=route_type, should_use_depart_time=should_use_depart_time, time=time)
         else:
             result = pointroute(lng_ori, lat_ori, lng_dest,
-                                lat_dest)
+                                lat_dest, should_use_depart_time=should_use_depart_time, time=time)
         # route type은 필수아님! 상황에 맞게 검색해주긴함
 
         return Response(result, status=HTTP_200_OK)
+
+
+class PlaceAutocomplete(APIView):
+
+    """
+    검색어의 자동완성을 위한 API
+    """
+
+    # @LoginConfirm
+    def get(self, request):
+        inputStr = request.query_params[PARAM_QUERY_FOR_AUTOCOMPLETE]
+        lat = request.query_params[PARAM_PLACE_LAT]
+        lng = request.query_params[PARAM_PLACE_LNG]
+
+        isRankByDistance = False
+        if PARAM_IS_RANKBY_DISTANCE in request.query_params:
+            isRankByDistance = request.query_params[PARAM_IS_RANKBY_DISTANCE] == "true"
+
+        return Response(place_autocomplete(inputStr, lat, lng, isRankByDistance), status=HTTP_200_OK)
+
+
+class FindAddressByLatLng(APIView):
+
+    """
+    좌표를 이용해 주소를 얻는 API
+    """
+
+    # @LoginConfirm
+    def get(self, request):
+        lat = request.query_params[PARAM_PLACE_LAT]
+        lng = request.query_params[PARAM_PLACE_LNG]
+
+        return Response({"address": find_address_by_latlng(lat, lng)}, status=HTTP_200_OK)

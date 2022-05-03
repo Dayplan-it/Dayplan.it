@@ -2,24 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 
 class DayplaitBottomNavBar extends StatelessWidget {
-  final selectedIndex;
+  final int selectedIndex;
   ValueChanged<int> onItemTapped;
 
   DayplaitBottomNavBar(
-      {Key? key, this.selectedIndex, required this.onItemTapped})
+      {Key? key, required this.selectedIndex, required this.onItemTapped})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-        showUnselectedLabels: false,
-        currentIndex: selectedIndex,
-        items: [
-          homeIcon(),
-          profileIcon(),
-        ],
-        selectedItemColor: primaryColor,
-        onTap: onItemTapped);
+    return Container(
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+          boxShadow: [
+            BoxShadow(color: Colors.black38, spreadRadius: 0, blurRadius: 20),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30.0),
+            topRight: Radius.circular(30.0),
+          ),
+          child: BottomNavigationBar(
+              elevation: 10,
+              showUnselectedLabels: false,
+              currentIndex: selectedIndex,
+              items: [
+                homeIcon(),
+                profileIcon(),
+              ],
+              selectedItemColor: primaryColor,
+              onTap: onItemTapped),
+        ));
   }
 
   BottomNavigationBarItem profileIcon() {

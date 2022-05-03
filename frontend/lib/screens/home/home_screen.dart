@@ -1,10 +1,12 @@
-import 'package:dayplan_it/notification/notification.dart';
 import 'package:flutter/material.dart';
+
+import 'package:provider/provider.dart';
+import 'package:dayplan_it/notification/notification.dart';
 import 'package:dayplan_it/screens/home/components/calender.dart';
 import 'package:dayplan_it/screens/home/components/schedule.dart';
 import 'package:dayplan_it/screens/home/components/googlemap.dart';
 import 'package:dayplan_it/components/floating_btn.dart';
-import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
 import 'package:dayplan_it/constants.dart';
 
@@ -58,7 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(padding: EdgeInsets.all(0.007 * deviceheight)),
             const Googlemap(),
           ])),
-      floatingActionButton: const DayplanitFloatingBtn(),
+      floatingActionButton: DayplanitFloatingBtn(
+        date: Provider.of<HomeProvider>(context, listen: true).nowDate,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }

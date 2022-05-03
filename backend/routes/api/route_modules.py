@@ -3,7 +3,6 @@ from django.conf import settings
 from routes.api.serializers import RouteSerializer, StepSerializer, TransitDetailSerializer, PlaceSerializer
 from routes.api.serializers_post import PlaceSerializer as POST_PlaceSerializer, RouteSerializer as POST_RouteSerializer, StepSerializer as POST_StepSerializer, TransitDetailSerializer as POST_TransitDetailSerializer
 from core.functions.polyline4postgis import PolylineDecoderForPostGIS
-from schedules import models as schedule_models
 
 
 KEY_ID = 'id'
