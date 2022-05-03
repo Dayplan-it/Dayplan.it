@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:dayplan_it/constants.dart';
 
 class DayplaitBottomNavBar extends StatelessWidget {
-  final selectedIndex;
+  final int selectedIndex;
   ValueChanged<int> onItemTapped;
 
   DayplaitBottomNavBar(
-      {Key? key, this.selectedIndex, required this.onItemTapped})
+      {Key? key, required this.selectedIndex, required this.onItemTapped})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(30), topRight: Radius.circular(30)),
           boxShadow: [
@@ -20,7 +20,7 @@ class DayplaitBottomNavBar extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.only(
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(30.0),
             topRight: Radius.circular(30.0),
           ),

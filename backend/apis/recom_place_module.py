@@ -1,10 +1,11 @@
 import json
+import datetime as dt
+from numpy import double
 import requests
 import pandas as pd
-import geopandas as gpd
+from urllib import parse
 from django.db import connection
 from django.conf import settings
-from urllib import parse
 
 
 MAX_PHOTO_WIDTH = 600
@@ -149,20 +150,22 @@ def calMinute(nodeList, startNode):
 def place_detail(place_id, shouldGetImg):
     detail_str = 'https://maps.googleapis.com/maps/api/place/details/json'\
         + '?place_id='+str(place_id)\
-        + '&fields=formatted_address,name,geometry,review,photo,rating,user_ratings_total,international_phone_number&language=ko'\
+        + '&fields=formatted_address,name,geometry,review,photo,rating,user_ratings_total&language=ko'\
         + '&key='+settings.GOOGLE_API_KEY
     response = requests.get(detail_str)
     data = json.loads(response.text)
+
     results = data['result']
     # EPSG : 900913
     lng = results['geometry']['location']['lng']
     lat = results['geometry']['location']['lat']
     name = results['name']
+
     if ('rating' in results.keys()):
         rating = results['rating']
         user_ratings_total = results['user_ratings_total']
     else:
-        rating = []
+        rating = "-"
         user_ratings_total = 0
     photo = []
     if (shouldGetImg and 'photos' in results.keys()):
@@ -192,6 +195,7 @@ def place_detail(place_id, shouldGetImg):
     detail_all['lng'] = lng
     detail_all['lat'] = lat
     detail_all['name'] = name
+    detail_all['address'] = results['formatted_address']
     detail_all['rating'] = rating
     detail_all['user_ratings_total'] = user_ratings_total
     detail_all['photo'] = photo
@@ -206,7 +210,7 @@ def place_detail(place_id, shouldGetImg):
 # API 만을 이용하는 함수
 
 
-def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='now'):
+def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', should_use_depart_time=True, time='now'):
     '''
     최단경로 2500미터 이하 = 다익스트라 도보검색
     최단경로 2500미터 이상 = 대중교통 검색
@@ -218,8 +222,9 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='
         URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
             'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
             'destination='+str(des_lat)+','+str(des_lng)+'&'\
-            'mode='+mode+'&'\
-            'departure_time='+depart_time+'&key='+settings.GOOGLE_API_KEY
+            'mode='+mode+'&language=ko&'\
+            f"{'departure_time=' + time if should_use_depart_time else 'arrival_time=' + time}" \
+            '&key='+settings.GOOGLE_API_KEY
         response = requests.get(URL)
         data = json.loads(response.text)['routes'][0]['legs'][0]
         data["route_type"] = mode
@@ -227,21 +232,72 @@ def pointroute(ori_lng, ori_lat, des_lng, des_lat, mode='default', depart_time='
 
     route = dijkstra_distance(ori_lng, ori_lat, des_lng, des_lat)
     distance = route[0]
-    geom_wtk = route[1]
+    polyline = route[1]
+    duration_minute = distance*0.015
+
     # 최단거리가 2500미터 이하일 때 도보검색
     if distance <= 2500:
-        return {"duration": {"text": f"{distance*0.015} mins"}, "distance": {"text": f"{distance/1000} km"}, "start_location": {"lat": ori_lat, "lng": ori_lng}, "end_location": {"lat": des_lat, "lng": des_lng}, "polyline": {"points": geom_wtk}, "route_type": "walking"}
+        depart_time_out = 0
+        arrival_time_out = 0
+
+        if should_use_depart_time:
+            if time == 'now':
+                depart_time_out = dt.datetime.now().timestamp()
+            else:
+                depart_time_out = int(time)
+            delta = dt.timedelta(minutes=duration_minute)
+            arrival_time_out = (dt.datetime.fromtimestamp(
+                depart_time_out) + delta).timestamp()
+        else:
+            if time == 'now':
+                arrival_time_out = dt.datetime.now().timestamp()
+            else:
+                arrival_time_out = int(time)
+            delta = dt.timedelta(minutes=duration_minute)
+            depart_time_out = (dt.datetime.fromtimestamp(
+                arrival_time_out) - delta).timestamp()
+
+        return {
+            "arrival_time": {
+                "value": round(arrival_time_out)
+            },
+            "departure_time": {
+                "value": round(depart_time_out)
+            },
+            "distance": {"text": f"{distance/1000:.1f} km", "value": round(distance)},
+            "duration": {"text": f"{round(duration_minute)} 분", "value": round(duration_minute*60)},
+            "start_address": "",
+            "start_location": {"lat": ori_lat, "lng": ori_lng},
+            "end_address": "",
+            "end_location": {"lat": des_lat, "lng": des_lng},
+            "steps": [{
+                "duration": {"text": f"{round(duration_minute)} 분", "value": round(duration_minute*60)},
+                "distance": {"text": f"{distance/1000:.1f} km", "value": round(distance)},
+                "start_location": {"lat": ori_lat, "lng": ori_lng},
+                "end_location": {"lat": des_lat, "lng": des_lng},
+                "polyline": {"points": polyline},
+                "html_instructions": find_address_by_latlng(des_lat, des_lng) + "까지 도보",
+                "travel_mode": "WALKING",
+            }],
+            "route_type": "backend_caluculated",
+            "overview_polyline": {
+                "points": polyline
+            }
+        }
     # 최단거리가 2500이상시 대중교통 검색
     else:
-
         URL = 'https://maps.googleapis.com/maps/api/directions/json?'\
             'origin='+str(ori_lat)+','+str(ori_lng) + '&'\
             'destination='+str(des_lat)+','+str(des_lng)+'&'\
-            'mode='+'transit'+'&'\
-            'departure_time='+depart_time+'&key='+settings.GOOGLE_API_KEY
+            'mode=transit&language=ko&'\
+            f"{'departure_time=' + time if should_use_depart_time else 'arrival_time=' + time}" \
+            '&key='+settings.GOOGLE_API_KEY
+        print(URL)
         response = requests.get(URL)
-        data = json.loads(response.text)['routes'][0]['legs'][0]
+        rootData = json.loads(response.text)
+        data = rootData['routes'][0]['legs'][0]
         data["route_type"] = 'transit'
+        data["overview_polyline"] = rootData["routes"][0]["overview_polyline"]
         return data
 
 
@@ -259,3 +315,18 @@ def place_autocomplete(inputStr, lat, lng, isRankByDistance):
     data = json.loads(response.text)
 
     return data
+
+
+def find_address_by_latlng(lat, lng):
+    '''
+    좌표를 이용해 주소를 얻는 구글의 (Reverse) Geocoding API
+    '''
+
+    url = 'https://maps.googleapis.com/maps/api/geocode/json?'\
+        + f'latlng={lat},{lng}'\
+        + f'&language=ko'\
+        + f'&key={settings.GOOGLE_API_KEY}'
+    response = requests.get(url)
+    address = json.loads(response.text)['results'][0]['formatted_address']
+
+    return address

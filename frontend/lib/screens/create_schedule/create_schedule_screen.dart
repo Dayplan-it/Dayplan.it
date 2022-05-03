@@ -1,13 +1,17 @@
-import 'package:dayplan_it/screens/create_schedule/tabbar/select_place_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
+
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
+import 'package:dayplan_it/screens/create_schedule/tabbar/create_route_tab.dart';
+import 'package:dayplan_it/screens/create_schedule/tabbar/select_place_tab.dart';
+import 'package:dayplan_it/screens/create_schedule/tabbar/set_schedule_tab.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/notification_text.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/timeLine_vertical.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
-import 'package:dayplan_it/screens/create_schedule/tabbar/set_schedule_tab.dart';
 
 class CreateScheduleScreen extends StatefulWidget {
   const CreateScheduleScreen({Key? key, required this.date}) : super(key: key);
@@ -94,15 +98,33 @@ class _CreateScheduleScreenRightSideState
     extends State<CreateScheduleScreenRightSide> with TickerProviderStateMixin {
   int index = 0;
 
-  Widget _buildTabTitle(String title) {
+  Widget _buildTabTitle(IconData icon, String title, int tabIndex) {
     return Center(
-        child: Text(
-      title,
-      style: mainFont(
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        color: primaryColor,
-      ),
+        child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (index != tabIndex) ...[
+          Icon(
+            icon,
+            color: primaryColor,
+            size: 20,
+          ),
+        ] else ...[
+          SizedBox(
+            width: 45,
+            child: Text(
+              title,
+              style: mainFont(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: primaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ]
+      ],
     ));
   }
 
@@ -111,6 +133,22 @@ class _CreateScheduleScreenRightSideState
       index = context.read<CreateScheduleStore>().tabController.index;
     });
     context.read<CreateScheduleStore>().setTimeLineWidthFlexByTabIndex(index);
+    if (context.read<CreateScheduleStore>().customInfoWindowController !=
+        null) {
+      if (index == 1 &&
+          context.read<CreateScheduleStore>().customInfoWindowController !=
+              null) {
+        context
+            .read<CreateScheduleStore>()
+            .customInfoWindowController!
+            .showAllInfoWindow!();
+      }
+    }
+    if (index == 2) {
+      context.read<CreateScheduleStore>().onCreateRouteTabStart();
+    } else {
+      context.read<CreateScheduleStore>().onCreateRouteTabEnd();
+    }
     //context.read<CreateScheduleStore>().animateTimeLine();
   }
 
@@ -130,68 +168,68 @@ class _CreateScheduleScreenRightSideState
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 25,
-          width: double.infinity,
-          child: TabBarView(
-            controller: context.read<CreateScheduleStore>().tabController,
-            children: [
-              _buildTabTitle("일정 추가 및 조정"),
-              _buildTabTitle("장소 설정"),
-              _buildTabTitle("경로 생성"),
-            ],
-          ),
-        ),
-        TabBar(
-          controller: context.read<CreateScheduleStore>().tabController,
-          indicatorColor: primaryColor,
-          labelColor: primaryColor,
-          tabs: const [
-            Tab(
-              iconMargin: EdgeInsets.only(bottom: 2),
-              icon: Icon(Icons.schedule_rounded),
-            ),
-            Tab(
-              iconMargin: EdgeInsets.only(bottom: 2),
-              icon: Icon(
-                CupertinoIcons.placemark_fill,
-              ),
-            ),
-            Tab(
-              iconMargin: EdgeInsets.only(bottom: 2),
-              icon: Icon(Icons.route_rounded),
-            ),
-          ],
-        ),
-        Expanded(
-          child: TabBarView(
-            physics: const NeverScrollableScrollPhysics(),
-            controller: context.read<CreateScheduleStore>().tabController,
-            children: [
-              const SetScheduleTab(),
-              const SelectPlaceTab(),
-              Text(index.toString()),
-            ],
-          ),
-        ),
-        Column(
-          children: [
-            if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
-              const NotificationText(
-                title: "일정이 없습니다",
-                isRed: true,
-              ),
-            // SquareButton(
-            //   title: "일정 결정하기",
-            //   activate:
-            //       context.read<CreateScheduleStore>().scheduleList.isNotEmpty,
-            //   onPressed: () {},
-            // ),
-          ],
-        ),
-      ],
-    );
+    return Stack(clipBehavior: Clip.none, // Positioned 사용하기 위해 Stack 사용함
+        // 스케줄 Reorder시에 0시에 생기는 DragTarget때문에 이같은 과정이 필요
+        children: [
+          Positioned(
+              top: -reorderDragTargetHeight / 2,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Column(
+                children: [
+                  TabBar(
+                    controller:
+                        context.read<CreateScheduleStore>().tabController,
+                    indicatorColor: primaryColor,
+                    labelColor: primaryColor,
+                    labelPadding: EdgeInsets.zero,
+                    tabs: [
+                      Tab(
+                        child: _buildTabTitle(
+                            Icons.schedule_rounded, "일정 추가 및 조정", 0),
+                      ),
+                      Tab(
+                        child: _buildTabTitle(
+                            CupertinoIcons.placemark_fill, "장소 설정", 1),
+                      ),
+                      Tab(
+                        child: _buildTabTitle(Icons.route_rounded, "경로 생성", 2),
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller:
+                          context.read<CreateScheduleStore>().tabController,
+                      children: const [
+                        SetScheduleTab(),
+                        SelectPlaceTab(),
+                        CreateRouteTab(),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      if (context
+                          .watch<CreateScheduleStore>()
+                          .scheduleList
+                          .isEmpty)
+                        const NotificationText(
+                          title: "일정이 없습니다",
+                          isRed: true,
+                        ),
+                      // SquareButton(
+                      //   title: "일정 결정하기",
+                      //   activate:
+                      //       context.read<CreateScheduleStore>().scheduleList.isNotEmpty,
+                      //   onPressed: () {},
+                      // ),
+                    ],
+                  ),
+                ],
+              ))
+        ]);
   }
 }

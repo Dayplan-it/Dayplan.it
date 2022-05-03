@@ -1,20 +1,22 @@
-import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
-import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
 
 class SelectPlaceTab extends StatefulWidget {
   const SelectPlaceTab({Key? key}) : super(key: key);
@@ -235,6 +237,8 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
     _customInfoWindowController.googleMapController = _mapController;
+    context.read<CreateScheduleStore>().customInfoWindowController =
+        _customInfoWindowController;
   }
 
   Future<void> _getPlaceRecommendForUserLoc() async {
@@ -307,10 +311,15 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
           LatLng(double.parse(place["lat"]), double.parse(place["lng"])),
           place["name"],
           place["rating"].toString(),
-          place["minute"],
+          place["minute"].runtimeType == int
+              ? place["minute"]
+              : place["minute"].toInt(),
           place["place_id"]);
       setState(() {
-        convex[[5, 10, 15, 20, 25].indexOf(place["minute"])].add(markerId);
+        convex[[5, 10, 15, 20, 25].indexOf(place["minute"].runtimeType == int
+                ? place["minute"]
+                : place["minute"].toInt())]
+            .add(markerId);
       });
     }
 
@@ -347,6 +356,45 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   Widget build(BuildContext context) {
     int _indexOfPlaceDecidingSchedule =
         context.watch<CreateScheduleStore>().indexOfPlaceDecidingSchedule;
+
+    if (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty) {
+      bool _isPlaceSelectedForThisSchedule = context
+              .watch<CreateScheduleStore>()
+              .scheduleList[_indexOfPlaceDecidingSchedule]
+              .place !=
+          null;
+      if (_customInfoWindowController.deleteAllInfoWindow != null &&
+          !context.watch<CreateScheduleStore>().isPlaceRecommended) {
+        _clearMarker();
+        if (_isPlaceSelectedForThisSchedule) {
+          _addMarker(
+              context
+                  .read<CreateScheduleStore>()
+                  .scheduleList[_indexOfPlaceDecidingSchedule]
+                  .place!,
+              context
+                  .read<CreateScheduleStore>()
+                  .scheduleList[_indexOfPlaceDecidingSchedule]
+                  .placeName!,
+              null,
+              null,
+              markerIdStr: context
+                  .read<CreateScheduleStore>()
+                  .scheduleList[_indexOfPlaceDecidingSchedule]
+                  .placeId!);
+          _mapController.animateCamera(CameraUpdate.newLatLngZoom(
+              context
+                  .read<CreateScheduleStore>()
+                  .scheduleList[_indexOfPlaceDecidingSchedule]
+                  .place!,
+              16));
+          _customInfoWindowController.showAllInfoWindow!();
+        } else {
+          _mapController.animateCamera(CameraUpdate.newLatLngZoom(
+              LatLng(_userPosition.latitude, _userPosition.longitude), 16));
+        }
+      }
+    }
 
     return Column(children: [
       const SizedBox(
@@ -428,41 +476,47 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                               .watch<CreateScheduleStore>()
                               .scheduleList
                               .isNotEmpty
-                          ? UnconstrainedBox(
-                              child: Container(
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                      color: context
-                                          .read<CreateScheduleStore>()
-                                          .scheduleList[
-                                              _indexOfPlaceDecidingSchedule]
-                                          .color,
-                                      borderRadius: defaultBoxRadius,
-                                      boxShadow: defaultBoxShadow),
-                                  padding:
-                                      const EdgeInsets.fromLTRB(15, 8, 15, 8),
-                                  child: Text(
-                                    context
+                          ? Row(
+                              children: [
+                                UnconstrainedBox(
+                                  child: Container(
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                          color: context
+                                              .read<CreateScheduleStore>()
+                                              .scheduleList[
+                                                  _indexOfPlaceDecidingSchedule]
+                                              .color,
+                                          borderRadius: defaultBoxRadius,
+                                          boxShadow: defaultBoxShadow),
+                                      padding: const EdgeInsets.fromLTRB(
+                                          15, 8, 15, 8),
+                                      child: Text(
+                                        (context
+                                                    .watch<
+                                                        CreateScheduleStore>()
+                                                    .scheduleList[
+                                                        _indexOfPlaceDecidingSchedule]
+                                                    .placeType !=
+                                                "empty"
+                                            ? context
                                                 .watch<CreateScheduleStore>()
                                                 .scheduleList[
                                                     _indexOfPlaceDecidingSchedule]
-                                                .placeType !=
-                                            "empty"
-                                        ? context
-                                            .watch<CreateScheduleStore>()
-                                            .scheduleList[
-                                                _indexOfPlaceDecidingSchedule]
-                                            .nameKor
-                                        : "빈 스케줄",
-                                    style: mainFont(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: context
-                                                .watch<CreateScheduleStore>()
-                                                .isLookingPlaceDetail
-                                            ? 12
-                                            : 15),
-                                  )),
+                                                .nameKor
+                                            : "빈 스케줄"),
+                                        style: mainFont(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: context
+                                                    .watch<
+                                                        CreateScheduleStore>()
+                                                    .isLookingPlaceDetail
+                                                ? 12
+                                                : 15),
+                                      )),
+                                ),
+                              ],
                             )
                           : const SizedBox.shrink(),
                     )
@@ -558,7 +612,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 activate: true,
               ),
               SquareButtonWithLoading(
-                title: "다른 장소를 중심으로 추천받기",
+                title: "다른 스케줄 중심으로 추천받기",
                 futureFunction: _getPlaceRecommendUsingOtherPlace,
                 activate: context
                         .watch<CreateScheduleStore>()
@@ -708,7 +762,6 @@ class _PlaceDetailState extends State<PlaceDetail> {
                               borderRadius: defaultBoxRadius,
                               child: Image.network(
                                 data["photo"][index - 1],
-                                filterQuality: FilterQuality.high,
                                 loadingBuilder:
                                     (context, imgWidget, loadingProgress) {
                                   if (loadingProgress == null) {
@@ -781,6 +834,16 @@ class _PlaceDetailState extends State<PlaceDetail> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      setState(() {
+        isLoaded = true;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -813,8 +876,11 @@ class _PlaceDetailState extends State<PlaceDetail> {
                 context.read<CreateScheduleStore>().setPlaceForSchedule();
                 widget.clearMarker();
                 widget.customInfoWindowController.deleteAllInfoWindow!();
+                setState(() {
+                  isLoaded = false;
+                });
               },
-              activate: true,
+              activate: isLoaded,
             )
           ]),
         ),
@@ -853,7 +919,6 @@ class ConvexHullControl extends StatefulWidget {
 }
 
 class _ConvexHullControlState extends State<ConvexHullControl> {
-  int _convexType = 0;
   final Map<int, Widget> _convexTypes = {
     0: Text(
       '5분',
@@ -889,11 +954,9 @@ class _ConvexHullControlState extends State<ConvexHullControl> {
       child: CupertinoSegmentedControl(
           padding: const EdgeInsets.only(bottom: 5, left: 5, right: 5),
           children: _convexTypes,
-          groupValue: _convexType,
+          groupValue: context.watch<CreateScheduleStore>().convexType,
           onValueChanged: (int convexHullIndex) async {
-            setState(() {
-              _convexType = convexHullIndex;
-            });
+            context.read<CreateScheduleStore>().setConvexType(convexHullIndex);
             widget.setMarker(context
                 .read<CreateScheduleStore>()
                 .setConvexHullVisibility(widget._customInfoWindowController,

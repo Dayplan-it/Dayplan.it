@@ -1,19 +1,21 @@
-import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-///Create Schedule Screen을 위한 `Store`
-///클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
+import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
+
+/// Create Schedule Screen을 위한 `Store`
+/// 클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
 
 class CreateScheduleStore with ChangeNotifier {
   /// 스케줄 날짜
   late DateTime scheduleDate;
 
   /// 스케줄 리스트
-  List<Schedule> scheduleList = [];
+  List<dynamic> scheduleList = [];
   void clearScheduleList() {
     scheduleList = [];
     notifyListeners();
@@ -21,7 +23,7 @@ class CreateScheduleStore with ChangeNotifier {
 
   Duration getScheduleDuration() {
     Duration sum = Duration.zero;
-    for (Schedule schedule in scheduleList) {
+    for (Place schedule in scheduleList) {
       sum += schedule.duration;
     }
     sum += scheduleListStartsAt.difference(scheduleDate);
@@ -38,7 +40,7 @@ class CreateScheduleStore with ChangeNotifier {
   late DateTime scheduleListStartsAt;
 
   /// 스케줄을 추가할 때 호출하는 함수
-  void addSchedule(Schedule schedule) {
+  void addSchedule(Place schedule) {
     schedule.duration = const Duration(hours: 1);
     scheduleList.add(schedule.copy());
     calSchedulesStartsAndEndsAt();
@@ -89,7 +91,7 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 현재 시작시간을 변경중인 스케줄의 인덱스
   late int indexOfcurrentlyDecidingStartsAtSchedule;
-  late Schedule currentlyDecidingStartsAtSchedule;
+  late Place currentlyDecidingStartsAtSchedule;
 
   late DateTime currentlySelectedTime;
 
@@ -121,7 +123,7 @@ class CreateScheduleStore with ChangeNotifier {
   }
 
   void setCurrentlyDecidingScheduleStartsAtBeforeStart() {
-    currentlyDecidingStartsAtSchedule = Schedule(
+    currentlyDecidingStartsAtSchedule = Place(
         nameKor: "전체 일정 시작시간",
         placeType: "dummy",
         color: const Color.fromARGB(157, 69, 69, 69),
@@ -255,7 +257,7 @@ class CreateScheduleStore with ChangeNotifier {
       newIndex -= 1;
     }
 
-    final Schedule temp = scheduleList.removeAt(oldIndex);
+    final Place temp = scheduleList.removeAt(oldIndex);
     scheduleList.insert(newIndex, temp);
     calSchedulesStartsAndEndsAt();
     notifyListeners();
@@ -683,6 +685,8 @@ class CreateScheduleStore with ChangeNotifier {
     onPlaceRecommendedEnd();
     onDecidingScheduleStartsAtEnd();
     onLookingPlaceDetailEnd();
+    onCreateRouteTabEnd();
+    clearScheduleCreated();
     isBeforeStartTap = false;
   }
 
@@ -832,7 +836,24 @@ class CreateScheduleStore with ChangeNotifier {
     markersStored = markers;
 
     notifyListeners();
-    return setConvexHullVisibility(customInfoWindowController, convex, 0);
+
+    int convexHullIndex = 0;
+    for (int i = 0; i < convex.length; i++) {
+      if (convex[i].isNotEmpty) {
+        convexHullIndex = i;
+        break;
+      }
+    }
+    setConvexType(convexHullIndex);
+    return setConvexHullVisibility(
+        customInfoWindowController, convex, convexHullIndex);
+  }
+
+  /// 컨벡스홀 컨트롤 인덱스 변수
+  int convexType = 0;
+  void setConvexType(int convexHullIndex) {
+    convexType = convexHullIndex;
+    notifyListeners();
   }
 
   Map<MarkerId, Marker> setConvexHullVisibility(
@@ -849,9 +870,55 @@ class CreateScheduleStore with ChangeNotifier {
     }
     customInfoWindowController.googleMapController!.animateCamera(
         CameraUpdate.newLatLngZoom(placeRecommendPoint,
-            [18.0, 16.5, 15.0, 14.5, 14.0][convexHullIndex]));
+            [16.0, 15.5, 15.0, 14.5, 14.0][convexHullIndex]));
     customInfoWindowController.updateInfoWindow!();
     return markersReturn;
+  }
+
+  ///
+  /// 이하 경로 생성 탭을 위한 Store
+  ///
+
+  bool isCreateRouteTabOn = false;
+  onCreateRouteTabStart() {
+    isCreateRouteTabOn = true;
+    notifyListeners();
+  }
+
+  onCreateRouteTabEnd() {
+    isCreateRouteTabOn = false;
+    notifyListeners();
+  }
+
+  /// 모든 스케줄의 장소가 결정됐는지 체크
+  bool isRouteCreateAble() {
+    if (scheduleList.isEmpty) {
+      return false;
+    } else {
+      for (Place place in scheduleList) {
+        if (place.place == null) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  late ScheduleCreated scheduleCreated;
+  bool isScheduleCreated = false;
+  void setSchduleCreated(ScheduleCreated scheduleCreated) {
+    this.scheduleCreated = scheduleCreated;
+    isScheduleCreated = true;
+    // scheduleList = scheduleCreated.list;
+    // indexOfPlaceDecidingSchedule = 0;
+    notifyListeners();
+  }
+
+  void clearScheduleCreated() {
+    isScheduleCreated = false;
+    scheduleCreated.list = [];
+    notifyListeners();
   }
 
   ///
@@ -863,6 +930,9 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 타임라인 스크롤 컨트롤
   late ScrollController timeLineScrollController;
+
+  /// custom info window 컨트롤
+  ModifiedCustomInfoWindowController? customInfoWindowController = null;
 
   // late AnimationController animationController;
   // late Animation animation;

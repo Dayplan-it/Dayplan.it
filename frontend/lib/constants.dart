@@ -32,7 +32,7 @@ const List placeTypes = [
     Color.fromARGB(255, 190, 34, 156),
     FontAwesomeIcons.bagShopping
   ],
-  ['drugstore', '약국', Color.fromARGB(255, 68, 34, 190), FontAwesomeIcons.pills],
+  ['pharmacy', '약국', Color.fromARGB(255, 68, 34, 190), FontAwesomeIcons.pills],
   //['pharmacy', '약국2'],
   ['gym', '헬스장', Color.fromARGB(255, 111, 184, 183), FontAwesomeIcons.dumbbell],
   [

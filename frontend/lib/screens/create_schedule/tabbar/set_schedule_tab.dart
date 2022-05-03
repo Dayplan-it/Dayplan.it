@@ -1,7 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/notification_text.dart';
@@ -58,10 +60,10 @@ class RecommendedSchedulesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late List<Schedule> places = <Schedule>[];
+    late List<Place> places = <Place>[];
     late List<IconData> placeIcons = <IconData>[];
     for (var place in placeTypes) {
-      places.add(Schedule(
+      places.add(Place(
           nameKor: place[1],
           placeType: place[0],
           color: place[2],
@@ -86,7 +88,7 @@ class RecommendedSchedulesGrid extends StatelessWidget {
                   childAspectRatio: 2 / 1),
               itemCount: placeTypes.length,
               itemBuilder: (BuildContext context, int index) {
-                final Schedule place = places[index];
+                final Place place = places[index];
                 final IconData placeIcon = placeIcons[index];
 
                 return ElevatedButton.icon(
@@ -119,7 +121,7 @@ class RecommendedSchedulesGrid extends StatelessWidget {
             children: [
               ElevatedButton.icon(
                   onPressed: () {
-                    context.read<CreateScheduleStore>().addSchedule(Schedule(
+                    context.read<CreateScheduleStore>().addSchedule(Place(
                         nameKor: "",
                         placeType: "empty",
                         color: const Color.fromARGB(150, 72, 72, 72),
@@ -245,7 +247,7 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
   @override
   Widget build(BuildContext context) {
     _onAddCustomScheduleBtnPressed() {
-      context.read<CreateScheduleStore>().addSchedule(Schedule(
+      context.read<CreateScheduleStore>().addSchedule(Place(
           nameKor: _input,
           placeType: "custom",
           color: pointColor,

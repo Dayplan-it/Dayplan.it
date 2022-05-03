@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/constants.dart';
+
 import 'package:provider/provider.dart';
+
+import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/scheduleBox.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
@@ -63,9 +65,20 @@ class _TimeLineState extends State<TimeLine> {
                       .onDecidingScheduleStartsAtStart();
                 },
                 child: Container(
-                  height: dateTimeToHeight(context
-                      .watch<CreateScheduleStore>()
-                      .scheduleListStartsAt),
+                  height: (context
+                              .watch<CreateScheduleStore>()
+                              .isCreateRouteTabOn &&
+                          context
+                              .watch<CreateScheduleStore>()
+                              .isScheduleCreated)
+                      ? dateTimeToHeight(context
+                          .watch<CreateScheduleStore>()
+                          .scheduleCreated
+                          .list[0]
+                          .startsAt!)
+                      : dateTimeToHeight(context
+                          .watch<CreateScheduleStore>()
+                          .scheduleListStartsAt),
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: const Color.fromARGB(157, 69, 69, 69),
@@ -81,12 +94,33 @@ class _TimeLineState extends State<TimeLine> {
   }
 
   Widget _buildScheduleBoxTimeLine() {
-    List<Schedule> scheduleList =
+    List<dynamic> scheduleList =
         context.watch<CreateScheduleStore>().scheduleList;
 
     if (scheduleList.isEmpty) {
       return const SizedBox();
     } else {
+      if (context.watch<CreateScheduleStore>().isCreateRouteTabOn &&
+          context.watch<CreateScheduleStore>().isScheduleCreated) {
+        List<dynamic> scheduleCreatedList =
+            context.read<CreateScheduleStore>().scheduleCreated.list;
+        return Column(children: [
+          SizedBox(
+            height: reorderDragTargetHeight / 2 +
+                dateTimeToHeight(scheduleCreatedList[0].startsAt!),
+          ),
+          for (int i = 0; i < scheduleCreatedList.length; i++)
+            if (scheduleCreatedList[i].runtimeType == Place) ...[
+              ScheduleBoxForCreatedSchedule(
+                place: scheduleCreatedList[i],
+              ),
+            ] else ...[
+              RouteBox(
+                route: scheduleCreatedList[i],
+              )
+            ],
+        ]);
+      }
       return Column(children: [
         SizedBox(
           height: reorderDragTargetHeight / 2 +
@@ -99,7 +133,7 @@ class _TimeLineState extends State<TimeLine> {
               children: [
                 for (int i = 0; i < scheduleList.length; i++)
                   ScheduleBox(
-                    schedule: scheduleList[i],
+                    place: scheduleList[i],
                     index: i,
                   ),
               ],
@@ -113,7 +147,7 @@ class _TimeLineState extends State<TimeLine> {
                             .watch<CreateScheduleStore>()
                             .indexOfDraggingScheduleBox)
                       OnScheduleBoxLongPress(
-                        schedule: scheduleList[i],
+                        place: scheduleList[i],
                       )
                     else
                       SizedBox(
@@ -130,7 +164,7 @@ class _TimeLineState extends State<TimeLine> {
                             .indexOfPlaceDecidingSchedule ==
                         i)
                       OnScheduleBoxLongPress(
-                        schedule: scheduleList[i],
+                        place: scheduleList[i],
                       )
                     else
                       SizedBox(

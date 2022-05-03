@@ -1,16 +1,15 @@
-import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/custom_shapes.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
-
-import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
-
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/custom_shapes.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
 
 class MapWithCustomInfoWindow extends StatefulWidget {
@@ -44,29 +43,32 @@ class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
                 // InfoWindow의 위치를 변경해야 하는데,
                 // 키보드 높이의 변경된 값을 얻으려면 약간의 딜레이가 필요함
                 // 추후 퍼포먼스 보고 값을 바꿀 수 있음
-                await Future.delayed(Duration(milliseconds: 1000));
-                widget.customInfoWindowController.updateInfoWindow!();
-              } else {
-                // widget.customInfoWindowController.hideAllInfoWindow!();
-
-                context.read<CreateScheduleStore>().onLookingPlaceDetailEnd();
-                await Future.delayed(Duration(milliseconds: 1000));
+                await Future.delayed(const Duration(milliseconds: 1000));
                 widget.customInfoWindowController.updateInfoWindow!();
               }
+              // else {
+              //   // widget.customInfoWindowController.hideAllInfoWindow!();
+
+              //   context.read<CreateScheduleStore>().onLookingPlaceDetailEnd();
+              //   await Future.delayed(const Duration(milliseconds: 1000));
+              //   widget.customInfoWindowController.updateInfoWindow!();
+              // }
             },
             onCameraMove: (position) {
               widget.customInfoWindowController.onCameraMove!();
             },
             myLocationEnabled: true,
-            myLocationButtonEnabled:
-                context.watch<CreateScheduleStore>().isLookingPlaceDetail
-                    ? false
-                    : true,
+            // myLocationButtonEnabled:
+            //     context.watch<CreateScheduleStore>().isLookingPlaceDetail
+            //         ? false
+            //         : true,
             gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
               Factory<OneSequenceGestureRecognizer>(
                 () => EagerGestureRecognizer(),
               ),
             },
+            rotateGesturesEnabled: false,
+            tiltGesturesEnabled: false,
             markers: Set<Marker>.of(widget.markers.values),
             initialCameraPosition: CameraPosition(
                 target: LatLng(widget.initPosition.latitude,

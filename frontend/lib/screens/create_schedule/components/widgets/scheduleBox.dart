@@ -1,6 +1,10 @@
+import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/constants.dart';
+
 import 'package:provider/provider.dart';
+
+import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
@@ -8,16 +12,16 @@ import 'package:dayplan_it/screens/create_schedule/components/core/create_schedu
 class ScheduleBox extends StatelessWidget {
   const ScheduleBox({
     Key? key,
-    required this.schedule,
+    required this.place,
     required this.index,
   }) : super(key: key);
 
-  final Schedule schedule;
+  final Place place;
   final int index;
 
   @override
   Widget build(BuildContext context) {
-    bool isEmpty = (schedule.placeType == "empty");
+    bool isEmpty = (place.placeType == "empty");
     Widget _fixedToggle(String title) {
       return Positioned(
         top: itemHeight / 10,
@@ -50,10 +54,10 @@ class ScheduleBox extends StatelessWidget {
 
     return Container(
         decoration: BoxDecoration(
-            color: schedule.color,
+            color: place.color,
             borderRadius: defaultBoxRadius,
             boxShadow: defaultBoxShadow),
-        height: schedule.toHeight(),
+        height: place.toHeight(),
         width: double.infinity,
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
@@ -66,7 +70,7 @@ class ScheduleBox extends StatelessWidget {
                   children: [
                     if (!isEmpty)
                       Text(
-                        schedule.nameKor,
+                        place.nameKor,
                         style: mainFont(
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -74,14 +78,14 @@ class ScheduleBox extends StatelessWidget {
                             letterSpacing: 1),
                       ),
                     Visibility(
-                      visible: schedule.toHeight() > 60,
+                      visible: place.toHeight() > 60,
                       child: Column(
                         children: [
                           const SizedBox(
                             height: 5,
                           ),
                           Text(
-                            "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
+                            "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
                             style: mainFont(
                                 fontWeight: FontWeight.w500,
                                 color: Colors.white,
@@ -89,12 +93,11 @@ class ScheduleBox extends StatelessWidget {
                                 letterSpacing: 1),
                           ),
                           Text(
-                            ((schedule.duration.inMinutes >= 60)
-                                    ? schedule.duration.inHours.toString() +
-                                        "시간 "
+                            ((place.duration.inMinutes >= 60)
+                                    ? place.duration.inHours.toString() + "시간 "
                                     : "") +
-                                ((schedule.duration.inMinutes % 60) != 0
-                                    ? (schedule.duration.inMinutes % 60)
+                                ((place.duration.inMinutes % 60) != 0
+                                    ? (place.duration.inMinutes % 60)
                                             .toString() +
                                         "분"
                                     : ""),
@@ -154,7 +157,7 @@ class ScheduleBox extends StatelessWidget {
                       },
                       child: LongPressDraggable(
                         feedback: OnScheduleBoxLongPress(
-                          schedule: schedule,
+                          place: place,
                           isFeedback: true,
                         ),
                         delay: const Duration(milliseconds: 300),
@@ -182,7 +185,7 @@ class ScheduleBox extends StatelessWidget {
               ),
             ),
           ),
-          schedule.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
+          place.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
         ]));
   }
 }
@@ -190,21 +193,21 @@ class ScheduleBox extends StatelessWidget {
 class OnScheduleBoxLongPress extends StatelessWidget {
   const OnScheduleBoxLongPress({
     Key? key,
-    required this.schedule,
+    required this.place,
     this.isFeedback = false,
   }) : super(key: key);
 
-  final Schedule schedule;
+  final Place place;
   final bool isFeedback;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: schedule.color.withAlpha((isFeedback ? 150 : 255)),
+          color: place.color.withAlpha((isFeedback ? 150 : 255)),
           borderRadius: defaultBoxRadius,
           border: Border.all(color: Colors.blue, width: 4)),
-      height: schedule.toHeight(),
+      height: place.toHeight(),
       width: isFeedback
           ? context.watch<CreateScheduleStore>().timeLineBoxAreaWidth
           : double.infinity,
@@ -218,9 +221,9 @@ class OnScheduleBoxLongPress extends StatelessWidget {
             fit: BoxFit.fitWidth,
             child: Column(
               children: [
-                if (schedule.nameKor.isNotEmpty)
+                if (place.nameKor.isNotEmpty)
                   Text(
-                    schedule.nameKor,
+                    place.nameKor,
                     style: mainFont(
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -228,14 +231,14 @@ class OnScheduleBoxLongPress extends StatelessWidget {
                         letterSpacing: 1),
                   ),
                 Visibility(
-                  visible: schedule.toHeight() > 60,
+                  visible: place.toHeight() > 60,
                   child: Column(
                     children: [
                       const SizedBox(
                         height: 5,
                       ),
                       Text(
-                        "${schedule.startsAt?.hour.toString().padLeft(2, "0")}:${schedule.startsAt?.minute.toString().padLeft(2, "0")} ~ ${schedule.endsAt?.hour.toString().padLeft(2, "0")}:${schedule.endsAt?.minute.toString().padLeft(2, "0")}",
+                        "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
                         style: mainFont(
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
@@ -243,12 +246,11 @@ class OnScheduleBoxLongPress extends StatelessWidget {
                             letterSpacing: 1),
                       ),
                       Text(
-                        ((schedule.duration.inMinutes >= 60)
-                                ? schedule.duration.inHours.toString() + "시간 "
+                        ((place.duration.inMinutes >= 60)
+                                ? place.duration.inHours.toString() + "시간 "
                                 : "") +
-                            ((schedule.duration.inMinutes % 60) != 0
-                                ? (schedule.duration.inMinutes % 60)
-                                        .toString() +
+                            ((place.duration.inMinutes % 60) != 0
+                                ? (place.duration.inMinutes % 60).toString() +
                                     "분"
                                 : ""),
                         style: mainFont(
@@ -381,6 +383,161 @@ class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
             .onChangeScheduleOrder(details.data, (widget.targetId / 2).floor());
         context.read<CreateScheduleStore>().onScheduleBoxDragEnd();
       },
+    );
+  }
+}
+
+class ScheduleBoxForCreatedSchedule extends StatelessWidget {
+  const ScheduleBoxForCreatedSchedule({
+    Key? key,
+    required this.place,
+  }) : super(key: key);
+
+  final Place place;
+
+  Widget _fixedToggle(String title) {
+    return Positioned(
+      top: itemHeight / 10,
+      right: itemHeight / 10,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
+        alignment: Alignment.center,
+        height: durationToHeight(minimumScheduleBoxDuration) / 2,
+        decoration: BoxDecoration(
+            color: const Color.fromARGB(83, 255, 255, 255),
+            borderRadius: BorderRadius.circular(30)),
+        child: Text(
+          title,
+          style: mainFont(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              fontSize: durationToHeight(minimumScheduleBoxDuration) / 3.5,
+              fontWeight: FontWeight.w800),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isEmpty = (place.placeType == "empty");
+
+    return Container(
+        decoration: BoxDecoration(
+            color: place.color,
+            borderRadius: defaultBoxRadius,
+            boxShadow: defaultBoxShadow),
+        height: place.toHeight(),
+        width: double.infinity,
+        clipBehavior: Clip.antiAlias,
+        child: Stack(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
+                child: Column(
+                  children: [
+                    if (!isEmpty)
+                      Text(
+                        place.nameKor,
+                        style: mainFont(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontSize: itemHeight / 5,
+                            letterSpacing: 1),
+                      ),
+                    Visibility(
+                      visible: place.toHeight() > 60,
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
+                            style: mainFont(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontSize: itemHeight / 7,
+                                letterSpacing: 1),
+                          ),
+                          Text(
+                            ((place.duration.inMinutes >= 60)
+                                    ? place.duration.inHours.toString() + "시간 "
+                                    : "") +
+                                ((place.duration.inMinutes % 60) != 0
+                                    ? (place.duration.inMinutes % 60)
+                                            .toString() +
+                                        "분"
+                                    : ""),
+                            style: mainFont(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontSize: itemHeight / 7,
+                                letterSpacing: 1),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+          place.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
+        ]));
+  }
+}
+
+class RouteBox extends StatelessWidget {
+  const RouteBox({Key? key, required this.route}) : super(key: key);
+
+  final RouteOrder route;
+
+  @override
+  Widget build(BuildContext context) {
+    bool _isTransitRoute = route.isTransitRoute();
+    String transitType = route.getType();
+    IconData icon = (_isTransitRoute
+        ? (transitType == 'BUS'
+            ? CupertinoIcons.bus
+            : (transitType == 'SUB'
+                ? CupertinoIcons.train_style_one
+                : Icons.directions_rounded))
+        : Icons.directions_walk);
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+          decoration: BoxDecoration(
+              color: const Color.fromARGB(206, 88, 88, 88),
+              borderRadius: defaultBoxRadius,
+              boxShadow: defaultBoxShadow),
+          height: route.toHeight(),
+          width: double.infinity,
+          clipBehavior: Clip.antiAlias,
+          child: (route.toHeight() > 10)
+              ? Center(
+                  child: FittedBox(
+                    fit: BoxFit.fitWidth,
+                    child: Row(
+                      children: [
+                        Icon(
+                          icon,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          _isTransitRoute ? "대중교통" : "도보",
+                          style: mainFont(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: itemHeight / 5,
+                              letterSpacing: 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox()),
     );
   }
 }

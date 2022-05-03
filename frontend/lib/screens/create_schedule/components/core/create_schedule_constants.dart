@@ -79,3 +79,9 @@ String printDuration(Duration duration) {
   String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
   return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
 }
+
+/// DateTime을 받으면 HH:MM:SS 형식으로 반환해주는 함수
+String printDateTime(DateTime time) {
+  return printDuration(
+      Duration(hours: time.hour, minutes: time.minute, seconds: time.second));
+}

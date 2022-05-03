@@ -84,11 +84,15 @@ class _ModifiedCustomInfoWindowState extends State<ModifiedCustomInfoWindow> {
             widget.offset -
             MediaQuery.of(context).viewInsets.bottom;
 
-        setState(() {
-          // markerWindows[i]["showNow"] = true;
-          markerWindows[i]["leftMargin"] = left;
-          markerWindows[i]["topMargin"] = top;
-        });
+        try {
+          setState(() {
+            // markerWindows[i]["showNow"] = true;
+            markerWindows[i]["leftMargin"] = left;
+            markerWindows[i]["topMargin"] = top;
+          });
+        } catch (e) {
+          _updateInfoWindow();
+        }
       }
     }
     _refreshStackedWindows();
