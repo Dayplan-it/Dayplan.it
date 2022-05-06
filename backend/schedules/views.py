@@ -68,6 +68,8 @@ class FindScheduleAPIView(APIView):
             return JsonResponse({"message": f"INVALID_PARAMETER, you must pass {PARAM_USER_ID}(Integer) and {PARAM_DATE}(Integer)"}, status=HTTP_400_BAD_REQUEST)
         except ValueError:
             return JsonResponse({"message": "INVALID_VALUE"}, status=HTTP_400_BAD_REQUEST)
+        except schedule_models.Schedule.DoesNotExist:
+            return JsonResponse({"message": "NO_SUCH_SCHEDULE"}, status=HTTP_404_NOT_FOUND)
 
 
 class FindScheduleListAPIView(APIView):

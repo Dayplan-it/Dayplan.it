@@ -11,7 +11,7 @@ import GoogleMaps
 UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
 }
     GeneratedPluginRegistrant.register(with: self)
-    GMSServices.provideAPIKey("API키 입력")
+    GMSServices.provideAPIKey("AIzaSyAh5evFBv_28Sa0-d45pyrVpTvXaxfuSlI")
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }

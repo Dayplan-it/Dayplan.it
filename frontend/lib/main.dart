@@ -1,11 +1,12 @@
-import 'package:dayplan_it/screens/mainpage.dart';
-import 'package:dayplan_it/screens/start/landingpage.dart';
-import 'package:dayplan_it/screens/start/loginpage.dart';
-import 'package:dayplan_it/screens/start/signuppage.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/google_map_store.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
+import 'package:dayplan_it/screens/mainpage.dart';
+import 'package:dayplan_it/screens/start/landingpage.dart';
+import 'package:dayplan_it/screens/start/loginpage.dart';
+import 'package:dayplan_it/screens/start/signuppage.dart';
 import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:dayplan_it/screens/profile/profile_screen.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
@@ -18,7 +19,9 @@ Future<void> main() async {
         create: (BuildContext context) => HomeProvider(),
       ),
       ChangeNotifierProvider<CreateScheduleStore>(
-          create: (context) => CreateScheduleStore())
+          create: (context) => CreateScheduleStore()),
+      ChangeNotifierProvider<GoogleMapStore>(
+          create: ((context) => GoogleMapStore()))
     ],
     child: const MyApp(),
   ));

@@ -133,17 +133,15 @@ class _CreateScheduleScreenRightSideState
       index = context.read<CreateScheduleStore>().tabController.index;
     });
     context.read<CreateScheduleStore>().setTimeLineWidthFlexByTabIndex(index);
-    if (context.read<CreateScheduleStore>().customInfoWindowController !=
-        null) {
-      if (index == 1 &&
-          context.read<CreateScheduleStore>().customInfoWindowController !=
-              null) {
-        context
-            .read<CreateScheduleStore>()
-            .customInfoWindowController!
-            .showAllInfoWindow!();
-      }
-    }
+    // if (context.read<CreateScheduleStore>().googleMapController !=
+    //     null) {
+    //   if (index == 1) {
+    //     context
+    //         .read<CreateScheduleStore>()
+    //         .customInfoWindowController!
+    //         .showAllInfoWindow!();
+    //   }
+    // }
     if (index == 2) {
       context.read<CreateScheduleStore>().onCreateRouteTabStart();
     } else {

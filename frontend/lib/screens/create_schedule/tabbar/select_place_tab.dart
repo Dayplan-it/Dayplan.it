@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -6,17 +7,14 @@ import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
 
 class SelectPlaceTab extends StatefulWidget {
   const SelectPlaceTab({Key? key}) : super(key: key);
@@ -87,11 +85,20 @@ class MapWithSearchBox extends StatefulWidget {
 }
 
 class _MapWithSearchBoxState extends State<MapWithSearchBox> {
+  @override
+  void initState() {
+    super.initState();
+    _getUserLoc();
+  }
+
   /// 기기로부터 위치정보 사용 권한을 받고 위치정보를 가져오거나
   /// AlertDialog를 띄우는 함수
   _getUserLoc() async {
-    _userPosition = await Geolocator.getCurrentPosition(
+    Position tempUserPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _userPosition = tempUserPosition;
+    });
     // if (await Permission.location.request().isGranted) {
     //   _userPosition = await Geolocator.getCurrentPosition(
     //       desiredAccuracy: LocationAccuracy.high);
@@ -131,7 +138,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   Future<dynamic> _fetchAutoComplete(String input) async {
     try {
       final response = await Dio().get(
-          '$commonUrl/api/placeautocomplete?input=$input&lat=${_userPosition.latitude}&lng=${_userPosition.longitude}');
+          '$commonUrl/api/placeautocomplete?input=$input&lat=${_userPosition.latitude}&lng=${_userPosition.longitude}&is_rankby_distance=true');
       if (response.statusCode == 200) {
         return response;
       } else {
@@ -142,8 +149,8 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     }
   }
 
-  Future<Map> _fetchPlaceDetail(String placeId,
-      {bool shouldGetImg = false}) async {
+  Future<Map> _fetchPlaceDetail(
+      {required String placeId, bool shouldGetImg = false}) async {
     try {
       final response = await Dio().get(
           '$commonUrl/api/placedetail?place_id=$placeId&should_get_img=$shouldGetImg');
@@ -176,7 +183,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     await _getUserLoc();
     return MapWithCustomInfoWindow(
       onMapCreated: _onMapCreated,
-      customInfoWindowController: _customInfoWindowController,
       initPosition: _userPosition,
       markers: markers,
     );
@@ -191,10 +197,10 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   }
 
   void _addMarker(LatLng placeLatLng, String title, String? rating, int? minute,
-      {required String markerIdStr}) {
+      {required String markerIdStr}) async {
     final MarkerId markerId = MarkerId(markerIdStr);
 
-    final Marker marker = _createMarker(
+    final Marker marker = await _createMarker(
       placeLatLng,
       title,
       rating,
@@ -207,49 +213,79 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     });
   }
 
-  Marker _createMarker(LatLng placeLatLng, String title, String? rating,
-      int? minute, String placeId) {
+  Future<Marker> _createMarker(LatLng placeLatLng, String title, String? rating,
+      int? length, String placeId) async {
     final MarkerId markerId = MarkerId(placeId);
     _onTap() async {
       context
           .read<CreateScheduleStore>()
           .setSelectedPlace(placeId, title, placeLatLng);
 
-      context.read<CreateScheduleStore>().toggleIsLookingPlaceDetail();
+      //context.read<CreateScheduleStore>().toggleIsLookingPlaceDetail();
 
-      await _customInfoWindowController.googleMapController!
-          .animateCamera(CameraUpdate.newLatLng(placeLatLng));
-
-      // _customInfoWindowController.hideInfoWindow!(markerId);
-      // _customInfoWindowController.updateInfoWindow!();
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: PlaceDetail(
+                  fetchPlaceDetail: _fetchPlaceDetail,
+                ),
+              ),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: PlaceDetailConfirmButton(
+                    marker: markers[markerId]!,
+                    markerId: markerId,
+                    setMarker: _setMarker,
+                  ),
+                )
+              ],
+              actionsAlignment: MainAxisAlignment.center,
+            );
+          });
     }
 
-    return markerWithCustomInfoWindow(markerId, placeLatLng,
-        _customInfoWindowController, title, rating, minute, _onTap);
+    return await markerWithCustomInfoWindow(
+        context,
+        context.read<CreateScheduleStore>().googleMapController!,
+        markerId,
+        placeLatLng,
+        title,
+        rating,
+        length,
+        _onTap);
   }
 
   void _clearMarker() async {
-    setState(() {
-      markers = <MarkerId, Marker>{};
-    });
-    _customInfoWindowController.deleteAllInfoWindow!();
-    await Future.delayed(Duration(milliseconds: 500));
+    _setMarker(<MarkerId, Marker>{});
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-    _customInfoWindowController.googleMapController = _mapController;
-    context.read<CreateScheduleStore>().customInfoWindowController =
-        _customInfoWindowController;
+    context.read<CreateScheduleStore>().googleMapController = controller;
   }
 
+  bool _isPlaceForRecommendFound = true;
   Future<void> _getPlaceRecommendForUserLoc() async {
     // 버튼 누를때마다 유저의 위치를 가져오도록 하고싶지만
     // 그렇게 하면 버튼 눌림이 씹히는 현상이 있어 삭제함
     // await _getUserLoc();
 
-    context.read<CreateScheduleStore>().setPlaceRecommendPoint(
-        LatLng(_userPosition.latitude, _userPosition.longitude));
+    try {
+      context.read<CreateScheduleStore>().setPlaceRecommendPoint(
+          LatLng(_userPosition.latitude, _userPosition.longitude));
+    } catch (e) {
+      setState(() {
+        _isPlaceForRecommendFound = false;
+        return;
+      });
+    }
     await _createPlaceRecommendMarker();
   }
 
@@ -257,10 +293,17 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     int indexOfScheduleHasPlace =
         context.read<CreateScheduleStore>().checkAndGetIndexForPlaceRecommend();
 
-    context.read<CreateScheduleStore>().setPlaceRecommendPoint(context
-        .read<CreateScheduleStore>()
-        .scheduleList[indexOfScheduleHasPlace]
-        .place!);
+    try {
+      context.read<CreateScheduleStore>().setPlaceRecommendPoint(context
+          .read<CreateScheduleStore>()
+          .scheduleList[indexOfScheduleHasPlace]
+          .place!);
+    } catch (e) {
+      setState(() {
+        _isPlaceForRecommendFound = false;
+        return;
+      });
+    }
     await _createPlaceRecommendMarker();
   }
 
@@ -298,7 +341,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 : recommendedPlaces[j]["rating"])
             : 0.0;
 
-        if (ratingI > ratingJ) {
+        if (ratingI < ratingJ) {
           var temp = recommendedPlaces[i];
           recommendedPlaces[i] = recommendedPlaces[j];
           recommendedPlaces[j] = temp;
@@ -309,47 +352,51 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     Map<MarkerId, Marker> createdMarkers = {};
     for (Map place in recommendedPlaces) {
       MarkerId markerId = MarkerId(place["place_id"]);
-      createdMarkers[markerId] = _createMarker(
+      createdMarkers[markerId] = await _createMarker(
           LatLng(double.parse(place["lat"]), double.parse(place["lng"])),
           place["name"],
           place["rating"].toString(),
-          place["minute"].runtimeType == int
-              ? place["minute"]
-              : place["minute"].toInt(),
+          place["distance"],
           place["place_id"]);
+      int convexIndex = 0;
+      if (place["distance"] <= 100) {
+        convexIndex = 0;
+      } else if (place["distance"] <= 200) {
+        convexIndex = 1;
+      } else if (place["distance"] <= 500) {
+        convexIndex = 2;
+      } else if (place["distance"] <= 800) {
+        convexIndex = 3;
+      } else {
+        convexIndex = 4;
+      }
       setState(() {
-        convex[[5, 10, 15, 20, 25].indexOf(place["minute"].runtimeType == int
-                ? place["minute"]
-                : place["minute"].toInt())]
-            .add(markerId);
+        convex[convexIndex].add(markerId);
       });
     }
 
     setState(() {
-      markers = context.read<CreateScheduleStore>().onPlaceRecommened(
-          _customInfoWindowController, convex, createdMarkers);
+      markers = context
+          .read<CreateScheduleStore>()
+          .onPlaceRecommened(convex, createdMarkers);
     });
   }
 
-  @override
-  void dispose() {
-    _mapController.dispose();
-    _customInfoWindowController.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   context.read<CreateScheduleStore>().googleMapController?.dispose();
+  //   super.dispose();
+  // }
 
   bool _isSearchPressed = false;
   bool _isSearchFound = false;
-  late GoogleMapController _mapController;
-  final ModifiedCustomInfoWindowController _customInfoWindowController =
-      ModifiedCustomInfoWindowController();
 
   late Position _userPosition;
   late Future<dynamic> _autocomplete;
   late String _input;
 
   /// convex hull에 맞게 들어가는 2차원 List
-  /// 0, 1, 2, 3, 4순으로 각각 5, 10, 15, 20, 25분 이상
+  /// 0, 1, 2, 3, 4순으로 각각 100, 200, 500, 800, 800m 이상
   List<List<MarkerId>> convex = [[], [], [], [], []];
 
   final TextEditingController _textFieldController = TextEditingController();
@@ -359,44 +406,50 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     int _indexOfPlaceDecidingSchedule =
         context.watch<CreateScheduleStore>().indexOfPlaceDecidingSchedule;
 
-    if (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty) {
-      bool _isPlaceSelectedForThisSchedule = context
-              .watch<CreateScheduleStore>()
-              .scheduleList[_indexOfPlaceDecidingSchedule]
-              .place !=
-          null;
-      if (_customInfoWindowController.deleteAllInfoWindow != null &&
-          !context.watch<CreateScheduleStore>().isPlaceRecommended) {
-        _clearMarker();
-        if (_isPlaceSelectedForThisSchedule) {
-          _addMarker(
-              context
-                  .read<CreateScheduleStore>()
-                  .scheduleList[_indexOfPlaceDecidingSchedule]
-                  .place!,
-              context
-                  .read<CreateScheduleStore>()
-                  .scheduleList[_indexOfPlaceDecidingSchedule]
-                  .placeName!,
-              null,
-              null,
-              markerIdStr: context
-                  .read<CreateScheduleStore>()
-                  .scheduleList[_indexOfPlaceDecidingSchedule]
-                  .placeId!);
-          _mapController.animateCamera(CameraUpdate.newLatLngZoom(
-              context
-                  .read<CreateScheduleStore>()
-                  .scheduleList[_indexOfPlaceDecidingSchedule]
-                  .place!,
-              16));
-          _customInfoWindowController.showAllInfoWindow!();
-        } else {
-          _mapController.animateCamera(CameraUpdate.newLatLngZoom(
-              LatLng(_userPosition.latitude, _userPosition.longitude), 16));
-        }
-      }
-    }
+    // if (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty) {
+    //   bool _isPlaceSelectedForThisSchedule = context
+    //           .watch<CreateScheduleStore>()
+    //           .scheduleList[_indexOfPlaceDecidingSchedule]
+    //           .place !=
+    //       null;
+    //   if (!context.watch<CreateScheduleStore>().isPlaceRecommended &&
+    //       context.read<CreateScheduleStore>().googleMapController != null) {
+    //     _clearMarker();
+    //     if (_isPlaceSelectedForThisSchedule) {
+    //       _addMarker(
+    //           context
+    //               .read<CreateScheduleStore>()
+    //               .scheduleList[_indexOfPlaceDecidingSchedule]
+    //               .place!,
+    //           context
+    //               .read<CreateScheduleStore>()
+    //               .scheduleList[_indexOfPlaceDecidingSchedule]
+    //               .placeName!,
+    //           null,
+    //           null,
+    //           markerIdStr: context
+    //               .read<CreateScheduleStore>()
+    //               .scheduleList[_indexOfPlaceDecidingSchedule]
+    //               .placeId!);
+    //       context
+    //           .read<CreateScheduleStore>()
+    //           .googleMapController!
+    //           .animateCamera(CameraUpdate.newLatLngZoom(
+    //               context
+    //                   .read<CreateScheduleStore>()
+    //                   .scheduleList[_indexOfPlaceDecidingSchedule]
+    //                   .place!,
+    //               16));
+    //     }
+    //     // else {
+    //     //   context
+    //     //       .read<CreateScheduleStore>()
+    //     //       .googleMapController!
+    //     //       .animateCamera(CameraUpdate.newLatLngZoom(
+    //     //           LatLng(_userPosition.latitude, _userPosition.longitude), 16));
+    //     // }
+    //   }
+    // }
 
     return Column(children: [
       const SizedBox(
@@ -418,9 +471,9 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 setState(() {
                   _textFieldController.clear();
                   FocusScope.of(context).unfocus();
+                  _isSearchFound = false;
+                  _isSearchPressed = false;
                 });
-                await Future.delayed(const Duration(milliseconds: 1100));
-                _customInfoWindowController.updateInfoWindow!();
               },
               onSubmitted: (value) {
                 setState(() {
@@ -431,13 +484,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                   _clearMarker();
                 });
               },
-              onTap: () async {
-                // InfoWindow의 위치를 변경해야 하는데,
-                // 키보드 높이의 변경된 값을 얻으려면 약간의 딜레이가 필요함
-                // 추후 퍼포먼스 보고 값을 바꿀 수 있음
-                await Future.delayed(const Duration(milliseconds: 1000));
-                _customInfoWindowController.updateInfoWindow!();
-              },
             ),
             const SizedBox(
               height: 5,
@@ -447,10 +493,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
       ),
       Visibility(
           visible: context.watch<CreateScheduleStore>().isPlaceRecommended,
-          child: ConvexHullControl(
-              customInfoWindowController: _customInfoWindowController,
-              convex: convex,
-              setMarker: _setMarker)),
+          child: ConvexHullControl(convex: convex, setMarker: _setMarker)),
       Expanded(
         child: Stack(
           children: [
@@ -555,7 +598,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                 onTap: () async {
                                   _clearMarker();
                                   var placeDetail = await _fetchPlaceDetail(
-                                      result[index]['place_id']);
+                                      placeId: result[index]['place_id']);
                                   LatLng placeLatLng = LatLng(
                                       placeDetail['lat'], placeDetail['lng']);
                                   setState(() {
@@ -569,11 +612,12 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                       placeDetail['rating'].toString(),
                                       null,
                                       markerIdStr: result[index]['place_id']);
-                                  _customInfoWindowController
-                                      .showAllInfoWindow!();
+
                                   _textFieldController.clear();
-                                  _mapController.moveCamera(
-                                      CameraUpdate.newLatLngZoom(
+                                  context
+                                      .read<CreateScheduleStore>()
+                                      .googleMapController!
+                                      .moveCamera(CameraUpdate.newLatLngZoom(
                                           placeLatLng, 17));
                                   context
                                       .read<CreateScheduleStore>()
@@ -592,13 +636,14 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                       }),
                 ),
               ),
-            if (context.watch<CreateScheduleStore>().isLookingPlaceDetail)
-              Positioned.fill(
-                child: PlaceDetail(
-                    fetchPlaceDetail: _fetchPlaceDetail,
-                    customInfoWindowController: _customInfoWindowController,
-                    clearMarker: _clearMarker),
-              ),
+            // if (context.watch<CreateScheduleStore>().isLookingPlaceDetail)
+            //   Positioned.fill(
+            //     child: PlaceDetail(
+            //         fetchPlaceDetail: _fetchPlaceDetail,
+            //         clearMarker: _clearMarker,
+            //         setMarker: _setMarker,
+            //         markers: markers),
+            //   ),
           ],
         ),
       ),
@@ -641,9 +686,13 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                   setState(() {
                     _isSearchFound = false;
                     _clearMarker();
-                    _mapController.animateCamera(CameraUpdate.newLatLngZoom(
-                        LatLng(_userPosition.latitude, _userPosition.longitude),
-                        15));
+                    context
+                        .read<CreateScheduleStore>()
+                        .googleMapController!
+                        .animateCamera(CameraUpdate.newLatLngZoom(
+                            LatLng(_userPosition.latitude,
+                                _userPosition.longitude),
+                            15));
                   });
                 },
               ),
@@ -653,266 +702,261 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   }
 }
 
-class PlaceDetail extends StatefulWidget {
-  const PlaceDetail(
-      {Key? key,
-      required this.fetchPlaceDetail,
-      required this.customInfoWindowController,
-      required this.clearMarker})
-      : super(key: key);
+// class PlaceDetail extends StatefulWidget {
+//   const PlaceDetail(
+//       {Key? key,
+//       required this.fetchPlaceDetail,
+//       required this.clearMarker,
+//       required this.setMarker,
+//       required this.markers})
+//       : super(key: key);
 
-  final Future<Map> Function(String, {bool shouldGetImg}) fetchPlaceDetail;
-  final ModifiedCustomInfoWindowController customInfoWindowController;
-  final Function clearMarker;
+//   final Future<Map> Function({required String placeId, bool shouldGetImg})
+//       fetchPlaceDetail;
+//   final Function clearMarker;
+//   final Function(Map<MarkerId, Marker>) setMarker;
+//   final Map<MarkerId, Marker> markers;
 
-  @override
-  State<PlaceDetail> createState() => _PlaceDetailState();
-}
+//   @override
+//   State<PlaceDetail> createState() => _PlaceDetailState();
+// }
 
-class _PlaceDetailState extends State<PlaceDetail> {
-  bool isLoaded = false;
+// class _PlaceDetailState extends State<PlaceDetail> {
+//   Widget _detailPage(Map data) {
+//     return Stack(
+//       children: [
+//         Column(
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           children: [
+//             Padding(
+//               padding: const EdgeInsets.fromLTRB(10, 20, 10, 8),
+//               child: Text(
+//                 data["name"],
+//                 style: mainFont(fontWeight: FontWeight.w800, fontSize: 22),
+//                 textAlign: TextAlign.center,
+//               ),
+//             ),
+//             Padding(
+//               padding: const EdgeInsets.only(bottom: 20),
+//               child: Row(
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   const Icon(
+//                     Icons.star,
+//                     color: pointColor,
+//                     size: 20,
+//                   ),
+//                   Text(
+//                     data["rating"].toString(),
+//                     style: mainFont(
+//                         color: pointColor,
+//                         fontWeight: FontWeight.w700,
+//                         fontSize: 20),
+//                   ),
+//                   const SizedBox(
+//                     width: 10,
+//                   ),
+//                   Text(
+//                     "${data["user_ratings_total"].toString()}개의 리뷰",
+//                     style: mainFont(
+//                         color: subTextColor,
+//                         fontWeight: FontWeight.w500,
+//                         fontSize: 15),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//             Expanded(
+//               child: ListView.builder(
+//                 itemCount: data["reviews"].length,
+//                 itemBuilder: (context, index) =>
+//                     _buildReviewBox(data["reviews"][index]),
+//               ),
+//             ),
+//             if (data["photo"].isNotEmpty)
+//               const SizedBox(
+//                 height: 50,
+//               )
+//           ],
+//         ),
+//         if (data["photo"].isNotEmpty)
+//           DraggableScrollableSheet(
+//             initialChildSize: 0.13,
+//             minChildSize: 0.13,
+//             maxChildSize: data["photo"].length == 1 ? 0.45 : 0.7,
+//             expand: true,
+//             builder: (context, scrollController) {
+//               return Container(
+//                   decoration: BoxDecoration(
+//                       color: Colors.white,
+//                       boxShadow: defaultBoxShadow,
+//                       borderRadius: defaultBoxRadius),
+//                   padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+//                   child: ClipRRect(
+//                     borderRadius: defaultBoxRadius,
+//                     child: ListView.builder(
+//                         physics: const ClampingScrollPhysics(),
+//                         controller: scrollController,
+//                         itemCount: data["photo"].length + 1,
+//                         itemBuilder: (context, index) {
+//                           if (index == 0) {
+//                             return const Icon(
+//                               Icons.drag_handle,
+//                               color: subTextColor,
+//                               size: 17,
+//                             );
+//                           }
 
-  Widget _detailPage(Map data) {
-    return Stack(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 20, 10, 8),
-              child: Text(
-                data["name"],
-                style: mainFont(fontWeight: FontWeight.w800, fontSize: 22),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.star,
-                    color: pointColor,
-                    size: 20,
-                  ),
-                  Text(
-                    data["rating"].toString(),
-                    style: mainFont(
-                        color: pointColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    "${data["user_ratings_total"].toString()}개의 리뷰",
-                    style: mainFont(
-                        color: subTextColor,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: data["reviews"].length,
-                itemBuilder: (context, index) =>
-                    _buildReviewBox(data["reviews"][index]),
-              ),
-            ),
-            if (data["photo"].isNotEmpty)
-              const SizedBox(
-                height: 50,
-              )
-          ],
-        ),
-        if (data["photo"].isNotEmpty)
-          DraggableScrollableSheet(
-            initialChildSize: 0.13,
-            minChildSize: 0.13,
-            maxChildSize: data["photo"].length == 1 ? 0.45 : 0.7,
-            expand: true,
-            builder: (context, scrollController) {
-              return Container(
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: defaultBoxShadow,
-                      borderRadius: defaultBoxRadius),
-                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                  child: ClipRRect(
-                    borderRadius: defaultBoxRadius,
-                    child: ListView.builder(
-                        physics: const ClampingScrollPhysics(),
-                        controller: scrollController,
-                        itemCount: data["photo"].length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return const Icon(
-                              Icons.drag_handle,
-                              color: subTextColor,
-                              size: 17,
-                            );
-                          }
+//                           return Padding(
+//                             padding:
+//                                 EdgeInsets.only(top: (index - 1 == 0 ? 0 : 5)),
+//                             child: ClipRRect(
+//                               borderRadius: defaultBoxRadius,
+//                               child: Image.network(
+//                                 data["photo"][index - 1],
+//                                 loadingBuilder:
+//                                     (context, imgWidget, loadingProgress) {
+//                                   if (loadingProgress == null) {
+//                                     return imgWidget;
+//                                   }
+//                                   return Center(
+//                                     child: CircularProgressIndicator(
+//                                       color: primaryColor,
+//                                       value:
+//                                           loadingProgress.expectedTotalBytes !=
+//                                                   null
+//                                               ? loadingProgress
+//                                                       .cumulativeBytesLoaded /
+//                                                   loadingProgress
+//                                                       .expectedTotalBytes!
+//                                               : null,
+//                                     ),
+//                                   );
+//                                 },
+//                               ),
+//                             ),
+//                           );
+//                         }),
+//                   ));
+//             },
+//           )
+//       ],
+//     );
+//   }
 
-                          return Padding(
-                            padding:
-                                EdgeInsets.only(top: (index - 1 == 0 ? 0 : 5)),
-                            child: ClipRRect(
-                              borderRadius: defaultBoxRadius,
-                              child: Image.network(
-                                data["photo"][index - 1],
-                                loadingBuilder:
-                                    (context, imgWidget, loadingProgress) {
-                                  if (loadingProgress == null) {
-                                    return imgWidget;
-                                  }
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      color: primaryColor,
-                                      value:
-                                          loadingProgress.expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          );
-                        }),
-                  ));
-            },
-          )
-      ],
-    );
-  }
+//   Widget _buildReviewBox(Map review) {
+//     return Padding(
+//       padding: const EdgeInsets.all(8.0),
+//       child: Align(
+//         alignment: Alignment.centerLeft,
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Row(
+//               children: [
+//                 RatingBarIndicator(
+//                     itemBuilder: (context, index) => const Icon(
+//                           Icons.star,
+//                           color: Colors.amber,
+//                         ),
+//                     itemCount: 5,
+//                     itemSize: 15,
+//                     direction: Axis.horizontal,
+//                     rating: review["rating"].toDouble()),
+//                 const SizedBox(
+//                   width: 5,
+//                 ),
+//                 UnconstrainedBox(
+//                   child: Text(
+//                     review["relative_time_description"],
+//                     style: mainFont(color: subTextColor, fontSize: 11.5),
+//                   ),
+//                 )
+//               ],
+//             ),
+//             Text(
+//               review["text"],
+//               style: mainFont(color: Colors.black, fontSize: 13),
+//               textAlign: TextAlign.start,
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
 
-  Widget _buildReviewBox(Map review) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                RatingBarIndicator(
-                    itemBuilder: (context, index) => const Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                        ),
-                    itemCount: 5,
-                    itemSize: 15,
-                    direction: Axis.horizontal,
-                    rating: review["rating"].toDouble()),
-                const SizedBox(
-                  width: 5,
-                ),
-                UnconstrainedBox(
-                  child: Text(
-                    review["relative_time_description"],
-                    style: mainFont(color: subTextColor, fontSize: 11.5),
-                  ),
-                )
-              ],
-            ),
-            Text(
-              review["text"],
-              style: mainFont(color: Colors.black, fontSize: 13),
-              textAlign: TextAlign.start,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      setState(() {
-        isLoaded = true;
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-              borderRadius: defaultBoxRadius,
-              boxShadow: defaultBoxShadow,
-              color: Colors.white),
-          padding: const EdgeInsets.all(8.0),
-          child: Column(children: [
-            Expanded(
-                child: FutureBuilder<Map>(
-              future: widget.fetchPlaceDetail(
-                  context.read<CreateScheduleStore>().selectedPlaceId,
-                  shouldGetImg: true),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return _detailPage(snapshot.data!);
-                }
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: primaryColor,
-                  ),
-                );
-              },
-            )),
-            SquareButton(
-              title: "이 장소로 결정",
-              onPressed: () async {
-                await widget.clearMarker();
-                widget.customInfoWindowController.deleteAllInfoWindow!();
-                context.read<CreateScheduleStore>().setPlaceForSchedule();
-                setState(() {
-                  isLoaded = false;
-                });
-              },
-              activate: isLoaded,
-            )
-          ]),
-        ),
-        Positioned(
-            top: 3,
-            right: 3,
-            child: IconButton(
-                onPressed: () => context
-                    .read<CreateScheduleStore>()
-                    .onLookingPlaceDetailEnd(),
-                icon: const Icon(
-                  Icons.close,
-                  color: subTextColor,
-                  size: 20,
-                )))
-      ],
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Stack(
+//       children: [
+//         Expanded(
+//           child: Container(
+//             decoration: BoxDecoration(
+//                 borderRadius: defaultBoxRadius,
+//                 boxShadow: defaultBoxShadow,
+//                 color: Colors.white),
+//             padding: const EdgeInsets.all(8.0),
+//             child: FutureBuilder<Map>(
+//               future: widget.fetchPlaceDetail(
+//                   placeId: context.read<CreateScheduleStore>().selectedPlaceId,
+//                   shouldGetImg: true),
+//               builder: (context, snapshot) {
+//                 if (snapshot.hasData) {
+//                   return Column(
+//                     children: [
+//                       Expanded(child: _detailPage(snapshot.data!)),
+//                       SquareButton(
+//                         title: "이 장소로 결정",
+//                         onPressed: () async {
+//                           await widget.clearMarker();
+//                           context
+//                               .read<CreateScheduleStore>()
+//                               .setPlaceForSchedule();
+//                           widget.setMarker({
+//                             MarkerId(context
+//                                     .read<CreateScheduleStore>()
+//                                     .selectedPlaceId):
+//                                 widget.markers[MarkerId(context
+//                                     .read<CreateScheduleStore>()
+//                                     .selectedPlaceId)]!
+//                           });
+//                         },
+//                         activate: true,
+//                       )
+//                     ],
+//                   );
+//                 }
+//                 return const Center(
+//                   child: CircularProgressIndicator(
+//                     color: primaryColor,
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//         ),
+//         Positioned(
+//             top: 3,
+//             right: 3,
+//             child: IconButton(
+//                 onPressed: () => context
+//                     .read<CreateScheduleStore>()
+//                     .onLookingPlaceDetailEnd(),
+//                 icon: const Icon(
+//                   Icons.close,
+//                   color: subTextColor,
+//                   size: 20,
+//                 )))
+//       ],
+//     );
+//   }
+// }
 
 class ConvexHullControl extends StatefulWidget {
   const ConvexHullControl(
-      {Key? key,
-      required ModifiedCustomInfoWindowController customInfoWindowController,
-      required this.convex,
-      required this.setMarker})
-      : _customInfoWindowController = customInfoWindowController,
-        super(key: key);
+      {Key? key, required this.convex, required this.setMarker})
+      : super(key: key);
 
-  final ModifiedCustomInfoWindowController _customInfoWindowController;
   final List<List<MarkerId>> convex;
   final Function(Map<MarkerId, Marker>) setMarker;
 
@@ -923,24 +967,24 @@ class ConvexHullControl extends StatefulWidget {
 class _ConvexHullControlState extends State<ConvexHullControl> {
   final Map<int, Widget> _convexTypes = {
     0: Text(
-      '5분',
+      '100m',
       style: mainFont(),
     ),
     1: Text(
-      '10분',
+      '200m',
       style: mainFont(),
     ),
     2: Text(
-      '15분',
+      '500m',
       style: mainFont(),
     ),
     3: Text(
-      '20분',
+      '800m',
       style: mainFont(),
     ),
     4: Column(children: [
       Text(
-        '20분',
+        '800m',
         style: mainFont(),
       ),
       Text(
@@ -961,8 +1005,7 @@ class _ConvexHullControlState extends State<ConvexHullControl> {
             context.read<CreateScheduleStore>().setConvexType(convexHullIndex);
             widget.setMarker(context
                 .read<CreateScheduleStore>()
-                .setConvexHullVisibility(widget._customInfoWindowController,
-                    widget.convex, convexHullIndex));
+                .setConvexHullVisibility(widget.convex, convexHullIndex));
           }),
     );
   }

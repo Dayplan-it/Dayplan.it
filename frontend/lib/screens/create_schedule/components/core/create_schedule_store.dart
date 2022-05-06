@@ -5,7 +5,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/modified_custom_info_window.dart';
 
 /// Create Schedule Screen을 위한 `Store`
 /// 클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
@@ -796,12 +795,6 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
-  void setSchedulePlace(
-      int scheduleIndex, LatLng place, String placeName, String placeId) {
-    scheduleList[scheduleIndex].setPlace(place, placeName, placeId);
-    notifyListeners();
-  }
-
   /// 장소 추천시 사용하는 flag
   bool isPlaceRecommended = false;
 
@@ -828,9 +821,7 @@ class CreateScheduleStore with ChangeNotifier {
   Map<MarkerId, Marker> markersStored = <MarkerId, Marker>{};
 
   Map<MarkerId, Marker> onPlaceRecommened(
-      ModifiedCustomInfoWindowController customInfoWindowController,
-      List<List<MarkerId>> convex,
-      Map<MarkerId, Marker> markers) {
+      List<List<MarkerId>> convex, Map<MarkerId, Marker> markers) {
     isPlaceRecommended = true;
 
     markersStored = markers;
@@ -845,8 +836,7 @@ class CreateScheduleStore with ChangeNotifier {
       }
     }
     setConvexType(convexHullIndex);
-    return setConvexHullVisibility(
-        customInfoWindowController, convex, convexHullIndex);
+    return setConvexHullVisibility(convex, convexHullIndex);
   }
 
   /// 컨벡스홀 컨트롤 인덱스 변수
@@ -857,21 +847,15 @@ class CreateScheduleStore with ChangeNotifier {
   }
 
   Map<MarkerId, Marker> setConvexHullVisibility(
-      ModifiedCustomInfoWindowController customInfoWindowController,
-      List<List<MarkerId>> convex,
-      int convexHullIndex) {
+      List<List<MarkerId>> convex, int convexHullIndex) {
     Map<MarkerId, Marker> markersReturn = {};
-    customInfoWindowController.hideAllInfoWindow!();
     for (int index = 0; index <= convexHullIndex; index++) {
       for (MarkerId markerId in convex[index]) {
         markersReturn[markerId] = markersStored[markerId]!;
-        customInfoWindowController.showInfoWindow!(markerId);
       }
     }
-    customInfoWindowController.googleMapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(placeRecommendPoint,
-            [16.0, 15.5, 15.0, 14.5, 14.0][convexHullIndex]));
-    customInfoWindowController.updateInfoWindow!();
+    googleMapController!.animateCamera(CameraUpdate.newLatLngZoom(
+        placeRecommendPoint, [17.0, 16.5, 16.0, 15.5, 15.0][convexHullIndex]));
     return markersReturn;
   }
 
@@ -932,7 +916,7 @@ class CreateScheduleStore with ChangeNotifier {
   late ScrollController timeLineScrollController;
 
   /// custom info window 컨트롤
-  ModifiedCustomInfoWindowController? customInfoWindowController = null;
+  GoogleMapController? googleMapController;
 
   // late AnimationController animationController;
   // late Animation animation;

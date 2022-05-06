@@ -11,16 +11,20 @@ class DayplanitFloatingBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DateTime date = Provider.of<HomeProvider>(context, listen: true).nowDate;
+
     return FloatingActionButton(
-        backgroundColor: primaryColor,
+        backgroundColor:
+            DateTime.now().isBefore(date) ? primaryColor : subTextColor,
         onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => CreateScheduleScreen(
-                        date: Provider.of<HomeProvider>(context, listen: false)
-                            .nowDate,
-                      )));
+          if (DateTime.now().isBefore(date)) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => CreateScheduleScreen(
+                          date: date,
+                        )));
+          }
         },
         child: const Icon(
           CupertinoIcons.calendar_badge_plus,

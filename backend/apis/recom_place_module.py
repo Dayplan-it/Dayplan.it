@@ -1,7 +1,7 @@
 import json
 import datetime as dt
-from numpy import double
 import requests
+from django.contrib.gis.geos import LineString
 import pandas as pd
 from urllib import parse
 from django.db import connection
@@ -82,37 +82,47 @@ def get_nearby_place(startNode, lng, lat, type, distance=1800):
     points = []
     # 사전형으로 변환
     for result in results:
-        dic = {}
-        dic['name'] = result['name']
-        dic['lng'] = str(result['geometry']['location']['lng'])
-        dic['lat'] = str(result['geometry']['location']['lat'])
-        points.append(
-            [str(result['geometry']['location']['lng']), str(result['geometry']['location']['lat'])])
-        dic['place_id'] = result['place_id']
-        dic['rating'] = result['rating'] if 'rating' in result else '-'
-        dic['user_ratings_total'] = result['user_ratings_total'] if 'user_ratings_total' in result else '-'
-        new_list.append(dic)
+        if 'rating' in result:
+            if result['rating'] > 3.5:
+                dic = {}
+                dic['name'] = result['name']
+                dic['lng'] = str(result['geometry']['location']['lng'])
+                dic['lat'] = str(result['geometry']['location']['lat'])
 
+                line = LineString(
+                    [(float(lng), float(lat)), (float(result['geometry']['location']['lng']), float(result['geometry']['location']['lat']))], srid=settings.SRID)
+                line.transform(3857)
+                dic['distance'] = round(line.length)  # 미터
+
+                # points.append(
+                #     [str(result['geometry']['location']['lng']), str(result['geometry']['location']['lat'])])
+                dic['place_id'] = result['place_id']
+                dic['rating'] = result['rating'] if 'rating' in result else '-'
+                dic['user_ratings_total'] = result['user_ratings_total'] if 'user_ratings_total' in result else '-'
+                new_list.append(dic)
+        # else:
     # 이부분에서 걸리는 시간 받아서 데이터프레임 저장
-    node_list = getMinuteList(points)
-    cost = calMinute(node_list, startNode)
+    # node_list = getMinuteList(points)
+    # cost = calMinute(node_list, startNode)
 
-    for i in range(len(node_list)):
-        for j in range(len(cost)):
-            if node_list[i] == cost[j][0]:
-                if cost[j][1]*0.015 <= 5:
-                    new_list[i]['minute'] = 5
-                elif cost[j][1]*0.015 > 5 and cost[j][1]*0.015 <= 10:
-                    new_list[i]['minute'] = 10
-                elif cost[j][1]*0.015 > 10 and cost[j][1]*0.015 <= 15:
-                    new_list[i]['minute'] = 15
-                elif cost[j][1]*0.015 > 15 and cost[j][1]*0.015 <= 20:
-                    new_list[i]['minute'] = 20
-                elif cost[j][1]*0.015 > 20:
-                    new_list[i]['minute'] = 25
+    # for i in range(len(node_list)):
+    #     for j in range(len(cost)):
+    #         if node_list[i] == cost[j][0]:
+    #             if cost[j][1]*0.015 <= 5:
+    #                 new_list[i]['minute'] = 5
+    #             elif cost[j][1]*0.015 > 5 and cost[j][1]*0.015 <= 10:
+    #                 new_list[i]['minute'] = 10
+    #             elif cost[j][1]*0.015 > 10 and cost[j][1]*0.015 <= 15:
+    #                 new_list[i]['minute'] = 15
+    #             elif cost[j][1]*0.015 > 15 and cost[j][1]*0.015 <= 20:
+    #                 new_list[i]['minute'] = 20
+    #             elif cost[j][1]*0.015 > 20:
+    #                 new_list[i]['minute'] = 25
     # Geodataframe 변환
     df = pd.DataFrame(new_list, columns=[
-                      'name', 'lng', 'lat', 'place_id', 'rating', 'user_ratings_total', 'minute'])
+        'name', 'lng', 'lat', 'place_id', 'rating', 'user_ratings_total', 'distance'])
+
+    # 'name', 'lng', 'lat', 'place_id', 'rating', 'user_ratings_total', 'minute'])
 
     return df
 
@@ -307,8 +317,8 @@ def place_autocomplete(inputStr, lat, lng, isRankByDistance):
 
     url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?'\
         + f'input={inputStr}'\
-        + f'&origin={lat} {lng}'\
-        + f'&language=ko{"&rankby=distance" if isRankByDistance else ""}'\
+        + f'&origin={lat},{lng}'\
+        + f'&language=ko&components=country:kr{"&rankby=distance" if isRankByDistance else ""}'\
         + f'&key={settings.GOOGLE_API_KEY}'
     response = requests.get(url)
     data = json.loads(response.text)
