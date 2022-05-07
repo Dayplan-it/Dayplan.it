@@ -60,28 +60,39 @@ class CreateScheduleScreenBody extends StatefulWidget {
 class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
     with SingleTickerProviderStateMixin {
   @override
-  void initState() {
-    // context.read<CreateScheduleStore>().animationController =
-    //     AnimationController(duration: Duration(seconds: 5), vsync: this);
-    // context.read<CreateScheduleStore>().animation = IntTween(begin: 47, end: 30)
-    //     .animate(context.read<CreateScheduleStore>().animationController);
-    //_animation.addListener(() => setState(() {}));
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
     return Padding(
         padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
         child: Row(children: [
-          Expanded(
-              flex: context.watch<CreateScheduleStore>().timelineWidthFlex,
-              //context.watch<CreateScheduleStore>().animation.value,
-              child: const TimeLine()),
+          AnimatedSize(
+              alignment: Alignment.centerLeft,
+              curve: Curves.fastOutSlowIn,
+              duration: tabResizeAnimationDuration,
+              child: SizedBox(
+                  width: (screenWidth - 24) *
+                      context
+                          .watch<CreateScheduleStore>()
+                          .timelineWidthFlex
+                          .toDouble() /
+                      100,
+                  child: const TimeLine())),
           const SizedBox(
             width: 8,
           ),
-          const Expanded(flex: 53, child: CreateScheduleScreenRightSide())
+          AnimatedSize(
+              alignment: Alignment.centerLeft,
+              curve: Curves.fastOutSlowIn,
+              duration: tabResizeAnimationDuration,
+              child: SizedBox(
+                  width: (screenWidth - 24) *
+                      (1 -
+                          (context
+                                  .watch<CreateScheduleStore>()
+                                  .timelineWidthFlex
+                                  .toDouble() /
+                              100)),
+                  child: const CreateScheduleScreenRightSide()))
         ]));
   }
 }
@@ -153,9 +164,7 @@ class _CreateScheduleScreenRightSideState
   @override
   void initState() {
     context.read<CreateScheduleStore>().tabController = TabController(
-      length: 3,
-      vsync: this,
-    );
+        length: 3, vsync: this, animationDuration: tabResizeAnimationDuration);
 
     context.read<CreateScheduleStore>().tabController.addListener(() {
       _onTabChange();

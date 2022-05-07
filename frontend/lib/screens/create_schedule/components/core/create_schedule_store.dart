@@ -89,7 +89,7 @@ class CreateScheduleStore with ChangeNotifier {
   }
 
   /// 현재 시작시간을 변경중인 스케줄의 인덱스
-  late int indexOfcurrentlyDecidingStartsAtSchedule;
+  int indexOfcurrentlyDecidingStartsAtSchedule = 0;
   late Place currentlyDecidingStartsAtSchedule;
 
   late DateTime currentlySelectedTime;
@@ -644,7 +644,7 @@ class CreateScheduleStore with ChangeNotifier {
   }
 
   void setTimeLineWidthFlexByTabIndex(int tabIndex) {
-    setTimeLineWidthFlex([47, 30, 30][tabIndex]);
+    setTimeLineWidthFlex([47, 37, 37][tabIndex]);
   }
 
   /// 타임라인의 박스가 들어가는 곳 너비를 넣는 변수
@@ -685,7 +685,8 @@ class CreateScheduleStore with ChangeNotifier {
     onDecidingScheduleStartsAtEnd();
     onLookingPlaceDetailEnd();
     onCreateRouteTabEnd();
-    // clearScheduleCreated();
+    clearScheduleCreated();
+    clearMarkers();
     isBeforeStartTap = false;
   }
 
@@ -810,17 +811,45 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
-  /// convex hull index
-  // int convexHullIndex = 0;
-  // void setConvexHullIndex(int _convexHullIndex) {
-  //   convexHullIndex = _convexHullIndex;
-  //   notifyListeners();
-  // }
+  /// 구글맵에 들어가는 마커
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
+  // Marker 모두 지우는 함수
+  void clearMarkers() {
+    markers = {};
+    notifyListeners();
+  }
+
+  // Markers를 새로 덮어쓰는 함수
+  void setMarkers({required Map<MarkerId, Marker> newMarkers}) {
+    markers = newMarkers;
+    notifyListeners();
+  }
+
+  // Marker 추가하는 함수
+  void addMarker({required MarkerId markerId, required Marker marker}) {
+    markers[markerId] = marker;
+    notifyListeners();
+  }
+
+  // 특정 마커만 남기는 함수
+  void leftSpecificMarker({required MarkerId markerId}) {
+    Marker tempMarker = markers[markerId]!;
+    clearMarkers();
+    addMarker(markerId: markerId, marker: tempMarker);
+  }
+
+  // 새로운 특정 마커만 표시하는 함수
+  void showSpecificMarker(
+      {required MarkerId markerId, required Marker marker}) {
+    clearMarkers();
+    addMarker(markerId: markerId, marker: marker);
+  }
 
   /// 추천된 장소 리스트
   Map<MarkerId, Marker> markersStored = <MarkerId, Marker>{};
 
-  Map<MarkerId, Marker> onPlaceRecommened(
+  void onPlaceRecommened(
       List<List<MarkerId>> convex, Map<MarkerId, Marker> markers) {
     isPlaceRecommended = true;
 
@@ -836,7 +865,8 @@ class CreateScheduleStore with ChangeNotifier {
       }
     }
     setConvexType(convexHullIndex);
-    return setConvexHullVisibility(convex, convexHullIndex);
+    setConvexHullVisibility(convex, convexHullIndex);
+    notifyListeners();
   }
 
   /// 컨벡스홀 컨트롤 인덱스 변수
@@ -846,7 +876,8 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
-  Map<MarkerId, Marker> setConvexHullVisibility(
+  // 컨벡스홀 가시성 바뀐 마커를 갱신하는 함수
+  void setConvexHullVisibility(
       List<List<MarkerId>> convex, int convexHullIndex) {
     Map<MarkerId, Marker> markersReturn = {};
     for (int index = 0; index <= convexHullIndex; index++) {
@@ -856,7 +887,16 @@ class CreateScheduleStore with ChangeNotifier {
     }
     googleMapController!.animateCamera(CameraUpdate.newLatLngZoom(
         placeRecommendPoint, [17.0, 16.5, 16.0, 15.5, 15.0][convexHullIndex]));
-    return markersReturn;
+    setMarkers(newMarkers: markersReturn);
+    notifyListeners();
+  }
+
+  /// 선택된 장소를 삭제(선택 해제)하는 함수
+  void removeSelectedPlaceFromSchedule() {
+    scheduleList[indexOfPlaceDecidingSchedule].place = null;
+    scheduleList[indexOfPlaceDecidingSchedule].placeName = null;
+    scheduleList[indexOfPlaceDecidingSchedule].placeId = null;
+    notifyListeners();
   }
 
   ///
@@ -900,9 +940,11 @@ class CreateScheduleStore with ChangeNotifier {
   }
 
   void clearScheduleCreated() {
-    isScheduleCreated = false;
-    scheduleCreated.list = [];
-    notifyListeners();
+    if (isScheduleCreated) {
+      isScheduleCreated = false;
+      scheduleCreated.list = [];
+      notifyListeners();
+    }
   }
 
   ///

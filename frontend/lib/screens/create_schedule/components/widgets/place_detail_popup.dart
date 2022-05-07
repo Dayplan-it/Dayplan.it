@@ -204,27 +204,45 @@ class PlaceDetail extends StatelessWidget {
 }
 
 class PlaceDetailConfirmButton extends StatelessWidget {
-  const PlaceDetailConfirmButton(
-      {Key? key,
-      required this.marker,
-      required this.markerId,
-      required this.setMarker})
-      : super(key: key);
+  const PlaceDetailConfirmButton({
+    Key? key,
+    required this.marker,
+    required this.markerId,
+  }) : super(key: key);
 
   final Marker marker;
   final MarkerId markerId;
-  final Function(Map<MarkerId, Marker>) setMarker;
 
   @override
   Widget build(BuildContext context) {
-    return SquareButton(
-      title: "이 장소로 결정",
-      onPressed: () {
-        setMarker({markerId: marker});
-        context.read<CreateScheduleStore>().setPlaceForSchedule();
-        Navigator.of(context).pop();
-      },
-      activate: true,
-    );
+    return context
+                .watch<CreateScheduleStore>()
+                .scheduleList[context
+                    .watch<CreateScheduleStore>()
+                    .indexOfPlaceDecidingSchedule]
+                .placeId ==
+            markerId.value
+        ? SquareButton(
+            title: "이 장소 선택 취소하기",
+            onPressed: () {
+              context
+                  .read<CreateScheduleStore>()
+                  .removeSelectedPlaceFromSchedule();
+              context.read<CreateScheduleStore>().clearMarkers();
+              Navigator.of(context).pop();
+            },
+            activate: true,
+          )
+        : SquareButton(
+            title: "이 장소로 결정",
+            onPressed: () async {
+              context
+                  .read<CreateScheduleStore>()
+                  .setMarkers(newMarkers: {markerId: marker});
+              context.read<CreateScheduleStore>().setPlaceForSchedule();
+              Navigator.of(context).pop();
+            },
+            activate: true,
+          );
   }
 }

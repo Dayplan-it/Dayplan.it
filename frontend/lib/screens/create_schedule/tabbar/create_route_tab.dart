@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 
 import 'package:flutter/material.dart';
 
-import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
@@ -22,9 +21,11 @@ class CreateRouteTab extends StatefulWidget {
   State<CreateRouteTab> createState() => _CreateRouteTabState();
 }
 
-class _CreateRouteTabState extends State<CreateRouteTab> {
+class _CreateRouteTabState extends State<CreateRouteTab>
+    with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Stack(children: [
       MapForRouteFind(),
       if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
@@ -83,6 +84,9 @@ class _CreateRouteTabState extends State<CreateRouteTab> {
                 )))
     ]);
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class MapForRouteFind extends StatefulWidget {
@@ -101,8 +105,6 @@ class _MapForRouteFindState extends State<MapForRouteFind> {
           await ScheduleCreated.create(
               scheduleList: context.read<CreateScheduleStore>().scheduleList,
               scheduleDate: context.read<CreateScheduleStore>().scheduleDate));
-      // print(context.read<CreateScheduleStore>().scheduleCreated.toJson());
-      // print(context.read<CreateScheduleStore>().scheduleCreated.list);
 
       for (var order
           in context.read<CreateScheduleStore>().scheduleCreated.list) {

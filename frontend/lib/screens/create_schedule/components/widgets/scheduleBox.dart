@@ -1,10 +1,12 @@
-import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
@@ -27,12 +29,12 @@ class ScheduleBox extends StatelessWidget {
         top: itemHeight / 10,
         right: itemHeight / 10,
         child: GestureDetector(
-          onTap: () =>
-              context.read<CreateScheduleStore>().tabController.index == 0
-                  ? context
-                      .read<CreateScheduleStore>()
-                      .toggleScheduleFixedOrNot(index)
-                  : null,
+          onTap: () {
+            if (context.read<CreateScheduleStore>().tabController.index != 0) {
+              context.read<CreateScheduleStore>().tabController.animateTo(0);
+            }
+            context.read<CreateScheduleStore>().toggleScheduleFixedOrNot(index);
+          },
           child: Container(
             padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
             alignment: Alignment.center,
@@ -64,21 +66,22 @@ class ScheduleBox extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
             child: Center(
-              child: FittedBox(
-                fit: BoxFit.fitWidth,
-                child: Column(
-                  children: [
-                    if (!isEmpty)
-                      Text(
-                        place.placeName ?? place.nameKor,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!isEmpty)
+                    Text(place.placeName ?? place.nameKor,
                         style: mainFont(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            fontSize: itemHeight / 5,
-                            letterSpacing: 1),
-                      ),
-                    Visibility(
-                      visible: place.toHeight() > 60,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          fontSize: itemHeight / 6,
+                          letterSpacing: 1,
+                        ),
+                        overflow: TextOverflow.ellipsis),
+                  Visibility(
+                    visible: place.toHeight() > 60,
+                    child: FittedBox(
+                      fit: BoxFit.fitWidth,
                       child: Column(
                         children: [
                           const SizedBox(
@@ -109,9 +112,9 @@ class ScheduleBox extends StatelessWidget {
                           ),
                         ],
                       ),
-                    )
-                  ],
-                ),
+                    ),
+                  )
+                ],
               ),
             ),
           ),
@@ -127,54 +130,7 @@ class ScheduleBox extends StatelessWidget {
                     index: index,
                   ),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (context
-                                .read<CreateScheduleStore>()
-                                .tabController
-                                .index ==
-                            0) {
-                          context
-                              .read<CreateScheduleStore>()
-                              .onBeforeStartTapEnd();
-                          context
-                              .read<CreateScheduleStore>()
-                              .setIndexOfcurrentlyDecidingStartsAtSchedule(
-                                  index);
-                          context
-                              .read<CreateScheduleStore>()
-                              .onDecidingScheduleStartsAtStart();
-                        } else if (context
-                                .read<CreateScheduleStore>()
-                                .tabController
-                                .index ==
-                            1) {
-                          context
-                              .read<CreateScheduleStore>()
-                              .setIndexOfPlaceDecidingSchedule(index);
-                        }
-                      },
-                      child: LongPressDraggable(
-                        feedback: OnScheduleBoxLongPress(
-                          place: place,
-                          isFeedback: true,
-                        ),
-                        delay: const Duration(milliseconds: 300),
-                        data: index,
-                        onDragEnd: (DraggableDetails details) => context
-                            .read<CreateScheduleStore>()
-                            .onScheduleBoxDragEnd(),
-                        onDragStarted: () => context
-                            .read<CreateScheduleStore>()
-                            .onScheduleBoxDragStart(index),
-                        onDraggableCanceled: (velocity, offset) => context
-                            .read<CreateScheduleStore>()
-                            .onScheduleBoxDragEnd(),
-                        child: Container(
-                          color: const Color.fromRGBO(0, 0, 0, 0),
-                        ),
-                      ),
-                    ),
+                    child: DetectBoxTapAndDrag(index: index, place: place),
                   ),
                   ScheduleBoxUpDownHandle(
                     isUp: false,
@@ -185,34 +141,78 @@ class ScheduleBox extends StatelessWidget {
             ),
           ] else
             Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  if (context.read<CreateScheduleStore>().tabController.index ==
-                      0) {
-                    context.read<CreateScheduleStore>().onBeforeStartTapEnd();
-                    context
-                        .read<CreateScheduleStore>()
-                        .setIndexOfcurrentlyDecidingStartsAtSchedule(index);
-                    context
-                        .read<CreateScheduleStore>()
-                        .onDecidingScheduleStartsAtStart();
-                  } else if (context
-                          .read<CreateScheduleStore>()
-                          .tabController
-                          .index ==
-                      1) {
-                    context
-                        .read<CreateScheduleStore>()
-                        .setIndexOfPlaceDecidingSchedule(index);
-                  }
-                },
-                child: Container(
-                  color: const Color.fromRGBO(0, 0, 0, 0),
-                ),
-              ),
+              child: DetectBoxTapAndDrag(index: index, place: place),
             ),
           place.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
         ]));
+  }
+}
+
+class DetectBoxTapAndDrag extends StatelessWidget {
+  const DetectBoxTapAndDrag({
+    Key? key,
+    required this.index,
+    required this.place,
+  }) : super(key: key);
+
+  final int index;
+  final Place place;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        context
+            .read<CreateScheduleStore>()
+            .setIndexOfPlaceDecidingSchedule(index);
+        if (context.read<CreateScheduleStore>().tabController.index != 1) {
+          context.read<CreateScheduleStore>().tabController.animateTo(1);
+          await Future.delayed(Duration(
+              milliseconds:
+                  (tabResizeAnimationDuration.inMilliseconds / 2).round()));
+        }
+
+        if (context.read<CreateScheduleStore>().scheduleList[index].place !=
+            null) {
+          MarkerId markerId = MarkerId(
+              context.read<CreateScheduleStore>().scheduleList[index].placeId!);
+          LatLng placeLatLng =
+              context.read<CreateScheduleStore>().scheduleList[index].place!;
+          String title = context
+              .read<CreateScheduleStore>()
+              .scheduleList[index]
+              .placeName!;
+
+          context.read<CreateScheduleStore>().setMarkers(newMarkers: {
+            markerId: await markerWithCustomInfoWindow(
+                context, markerId, placeLatLng, title, null, null,
+                isRecommended: true)
+          });
+
+          context
+              .read<CreateScheduleStore>()
+              .googleMapController!
+              .animateCamera(CameraUpdate.newLatLngZoom(placeLatLng, 17));
+        }
+      },
+      child: LongPressDraggable(
+        feedback: OnScheduleBoxLongPress(
+          place: place,
+          isFeedback: true,
+        ),
+        delay: const Duration(milliseconds: 300),
+        data: index,
+        onDragEnd: (DraggableDetails details) =>
+            context.read<CreateScheduleStore>().onScheduleBoxDragEnd(),
+        onDragStarted: () =>
+            context.read<CreateScheduleStore>().onScheduleBoxDragStart(index),
+        onDraggableCanceled: (velocity, offset) =>
+            context.read<CreateScheduleStore>().onScheduleBoxDragEnd(),
+        child: Container(
+          color: const Color.fromRGBO(0, 0, 0, 0),
+        ),
+      ),
+    );
   }
 }
 
@@ -267,21 +267,21 @@ class OnScheduleBoxLongPress extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(4.0),
             child: Center(
-              child: FittedBox(
-                fit: BoxFit.fitWidth,
-                child: Column(
-                  children: [
-                    if (place.nameKor.isNotEmpty)
-                      Text(
-                        place.placeName ?? place.nameKor,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (place.nameKor.isNotEmpty)
+                    Text(place.placeName ?? place.nameKor,
                         style: mainFont(
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
-                            fontSize: itemHeight / 5,
+                            fontSize: itemHeight / 6,
                             letterSpacing: 1),
-                      ),
-                    Visibility(
-                      visible: place.toHeight() > 60,
+                        overflow: TextOverflow.ellipsis),
+                  Visibility(
+                    visible: place.toHeight() > 60,
+                    child: FittedBox(
+                      fit: BoxFit.fitWidth,
                       child: Column(
                         children: [
                           const SizedBox(
@@ -312,9 +312,9 @@ class OnScheduleBoxLongPress extends StatelessWidget {
                           ),
                         ],
                       ),
-                    )
-                  ],
-                ),
+                    ),
+                  )
+                ],
               ),
             ),
           ),

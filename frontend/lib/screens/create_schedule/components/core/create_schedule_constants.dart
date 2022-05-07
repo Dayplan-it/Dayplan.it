@@ -28,6 +28,9 @@ const List<BoxShadow> defaultBoxShadow = [
   BoxShadow(color: Color.fromARGB(29, 0, 0, 0), blurRadius: 30)
 ];
 
+/// 각 탭을 바꿀 때 Resize Animation의 Duration
+const tabResizeAnimationDuration = Duration(milliseconds: 700);
+
 ///
 /// 시간 계산 관련 함수들은 종종 사용되는데,
 /// 원래는 초단위로 계산하게끔 했지만

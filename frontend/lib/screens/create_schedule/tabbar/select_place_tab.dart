@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -7,8 +6,6 @@ import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
@@ -96,9 +93,11 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   _getUserLoc() async {
     Position tempUserPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _userPosition = tempUserPosition;
-    });
+    if (mounted) {
+      setState(() {
+        _userPosition = tempUserPosition;
+      });
+    }
     // if (await Permission.location.request().isGranted) {
     //   _userPosition = await Geolocator.getCurrentPosition(
     //       desiredAccuracy: LocationAccuracy.high);
@@ -149,21 +148,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     }
   }
 
-  Future<Map> _fetchPlaceDetail(
-      {required String placeId, bool shouldGetImg = false}) async {
-    try {
-      final response = await Dio().get(
-          '$commonUrl/api/placedetail?place_id=$placeId&should_get_img=$shouldGetImg');
-      if (response.statusCode == 200) {
-        return response.data;
-      } else {
-        throw Exception('서버에 문제가 발생했습니다');
-      }
-    } catch (error) {
-      rethrow;
-    }
-  }
-
   Future<List> _fetchPlaceRecommend(String placeType) async {
     LatLng position = context.read<CreateScheduleStore>().placeRecommendPoint;
     try {
@@ -184,87 +168,15 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     return MapWithCustomInfoWindow(
       onMapCreated: _onMapCreated,
       initPosition: _userPosition,
-      markers: markers,
     );
-  }
-
-  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
-
-  void _setMarker(Map<MarkerId, Marker> newMarkers) {
-    setState(() {
-      markers = newMarkers;
-    });
-  }
-
-  void _addMarker(LatLng placeLatLng, String title, String? rating, int? minute,
-      {required String markerIdStr}) async {
-    final MarkerId markerId = MarkerId(markerIdStr);
-
-    final Marker marker = await _createMarker(
-      placeLatLng,
-      title,
-      rating,
-      minute,
-      markerIdStr,
-    );
-
-    setState(() {
-      markers[markerId] = marker;
-    });
   }
 
   Future<Marker> _createMarker(LatLng placeLatLng, String title, String? rating,
       int? length, String placeId) async {
     final MarkerId markerId = MarkerId(placeId);
-    _onTap() async {
-      context
-          .read<CreateScheduleStore>()
-          .setSelectedPlace(placeId, title, placeLatLng);
-
-      //context.read<CreateScheduleStore>().toggleIsLookingPlaceDetail();
-
-      return showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
-              content: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.7,
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: PlaceDetail(
-                  fetchPlaceDetail: _fetchPlaceDetail,
-                ),
-              ),
-              actions: [
-                SizedBox(
-                  width: double.infinity,
-                  child: PlaceDetailConfirmButton(
-                    marker: markers[markerId]!,
-                    markerId: markerId,
-                    setMarker: _setMarker,
-                  ),
-                )
-              ],
-              actionsAlignment: MainAxisAlignment.center,
-            );
-          });
-    }
 
     return await markerWithCustomInfoWindow(
-        context,
-        context.read<CreateScheduleStore>().googleMapController!,
-        markerId,
-        placeLatLng,
-        title,
-        rating,
-        length,
-        _onTap);
-  }
-
-  void _clearMarker() async {
-    _setMarker(<MarkerId, Marker>{});
+        context, markerId, placeLatLng, title, rating, length);
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -315,10 +227,13 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   }
 
   Future<void> _createPlaceRecommendMarker() async {
+    context.read<CreateScheduleStore>().googleMapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+            LatLng(_userPosition.latitude, _userPosition.longitude), 17));
     setState(() {
       convex = [[], [], [], [], []];
     });
-    _clearMarker();
+    context.read<CreateScheduleStore>().clearMarkers();
 
     List recommendedPlaces = await _fetchPlaceRecommend(context
         .read<CreateScheduleStore>()
@@ -375,18 +290,10 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
       });
     }
 
-    setState(() {
-      markers = context
-          .read<CreateScheduleStore>()
-          .onPlaceRecommened(convex, createdMarkers);
-    });
+    context
+        .read<CreateScheduleStore>()
+        .onPlaceRecommened(convex, createdMarkers);
   }
-
-  // @override
-  // void dispose() {
-  //   context.read<CreateScheduleStore>().googleMapController?.dispose();
-  //   super.dispose();
-  // }
 
   bool _isSearchPressed = false;
   bool _isSearchFound = false;
@@ -405,51 +312,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   Widget build(BuildContext context) {
     int _indexOfPlaceDecidingSchedule =
         context.watch<CreateScheduleStore>().indexOfPlaceDecidingSchedule;
-
-    // if (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty) {
-    //   bool _isPlaceSelectedForThisSchedule = context
-    //           .watch<CreateScheduleStore>()
-    //           .scheduleList[_indexOfPlaceDecidingSchedule]
-    //           .place !=
-    //       null;
-    //   if (!context.watch<CreateScheduleStore>().isPlaceRecommended &&
-    //       context.read<CreateScheduleStore>().googleMapController != null) {
-    //     _clearMarker();
-    //     if (_isPlaceSelectedForThisSchedule) {
-    //       _addMarker(
-    //           context
-    //               .read<CreateScheduleStore>()
-    //               .scheduleList[_indexOfPlaceDecidingSchedule]
-    //               .place!,
-    //           context
-    //               .read<CreateScheduleStore>()
-    //               .scheduleList[_indexOfPlaceDecidingSchedule]
-    //               .placeName!,
-    //           null,
-    //           null,
-    //           markerIdStr: context
-    //               .read<CreateScheduleStore>()
-    //               .scheduleList[_indexOfPlaceDecidingSchedule]
-    //               .placeId!);
-    //       context
-    //           .read<CreateScheduleStore>()
-    //           .googleMapController!
-    //           .animateCamera(CameraUpdate.newLatLngZoom(
-    //               context
-    //                   .read<CreateScheduleStore>()
-    //                   .scheduleList[_indexOfPlaceDecidingSchedule]
-    //                   .place!,
-    //               16));
-    //     }
-    //     // else {
-    //     //   context
-    //     //       .read<CreateScheduleStore>()
-    //     //       .googleMapController!
-    //     //       .animateCamera(CameraUpdate.newLatLngZoom(
-    //     //           LatLng(_userPosition.latitude, _userPosition.longitude), 16));
-    //     // }
-    //   }
-    // }
 
     return Column(children: [
       const SizedBox(
@@ -481,7 +343,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                   _isSearchPressed = true;
                   _isSearchFound = false;
                   _autocomplete = _fetchAutoComplete(_input);
-                  _clearMarker();
+                  context.read<CreateScheduleStore>().clearMarkers();
                 });
               },
             ),
@@ -492,8 +354,15 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
         ),
       ),
       Visibility(
-          visible: context.watch<CreateScheduleStore>().isPlaceRecommended,
-          child: ConvexHullControl(convex: convex, setMarker: _setMarker)),
+          visible: context.watch<CreateScheduleStore>().isPlaceRecommended &&
+              context
+                      .watch<CreateScheduleStore>()
+                      .scheduleList[context
+                          .watch<CreateScheduleStore>()
+                          .indexOfPlaceDecidingSchedule]
+                      .placeType !=
+                  'custom',
+          child: ConvexHullControl(convex: convex)),
       Expanded(
         child: Stack(
           children: [
@@ -596,22 +465,94 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                       fontSize: 11),
                                 ),
                                 onTap: () async {
-                                  _clearMarker();
-                                  var placeDetail = await _fetchPlaceDetail(
-                                      placeId: result[index]['place_id']);
+                                  // var placeDetail = await _fetchPlaceDetail(
+                                  //     placeId: result[index]['place_id']);
+                                  // LatLng placeLatLng = LatLng(
+                                  //     placeDetail['lat'], placeDetail['lng']);
+                                  // setState(() {
+                                  //   _isSearchPressed = false;
+                                  //   _isSearchFound = true;
+                                  // });
+
+                                  final response = await Dio().get(
+                                      '$commonUrl/api/placedetail?place_id=${result[index]['place_id']}&should_get_img=false');
+                                  var placeDetail = response.data;
+
                                   LatLng placeLatLng = LatLng(
                                       placeDetail['lat'], placeDetail['lng']);
                                   setState(() {
                                     _isSearchPressed = false;
                                     _isSearchFound = true;
                                   });
-                                  _addMarker(
+
+                                  MarkerId markerId =
+                                      MarkerId(result[index]['place_id']);
+
+                                  // _onTap() async {
+                                  //   context
+                                  //       .read<CreateScheduleStore>()
+                                  //       .setSelectedPlace(
+                                  //           result[index]['place_id'],
+                                  //           result[index]
+                                  //                   ['structured_formatting']
+                                  //               ['main_text'],
+                                  //           placeLatLng);
+
+                                  //   return showDialog(
+                                  //       context: context,
+                                  //       builder: (context) {
+                                  //         return AlertDialog(
+                                  //           contentPadding:
+                                  //               const EdgeInsets.fromLTRB(
+                                  //                   10, 5, 10, 0),
+                                  //           backgroundColor: Colors.white,
+                                  //           shape: RoundedRectangleBorder(
+                                  //               borderRadius: defaultBoxRadius),
+                                  //           content: SizedBox(
+                                  //             width: MediaQuery.of(context)
+                                  //                     .size
+                                  //                     .width *
+                                  //                 0.7,
+                                  //             height: MediaQuery.of(context)
+                                  //                     .size
+                                  //                     .height *
+                                  //                 0.7,
+                                  //             child: PlaceDetail(
+                                  //               fetchPlaceDetail:
+                                  //                   _fetchPlaceDetail,
+                                  //             ),
+                                  //           ),
+                                  //           actions: [
+                                  //             SizedBox(
+                                  //               width: double.infinity,
+                                  //               child: PlaceDetailConfirmButton(
+                                  //                 marker: context
+                                  //                     .watch<
+                                  //                         CreateScheduleStore>()
+                                  //                     .markers[markerId]!,
+                                  //                 markerId: markerId,
+                                  //               ),
+                                  //             )
+                                  //           ],
+                                  //           actionsAlignment:
+                                  //               MainAxisAlignment.center,
+                                  //         );
+                                  //       });
+                                  // }
+
+                                  context
+                                      .read<CreateScheduleStore>()
+                                      .setMarkers(newMarkers: {
+                                    markerId: await markerWithCustomInfoWindow(
+                                      context,
+                                      markerId,
                                       placeLatLng,
                                       result[index]['structured_formatting']
                                           ['main_text'],
                                       placeDetail['rating'].toString(),
-                                      null,
-                                      markerIdStr: result[index]['place_id']);
+                                      result[index]['distance_meters'],
+                                    )
+                                  });
 
                                   _textFieldController.clear();
                                   context
@@ -636,21 +577,22 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                       }),
                 ),
               ),
-            // if (context.watch<CreateScheduleStore>().isLookingPlaceDetail)
-            //   Positioned.fill(
-            //     child: PlaceDetail(
-            //         fetchPlaceDetail: _fetchPlaceDetail,
-            //         clearMarker: _clearMarker,
-            //         setMarker: _setMarker,
-            //         markers: markers),
-            //   ),
           ],
         ),
       ),
       Visibility(
           visible: !context.watch<CreateScheduleStore>().isLookingPlaceDetail &&
               !_isSearchPressed &&
-              !_isSearchFound,
+              !_isSearchFound &&
+              (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty
+                  ? context
+                          .watch<CreateScheduleStore>()
+                          .scheduleList[context
+                              .watch<CreateScheduleStore>()
+                              .indexOfPlaceDecidingSchedule]
+                          .placeType !=
+                      'custom'
+                  : true),
           child: Column(
             children: [
               SquareButtonWithLoading(
@@ -685,7 +627,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 onPressed: () {
                   setState(() {
                     _isSearchFound = false;
-                    _clearMarker();
+                    context.read<CreateScheduleStore>().clearMarkers();
                     context
                         .read<CreateScheduleStore>()
                         .googleMapController!
@@ -702,263 +644,10 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   }
 }
 
-// class PlaceDetail extends StatefulWidget {
-//   const PlaceDetail(
-//       {Key? key,
-//       required this.fetchPlaceDetail,
-//       required this.clearMarker,
-//       required this.setMarker,
-//       required this.markers})
-//       : super(key: key);
-
-//   final Future<Map> Function({required String placeId, bool shouldGetImg})
-//       fetchPlaceDetail;
-//   final Function clearMarker;
-//   final Function(Map<MarkerId, Marker>) setMarker;
-//   final Map<MarkerId, Marker> markers;
-
-//   @override
-//   State<PlaceDetail> createState() => _PlaceDetailState();
-// }
-
-// class _PlaceDetailState extends State<PlaceDetail> {
-//   Widget _detailPage(Map data) {
-//     return Stack(
-//       children: [
-//         Column(
-//           crossAxisAlignment: CrossAxisAlignment.center,
-//           children: [
-//             Padding(
-//               padding: const EdgeInsets.fromLTRB(10, 20, 10, 8),
-//               child: Text(
-//                 data["name"],
-//                 style: mainFont(fontWeight: FontWeight.w800, fontSize: 22),
-//                 textAlign: TextAlign.center,
-//               ),
-//             ),
-//             Padding(
-//               padding: const EdgeInsets.only(bottom: 20),
-//               child: Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   const Icon(
-//                     Icons.star,
-//                     color: pointColor,
-//                     size: 20,
-//                   ),
-//                   Text(
-//                     data["rating"].toString(),
-//                     style: mainFont(
-//                         color: pointColor,
-//                         fontWeight: FontWeight.w700,
-//                         fontSize: 20),
-//                   ),
-//                   const SizedBox(
-//                     width: 10,
-//                   ),
-//                   Text(
-//                     "${data["user_ratings_total"].toString()}개의 리뷰",
-//                     style: mainFont(
-//                         color: subTextColor,
-//                         fontWeight: FontWeight.w500,
-//                         fontSize: 15),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//             Expanded(
-//               child: ListView.builder(
-//                 itemCount: data["reviews"].length,
-//                 itemBuilder: (context, index) =>
-//                     _buildReviewBox(data["reviews"][index]),
-//               ),
-//             ),
-//             if (data["photo"].isNotEmpty)
-//               const SizedBox(
-//                 height: 50,
-//               )
-//           ],
-//         ),
-//         if (data["photo"].isNotEmpty)
-//           DraggableScrollableSheet(
-//             initialChildSize: 0.13,
-//             minChildSize: 0.13,
-//             maxChildSize: data["photo"].length == 1 ? 0.45 : 0.7,
-//             expand: true,
-//             builder: (context, scrollController) {
-//               return Container(
-//                   decoration: BoxDecoration(
-//                       color: Colors.white,
-//                       boxShadow: defaultBoxShadow,
-//                       borderRadius: defaultBoxRadius),
-//                   padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-//                   child: ClipRRect(
-//                     borderRadius: defaultBoxRadius,
-//                     child: ListView.builder(
-//                         physics: const ClampingScrollPhysics(),
-//                         controller: scrollController,
-//                         itemCount: data["photo"].length + 1,
-//                         itemBuilder: (context, index) {
-//                           if (index == 0) {
-//                             return const Icon(
-//                               Icons.drag_handle,
-//                               color: subTextColor,
-//                               size: 17,
-//                             );
-//                           }
-
-//                           return Padding(
-//                             padding:
-//                                 EdgeInsets.only(top: (index - 1 == 0 ? 0 : 5)),
-//                             child: ClipRRect(
-//                               borderRadius: defaultBoxRadius,
-//                               child: Image.network(
-//                                 data["photo"][index - 1],
-//                                 loadingBuilder:
-//                                     (context, imgWidget, loadingProgress) {
-//                                   if (loadingProgress == null) {
-//                                     return imgWidget;
-//                                   }
-//                                   return Center(
-//                                     child: CircularProgressIndicator(
-//                                       color: primaryColor,
-//                                       value:
-//                                           loadingProgress.expectedTotalBytes !=
-//                                                   null
-//                                               ? loadingProgress
-//                                                       .cumulativeBytesLoaded /
-//                                                   loadingProgress
-//                                                       .expectedTotalBytes!
-//                                               : null,
-//                                     ),
-//                                   );
-//                                 },
-//                               ),
-//                             ),
-//                           );
-//                         }),
-//                   ));
-//             },
-//           )
-//       ],
-//     );
-//   }
-
-//   Widget _buildReviewBox(Map review) {
-//     return Padding(
-//       padding: const EdgeInsets.all(8.0),
-//       child: Align(
-//         alignment: Alignment.centerLeft,
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Row(
-//               children: [
-//                 RatingBarIndicator(
-//                     itemBuilder: (context, index) => const Icon(
-//                           Icons.star,
-//                           color: Colors.amber,
-//                         ),
-//                     itemCount: 5,
-//                     itemSize: 15,
-//                     direction: Axis.horizontal,
-//                     rating: review["rating"].toDouble()),
-//                 const SizedBox(
-//                   width: 5,
-//                 ),
-//                 UnconstrainedBox(
-//                   child: Text(
-//                     review["relative_time_description"],
-//                     style: mainFont(color: subTextColor, fontSize: 11.5),
-//                   ),
-//                 )
-//               ],
-//             ),
-//             Text(
-//               review["text"],
-//               style: mainFont(color: Colors.black, fontSize: 13),
-//               textAlign: TextAlign.start,
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Stack(
-//       children: [
-//         Expanded(
-//           child: Container(
-//             decoration: BoxDecoration(
-//                 borderRadius: defaultBoxRadius,
-//                 boxShadow: defaultBoxShadow,
-//                 color: Colors.white),
-//             padding: const EdgeInsets.all(8.0),
-//             child: FutureBuilder<Map>(
-//               future: widget.fetchPlaceDetail(
-//                   placeId: context.read<CreateScheduleStore>().selectedPlaceId,
-//                   shouldGetImg: true),
-//               builder: (context, snapshot) {
-//                 if (snapshot.hasData) {
-//                   return Column(
-//                     children: [
-//                       Expanded(child: _detailPage(snapshot.data!)),
-//                       SquareButton(
-//                         title: "이 장소로 결정",
-//                         onPressed: () async {
-//                           await widget.clearMarker();
-//                           context
-//                               .read<CreateScheduleStore>()
-//                               .setPlaceForSchedule();
-//                           widget.setMarker({
-//                             MarkerId(context
-//                                     .read<CreateScheduleStore>()
-//                                     .selectedPlaceId):
-//                                 widget.markers[MarkerId(context
-//                                     .read<CreateScheduleStore>()
-//                                     .selectedPlaceId)]!
-//                           });
-//                         },
-//                         activate: true,
-//                       )
-//                     ],
-//                   );
-//                 }
-//                 return const Center(
-//                   child: CircularProgressIndicator(
-//                     color: primaryColor,
-//                   ),
-//                 );
-//               },
-//             ),
-//           ),
-//         ),
-//         Positioned(
-//             top: 3,
-//             right: 3,
-//             child: IconButton(
-//                 onPressed: () => context
-//                     .read<CreateScheduleStore>()
-//                     .onLookingPlaceDetailEnd(),
-//                 icon: const Icon(
-//                   Icons.close,
-//                   color: subTextColor,
-//                   size: 20,
-//                 )))
-//       ],
-//     );
-//   }
-// }
-
 class ConvexHullControl extends StatefulWidget {
-  const ConvexHullControl(
-      {Key? key, required this.convex, required this.setMarker})
-      : super(key: key);
+  const ConvexHullControl({Key? key, required this.convex}) : super(key: key);
 
   final List<List<MarkerId>> convex;
-  final Function(Map<MarkerId, Marker>) setMarker;
 
   @override
   State<ConvexHullControl> createState() => _ConvexHullControlState();
@@ -1003,9 +692,9 @@ class _ConvexHullControlState extends State<ConvexHullControl> {
           groupValue: context.watch<CreateScheduleStore>().convexType,
           onValueChanged: (int convexHullIndex) async {
             context.read<CreateScheduleStore>().setConvexType(convexHullIndex);
-            widget.setMarker(context
+            context
                 .read<CreateScheduleStore>()
-                .setConvexHullVisibility(widget.convex, convexHullIndex));
+                .setConvexHullVisibility(widget.convex, convexHullIndex);
           }),
     );
   }
