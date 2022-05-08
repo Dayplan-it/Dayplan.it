@@ -1,3 +1,4 @@
+import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -12,14 +13,18 @@ import 'package:dayplan_it/screens/create_schedule/components/core/create_schedu
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 class ScheduleBox extends StatelessWidget {
-  const ScheduleBox({
-    Key? key,
-    required this.place,
-    required this.index,
-  }) : super(key: key);
+  const ScheduleBox(
+      {Key? key,
+      required this.place,
+      required this.index,
+      this.isLongPress = false,
+      this.isFeedBack = false})
+      : super(key: key);
 
   final Place place;
   final int index;
+  final bool isLongPress;
+  final bool isFeedBack;
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +35,12 @@ class ScheduleBox extends StatelessWidget {
         right: itemHeight / 10,
         child: GestureDetector(
           onTap: () {
-            if (context.read<CreateScheduleStore>().tabController.index != 0) {
-              context.read<CreateScheduleStore>().tabController.animateTo(0);
+            if (context.read<CreateScheduleStore>().tabController.index == 2) {
+              context.read<CreateScheduleStore>().tabController.animateTo(1);
+            }
+
+            if (context.read<CreateScheduleStore>().isScheduleCreated) {
+              context.read<CreateScheduleStore>().setShouldRouteReCreatedTrue();
             }
             context.read<CreateScheduleStore>().toggleScheduleFixedOrNot(index);
           },
@@ -189,10 +198,36 @@ class DetectBoxTapAndDrag extends StatelessWidget {
                 isRecommended: true)
           });
 
-          context
+          await context
               .read<CreateScheduleStore>()
               .googleMapController!
               .animateCamera(CameraUpdate.newLatLngZoom(placeLatLng, 17));
+
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
+                  content: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    child: const PlaceDetail(),
+                  ),
+                  actions: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: PlaceDetailConfirmButton(
+                          marker: context
+                              .read<CreateScheduleStore>()
+                              .markers[markerId]!,
+                          markerId: markerId),
+                    )
+                  ],
+                  actionsAlignment: MainAxisAlignment.center,
+                );
+              });
         }
       },
       child: LongPressDraggable(

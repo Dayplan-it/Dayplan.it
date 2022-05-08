@@ -121,8 +121,6 @@ class ScheduleCreated {
             : (scheduleAfter.startsAt!.millisecondsSinceEpoch / 1000).round());
 
         try {
-          print(
-              '$commonUrl/api/getroute?lat_ori=${scheduleBefore.place!.latitude}&lng_ori=${scheduleBefore.place!.longitude}&lat_dest=${scheduleAfter.place!.latitude}&lng_dest=${scheduleAfter.place!.longitude}&should_use_depart_time=${shouldUseDepartTime ? "true" : "false"}&time=$time');
           final response = await Dio().get(
               '$commonUrl/api/getroute?lat_ori=${scheduleBefore.place!.latitude}&lng_ori=${scheduleBefore.place!.longitude}&lat_dest=${scheduleAfter.place!.latitude}&lng_dest=${scheduleAfter.place!.longitude}&should_use_depart_time=${shouldUseDepartTime ? "true" : "false"}&time=$time');
           if (response.statusCode == 200) {

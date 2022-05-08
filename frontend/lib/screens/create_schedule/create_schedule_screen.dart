@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:provider/provider.dart';
 
@@ -9,6 +9,7 @@ import 'package:dayplan_it/screens/create_schedule/tabbar/create_route_tab.dart'
 import 'package:dayplan_it/screens/create_schedule/tabbar/select_place_tab.dart';
 import 'package:dayplan_it/screens/create_schedule/tabbar/set_schedule_tab.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/notification_text.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/timeLine_vertical.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
@@ -227,12 +228,26 @@ class _CreateScheduleScreenRightSideState
                           title: "일정이 없습니다",
                           isRed: true,
                         ),
-                      // SquareButton(
-                      //   title: "일정 결정하기",
-                      //   activate:
-                      //       context.read<CreateScheduleStore>().scheduleList.isNotEmpty,
-                      //   onPressed: () {},
-                      // ),
+                      if (context
+                          .watch<CreateScheduleStore>()
+                          .shouldRouteReCreated)
+                        const NotificationText(
+                          title: "일정이 변경되어 경로를 다시 생성해야 합니다",
+                        ),
+                      Visibility(
+                        visible: context
+                                .watch<CreateScheduleStore>()
+                                .tabController
+                                .index ==
+                            2,
+                        child: SquareButtonWithLoading(
+                          title: "일정 결정하기",
+                          activate: (context
+                              .watch<CreateScheduleStore>()
+                              .isScheduleCreated),
+                          futureFunction: () async {},
+                        ),
+                      )
                     ],
                   ),
                 ],

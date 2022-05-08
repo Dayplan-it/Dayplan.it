@@ -5,6 +5,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
@@ -12,13 +13,7 @@ import 'package:dayplan_it/screens/create_schedule/components/core/create_schedu
 class PlaceDetail extends StatelessWidget {
   const PlaceDetail({
     Key? key,
-    required this.fetchPlaceDetail,
-    //required this.markers
   }) : super(key: key);
-
-  final Future<Map> Function({required String placeId, bool shouldGetImg})
-      fetchPlaceDetail;
-  //final Map<MarkerId, Marker> markers;
 
   @override
   Widget build(BuildContext context) {
@@ -185,6 +180,7 @@ class PlaceDetail extends StatelessWidget {
       );
     }
 
+    print('builddetail');
     return FutureBuilder<Map>(
       future: fetchPlaceDetail(
           placeId: context.read<CreateScheduleStore>().selectedPlaceId,

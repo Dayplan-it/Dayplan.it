@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
-import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -82,10 +82,25 @@ class MapWithSearchBox extends StatefulWidget {
 }
 
 class _MapWithSearchBoxState extends State<MapWithSearchBox> {
+  late Widget googleMap;
+
   @override
   void initState() {
-    super.initState();
     _getUserLoc();
+    googleMap = FutureBuilder<Widget>(
+      future: _buildGoogleMap(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return snapshot.data!;
+        }
+        return const Center(
+          child: CircularProgressIndicator(
+            color: primaryColor,
+          ),
+        );
+      },
+    );
+    super.initState();
   }
 
   /// 기기로부터 위치정보 사용 권한을 받고 위치정보를 가져오거나
@@ -131,36 +146,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     //     throw Error();
     //   }
     // }
-  }
-
-  /// 구글의 Autocomplete API를 사용해 자동완성 검색어를 가져오는 함수
-  Future<dynamic> _fetchAutoComplete(String input) async {
-    try {
-      final response = await Dio().get(
-          '$commonUrl/api/placeautocomplete?input=$input&lat=${_userPosition.latitude}&lng=${_userPosition.longitude}&is_rankby_distance=true');
-      if (response.statusCode == 200) {
-        return response;
-      } else {
-        throw Exception('서버에 문제가 발생했습니다');
-      }
-    } catch (error) {
-      rethrow;
-    }
-  }
-
-  Future<List> _fetchPlaceRecommend(String placeType) async {
-    LatLng position = context.read<CreateScheduleStore>().placeRecommendPoint;
-    try {
-      final response = await Dio().get(
-          '$commonUrl/api/placerecommend?lat=${position.latitude}&lng=${position.longitude}&place_type=$placeType');
-      if (response.statusCode == 200) {
-        return response.data;
-      } else {
-        throw Exception('서버에 문제가 발생했습니다');
-      }
-    } catch (error) {
-      rethrow;
-    }
   }
 
   Future<Widget> _buildGoogleMap() async {
@@ -220,51 +205,63 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   }
 
   Future<void> _getPlaceRecommendUsingSearchedPlace() async {
+    await _createPlaceRecommendMarker();
     setState(() {
       _isSearchFound = false;
     });
-    await _createPlaceRecommendMarker();
   }
 
   Future<void> _createPlaceRecommendMarker() async {
-    context.read<CreateScheduleStore>().googleMapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(
-            LatLng(_userPosition.latitude, _userPosition.longitude), 17));
+    LatLng recommendLatLng =
+        context.read<CreateScheduleStore>().placeRecommendPoint;
+
+    context
+        .read<CreateScheduleStore>()
+        .googleMapController!
+        .animateCamera(CameraUpdate.newLatLngZoom(recommendLatLng, 17));
+
     setState(() {
       convex = [[], [], [], [], []];
     });
     context.read<CreateScheduleStore>().clearMarkers();
 
-    List recommendedPlaces = await _fetchPlaceRecommend(context
-        .read<CreateScheduleStore>()
-        .scheduleList[
-            context.read<CreateScheduleStore>().indexOfPlaceDecidingSchedule]
-        .placeType);
+    List recommendedPlaces = await fetchPlaceRecommend(
+        placeType: context
+            .read<CreateScheduleStore>()
+            .scheduleList[context
+                .read<CreateScheduleStore>()
+                .indexOfPlaceDecidingSchedule]
+            .placeType,
+        position: recommendLatLng);
 
     /// 별점 역순으로 정렬해서
     /// MarkerWindow를 별점순으로 겹치게끔 함 (추후 Stack되므로 역순정렬)
-    for (int i = 0; i < recommendedPlaces.length; i++) {
-      for (int j = i + 1; j < recommendedPlaces.length; j++) {
-        double ratingI = recommendedPlaces[i]["rating"].toString() != "-"
-            ? (recommendedPlaces[i]["rating"].runtimeType == int
-                ? recommendedPlaces[i]["rating"].toDouble()
-                : recommendedPlaces[i]["rating"])
-            : 0.0;
-        double ratingJ = recommendedPlaces[j]["rating"].toString() != "-"
-            ? (recommendedPlaces[j]["rating"].runtimeType == int
-                ? recommendedPlaces[j]["rating"].toDouble()
-                : recommendedPlaces[j]["rating"])
-            : 0.0;
+    // for (int i = 0; i < recommendedPlaces.length; i++) {
+    //   for (int j = i + 1; j < recommendedPlaces.length; j++) {
+    //     double ratingI = recommendedPlaces[i]["rating"].toString() != "-"
+    //         ? (recommendedPlaces[i]["rating"].runtimeType == int
+    //             ? recommendedPlaces[i]["rating"].toDouble()
+    //             : recommendedPlaces[i]["rating"])
+    //         : 0.0;
+    //     double ratingJ = recommendedPlaces[j]["rating"].toString() != "-"
+    //         ? (recommendedPlaces[j]["rating"].runtimeType == int
+    //             ? recommendedPlaces[j]["rating"].toDouble()
+    //             : recommendedPlaces[j]["rating"])
+    //         : 0.0;
 
-        if (ratingI < ratingJ) {
-          var temp = recommendedPlaces[i];
-          recommendedPlaces[i] = recommendedPlaces[j];
-          recommendedPlaces[j] = temp;
-        }
-      }
-    }
+    //     if (ratingI < ratingJ) {
+    //       var temp = recommendedPlaces[i];
+    //       recommendedPlaces[i] = recommendedPlaces[j];
+    //       recommendedPlaces[j] = temp;
+    //     }
+    //   }
+    // }
 
     Map<MarkerId, Marker> createdMarkers = {};
+
+    createdMarkers[centertargetId] =
+        await markerForCenterTarget(placeLatLng: recommendLatLng);
+
     for (Map place in recommendedPlaces) {
       MarkerId markerId = MarkerId(place["place_id"]);
       createdMarkers[markerId] = await _createMarker(
@@ -317,41 +314,42 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
       const SizedBox(
         height: 5,
       ),
-      Visibility(
-        visible: !context.watch<CreateScheduleStore>().isLookingPlaceDetail,
-        child: Column(
-          children: [
-            CupertinoSearchTextField(
-              controller: _textFieldController,
-              autocorrect: false,
-              onChanged: (value) {
-                setState(() {
-                  _input = value;
-                });
-              },
-              onSuffixTap: () async {
-                setState(() {
-                  _textFieldController.clear();
-                  FocusScope.of(context).unfocus();
-                  _isSearchFound = false;
-                  _isSearchPressed = false;
-                });
-              },
-              onSubmitted: (value) {
-                setState(() {
-                  _input = value;
-                  _isSearchPressed = true;
-                  _isSearchFound = false;
-                  _autocomplete = _fetchAutoComplete(_input);
-                  context.read<CreateScheduleStore>().clearMarkers();
-                });
-              },
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-          ],
-        ),
+      Column(
+        children: [
+          CupertinoSearchTextField(
+            controller: _textFieldController,
+            autocorrect: false,
+            onChanged: (value) {
+              setState(() {
+                _input = value;
+              });
+            },
+            onSuffixTap: () async {
+              setState(() {
+                _textFieldController.clear();
+                FocusScope.of(context).unfocus();
+                _isSearchFound = false;
+                _isSearchPressed = false;
+              });
+            },
+            onSubmitted: (value) {
+              setState(() {
+                _input = value;
+                _isSearchPressed = true;
+                _isSearchFound = false;
+
+                _autocomplete = fetchAutoComplete(
+                    input: _input,
+                    position: LatLng(
+                        _userPosition.latitude, _userPosition.longitude));
+                context.read<CreateScheduleStore>().clearMarkers();
+              });
+            },
+          ),
+          const SizedBox(
+            height: 5,
+          ),
+        ],
       ),
       Visibility(
           visible: context.watch<CreateScheduleStore>().isPlaceRecommended &&
@@ -361,7 +359,8 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                           .watch<CreateScheduleStore>()
                           .indexOfPlaceDecidingSchedule]
                       .placeType !=
-                  'custom',
+                  'custom' &&
+              !_isSearchPressed,
           child: ConvexHullControl(convex: convex)),
       Expanded(
         child: Stack(
@@ -370,19 +369,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 borderRadius: defaultBoxRadius,
                 child: Stack(
                   children: [
-                    FutureBuilder<Widget>(
-                      future: _buildGoogleMap(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return snapshot.data!;
-                        }
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: primaryColor,
-                          ),
-                        );
-                      },
-                    ),
+                    googleMap,
                     Positioned(
                       left: 5,
                       top: 5,
@@ -465,80 +452,19 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                       fontSize: 11),
                                 ),
                                 onTap: () async {
-                                  // var placeDetail = await _fetchPlaceDetail(
-                                  //     placeId: result[index]['place_id']);
-                                  // LatLng placeLatLng = LatLng(
-                                  //     placeDetail['lat'], placeDetail['lng']);
-                                  // setState(() {
-                                  //   _isSearchPressed = false;
-                                  //   _isSearchFound = true;
-                                  // });
+                                  context
+                                      .read<CreateScheduleStore>()
+                                      .onPlaceRecommendedEnd();
 
-                                  final response = await Dio().get(
-                                      '$commonUrl/api/placedetail?place_id=${result[index]['place_id']}&should_get_img=false');
-                                  var placeDetail = response.data;
+                                  Map placeDetail = await fetchPlaceDetail(
+                                      placeId: result[index]['place_id'],
+                                      shouldGetImg: false);
 
                                   LatLng placeLatLng = LatLng(
                                       placeDetail['lat'], placeDetail['lng']);
-                                  setState(() {
-                                    _isSearchPressed = false;
-                                    _isSearchFound = true;
-                                  });
 
                                   MarkerId markerId =
                                       MarkerId(result[index]['place_id']);
-
-                                  // _onTap() async {
-                                  //   context
-                                  //       .read<CreateScheduleStore>()
-                                  //       .setSelectedPlace(
-                                  //           result[index]['place_id'],
-                                  //           result[index]
-                                  //                   ['structured_formatting']
-                                  //               ['main_text'],
-                                  //           placeLatLng);
-
-                                  //   return showDialog(
-                                  //       context: context,
-                                  //       builder: (context) {
-                                  //         return AlertDialog(
-                                  //           contentPadding:
-                                  //               const EdgeInsets.fromLTRB(
-                                  //                   10, 5, 10, 0),
-                                  //           backgroundColor: Colors.white,
-                                  //           shape: RoundedRectangleBorder(
-                                  //               borderRadius: defaultBoxRadius),
-                                  //           content: SizedBox(
-                                  //             width: MediaQuery.of(context)
-                                  //                     .size
-                                  //                     .width *
-                                  //                 0.7,
-                                  //             height: MediaQuery.of(context)
-                                  //                     .size
-                                  //                     .height *
-                                  //                 0.7,
-                                  //             child: PlaceDetail(
-                                  //               fetchPlaceDetail:
-                                  //                   _fetchPlaceDetail,
-                                  //             ),
-                                  //           ),
-                                  //           actions: [
-                                  //             SizedBox(
-                                  //               width: double.infinity,
-                                  //               child: PlaceDetailConfirmButton(
-                                  //                 marker: context
-                                  //                     .watch<
-                                  //                         CreateScheduleStore>()
-                                  //                     .markers[markerId]!,
-                                  //                 markerId: markerId,
-                                  //               ),
-                                  //             )
-                                  //           ],
-                                  //           actionsAlignment:
-                                  //               MainAxisAlignment.center,
-                                  //         );
-                                  //       });
-                                  // }
 
                                   context
                                       .read<CreateScheduleStore>()
@@ -554,15 +480,21 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                     )
                                   });
 
-                                  _textFieldController.clear();
                                   context
+                                      .read<CreateScheduleStore>()
+                                      .setPlaceRecommendPoint(placeLatLng);
+                                  await context
                                       .read<CreateScheduleStore>()
                                       .googleMapController!
                                       .moveCamera(CameraUpdate.newLatLngZoom(
                                           placeLatLng, 17));
-                                  context
-                                      .read<CreateScheduleStore>()
-                                      .setPlaceRecommendPoint(placeLatLng);
+
+                                  _textFieldController.clear();
+
+                                  setState(() {
+                                    _isSearchPressed = false;
+                                    _isSearchFound = true;
+                                  });
                                 },
                                 style: ListTileStyle.drawer,
                               );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 /// Create Schedule Screen을 위한 상수, 함수들
 
 /// 각 스케쥴 블록의 1시간 높이
@@ -30,6 +32,9 @@ const List<BoxShadow> defaultBoxShadow = [
 
 /// 각 탭을 바꿀 때 Resize Animation의 Duration
 const tabResizeAnimationDuration = Duration(milliseconds: 700);
+
+/// 센터타겟 MarkerId
+const MarkerId centertargetId = MarkerId("centerTarget");
 
 ///
 /// 시간 계산 관련 함수들은 종종 사용되는데,

@@ -155,23 +155,23 @@ class _TimeLineState extends State<TimeLine> {
                       ),
                 ]),
               ),
-            if (context.watch<CreateScheduleStore>().tabController.index == 1)
-              Positioned.fill(
-                child: Column(children: [
-                  for (int i = 0; i < scheduleList.length; i++)
-                    if (context
-                            .watch<CreateScheduleStore>()
-                            .indexOfPlaceDecidingSchedule ==
-                        i)
-                      OnScheduleBoxLongPress(
-                        place: scheduleList[i],
-                      )
-                    else
-                      SizedBox(
-                        height: scheduleList[i].toHeight(),
-                      ),
-                ]),
-              ),
+            // if (context.watch<CreateScheduleStore>().tabController.index == 1)
+            //   Positioned.fill(
+            //     child: Column(children: [
+            //       for (int i = 0; i < scheduleList.length; i++)
+            //         if (context
+            //                 .watch<CreateScheduleStore>()
+            //                 .indexOfPlaceDecidingSchedule ==
+            //             i)
+            //           OnScheduleBoxLongPress(
+            //             place: scheduleList[i],
+            //           )
+            //         else
+            //           SizedBox(
+            //             height: scheduleList[i].toHeight(),
+            //           ),
+            //     ]),
+            //   ),
           ],
         ),
       ]);

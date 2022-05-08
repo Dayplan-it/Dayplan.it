@@ -23,7 +23,7 @@ class SquareButton extends StatelessWidget {
         onPressed: isCancle ? onPressed : (activate ? onPressed : null),
         style: ElevatedButton.styleFrom(
             primary: isCancle ? pointColor : primaryColor,
-            minimumSize: const Size(0, 40),
+            minimumSize: const Size.fromHeight(40),
             shape: RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
         child: Text(
           title,

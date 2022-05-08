@@ -1,7 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-
-import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -27,7 +26,7 @@ class _CreateRouteTabState extends State<CreateRouteTab>
   Widget build(BuildContext context) {
     super.build(context);
     return Stack(children: [
-      MapForRouteFind(),
+      const MapForRouteFind(),
       if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
         Positioned.fill(
             child: Container(
@@ -100,30 +99,30 @@ class MapForRouteFind extends StatefulWidget {
 
 class _MapForRouteFindState extends State<MapForRouteFind> {
   Future _createSchedule() async {
-    if (context.read<CreateScheduleStore>().isRouteCreateAble()) {
-      context.read<CreateScheduleStore>().setSchduleCreated(
-          await ScheduleCreated.create(
-              scheduleList: context.read<CreateScheduleStore>().scheduleList,
-              scheduleDate: context.read<CreateScheduleStore>().scheduleDate));
+    context.read<CreateScheduleStore>().setSchduleCreated(
+        await ScheduleCreated.create(
+            scheduleList: context.read<CreateScheduleStore>().scheduleList,
+            scheduleDate: context.read<CreateScheduleStore>().scheduleDate));
 
-      for (var order
-          in context.read<CreateScheduleStore>().scheduleCreated.list) {
-        if (order.runtimeType == RouteOrder) {
-          _addPolyLine(
-              decodePolyline(order.polyline)
-                  .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
-                  .toList(),
-              order.polyline,
-              Colors.blue,
-              8);
-        } else {
-          _addMarker(
-            order.place,
-            order.placeId,
-          );
-        }
+    for (var order
+        in context.read<CreateScheduleStore>().scheduleCreated.list) {
+      if (order.runtimeType == RouteOrder) {
+        _addPolyLine(
+            decodePolyline(order.polyline)
+                .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+                .toList(),
+            order.polyline,
+            Colors.blue,
+            8);
+      } else {
+        _addMarker(
+          order.place,
+          order.placeId,
+        );
       }
     }
+
+    context.read<CreateScheduleStore>().setShouldRouteReCreatedFalse();
   }
 
   _addPolyLine(List<LatLng> polylineCoordinates, String lineId, Color color,

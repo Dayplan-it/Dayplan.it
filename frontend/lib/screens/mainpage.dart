@@ -1,4 +1,3 @@
-import 'package:dayplan_it/components/floating_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:dayplan_it/screens/profile/profile_screen.dart';
@@ -14,7 +13,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
-  List<Widget> screenList = [HomeScreen(), const ProfileScreen()];
+  List<Widget> screenList = [const HomeScreen(), const ProfileScreen()];
 
   void _onItemTapped(int index) {
     setState(() {

@@ -83,8 +83,8 @@ class RecommendedSchedulesGrid extends StatelessWidget {
               physics: const BouncingScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  mainAxisSpacing: 5,
-                  crossAxisSpacing: 5,
+                  mainAxisSpacing: 3,
+                  crossAxisSpacing: 3,
                   childAspectRatio: 2 / 1),
               itemCount: placeTypes.length,
               itemBuilder: (BuildContext context, int index) {
@@ -96,6 +96,7 @@ class RecommendedSchedulesGrid extends StatelessWidget {
                       context.read<CreateScheduleStore>().addSchedule(place),
                   style: ElevatedButton.styleFrom(
                       elevation: 2,
+                      padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                       primary: Colors.white,
                       shape: RoundedRectangleBorder(
                           borderRadius: defaultBoxRadius)),

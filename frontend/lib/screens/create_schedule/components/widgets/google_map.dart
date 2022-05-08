@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -12,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/custom_shapes.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
@@ -29,8 +28,13 @@ class MapWithCustomInfoWindow extends StatefulWidget {
 }
 
 class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
+  // _getMarkers() {
+  //   return Set<Marker>.of(context.watch<CreateScheduleStore>().markers.values);
+  // }
+
   @override
   Widget build(BuildContext context) {
+    print('build');
     return GoogleMap(
         onMapCreated: widget.onMapCreated,
         onTap: (position) async {
@@ -98,7 +102,9 @@ Future<Marker> markerWithCustomInfoWindow(
                                   BorderRadius.circular(double.infinity),
                               color: Colors.white),
                           child: Text(
-                            length.toString() + "m",
+                            length < 1000
+                                ? length.toString() + "m"
+                                : (length.toDouble() / 1000).toStringAsFixed(1),
                             style: mainFont(
                                 color: subTextColor,
                                 fontWeight: FontWeight.w700),
@@ -153,21 +159,6 @@ Future<Marker> markerWithCustomInfoWindow(
   Uint8List _createdWidgetByte = await screenshotController
       .captureFromWidget(_widget(), delay: const Duration(seconds: 0));
 
-  Future<Map> _fetchPlaceDetail(
-      {required String placeId, bool shouldGetImg = false}) async {
-    try {
-      final response = await Dio().get(
-          '$commonUrl/api/placedetail?place_id=$placeId&should_get_img=$shouldGetImg');
-      if (response.statusCode == 200) {
-        return response.data;
-      } else {
-        throw Exception('서버에 문제가 발생했습니다');
-      }
-    } catch (error) {
-      rethrow;
-    }
-  }
-
   _onTap() async {
     context
         .read<CreateScheduleStore>()
@@ -183,18 +174,13 @@ Future<Marker> markerWithCustomInfoWindow(
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.7,
               height: MediaQuery.of(context).size.height * 0.7,
-              child: PlaceDetail(
-                fetchPlaceDetail: _fetchPlaceDetail,
-              ),
+              child: const PlaceDetail(),
             ),
             actions: [
-              SizedBox(
-                width: double.infinity,
-                child: PlaceDetailConfirmButton(
-                    marker:
-                        context.read<CreateScheduleStore>().markers[markerId]!,
-                    markerId: markerId),
-              )
+              PlaceDetailConfirmButton(
+                  marker:
+                      context.read<CreateScheduleStore>().markers[markerId]!,
+                  markerId: markerId),
             ],
             actionsAlignment: MainAxisAlignment.center,
           );
@@ -206,5 +192,30 @@ Future<Marker> markerWithCustomInfoWindow(
     position: placeLatLng,
     icon: BitmapDescriptor.fromBytes(_createdWidgetByte),
     onTap: _onTap,
+  );
+}
+
+/// 센터타겟 마커 생성
+Future<Marker> markerForCenterTarget({
+  required LatLng placeLatLng,
+}) async {
+  Widget _widget() {
+    return const Icon(
+      Icons.location_searching_rounded,
+      size: 30,
+      color: primaryColor,
+    );
+  }
+
+  ScreenshotController screenshotController = ScreenshotController();
+
+  Uint8List _createdWidgetByte = await screenshotController
+      .captureFromWidget(_widget(), delay: const Duration(seconds: 0));
+
+  return Marker(
+    anchor: const Offset(0.5, 0.5),
+    markerId: centertargetId,
+    position: placeLatLng,
+    icon: BitmapDescriptor.fromBytes(_createdWidgetByte),
   );
 }

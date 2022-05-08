@@ -1,4 +1,3 @@
-import 'package:dayplan_it/screens/create_schedule/components/core/google_map_store.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -20,8 +19,6 @@ Future<void> main() async {
       ),
       ChangeNotifierProvider<CreateScheduleStore>(
           create: (context) => CreateScheduleStore()),
-      ChangeNotifierProvider<GoogleMapStore>(
-          create: ((context) => GoogleMapStore()))
     ],
     child: const MyApp(),
   ));

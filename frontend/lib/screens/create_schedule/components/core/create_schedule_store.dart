@@ -687,7 +687,13 @@ class CreateScheduleStore with ChangeNotifier {
     onCreateRouteTabEnd();
     clearScheduleCreated();
     clearMarkers();
+    setShouldRouteReCreatedFalse();
+    timeLineScrollController.dispose();
+    if (googleMapController != null) {
+      googleMapController!.dispose();
+    }
     isBeforeStartTap = false;
+    tabController.index = 0;
   }
 
   ///
@@ -880,6 +886,9 @@ class CreateScheduleStore with ChangeNotifier {
   void setConvexHullVisibility(
       List<List<MarkerId>> convex, int convexHullIndex) {
     Map<MarkerId, Marker> markersReturn = {};
+
+    markersReturn[centertargetId] = markersStored[centertargetId]!;
+
     for (int index = 0; index <= convexHullIndex; index++) {
       for (MarkerId markerId in convex[index]) {
         markersReturn[markerId] = markersStored[markerId]!;
@@ -945,6 +954,18 @@ class CreateScheduleStore with ChangeNotifier {
       scheduleCreated.list = [];
       notifyListeners();
     }
+  }
+
+  /// 경로 갱신 필요 여부를 확인하는 변수
+  bool shouldRouteReCreated = false;
+  void setShouldRouteReCreatedTrue() {
+    shouldRouteReCreated = true;
+    notifyListeners();
+  }
+
+  void setShouldRouteReCreatedFalse() {
+    shouldRouteReCreated = false;
+    notifyListeners();
   }
 
   ///
