@@ -7,7 +7,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
@@ -20,15 +19,18 @@ class CreateRouteTab extends StatefulWidget {
   State<CreateRouteTab> createState() => _CreateRouteTabState();
 }
 
-class _CreateRouteTabState extends State<CreateRouteTab> {
+class _CreateRouteTabState extends State<CreateRouteTab>
+    with AutomaticKeepAliveClientMixin {
+  late GoogleMapController _routeMapController;
   Widget _googleMap() {
     return ClipRRect(
       borderRadius: defaultBoxRadius,
       child: Stack(
         children: [
           GoogleMap(
-              onTap: (position) async {},
-              onCameraMove: (position) {},
+              onMapCreated: (controller) => setState(() {
+                    _routeMapController = controller;
+                  }),
               myLocationEnabled: true,
               gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                 Factory<OneSequenceGestureRecognizer>(
@@ -54,9 +56,11 @@ class _CreateRouteTabState extends State<CreateRouteTab> {
   Future<Widget> _createScheduleAndBuildGoogleMap() async {
     int routeReCreateFlag =
         context.read<CreateScheduleStore>().checkShouldRouteBeReCreated();
+
     if (routeReCreateFlag == 0) {
       return const SizedBox.shrink();
     } else if (routeReCreateFlag == 2) {
+      context.read<CreateScheduleStore>().onFindingRouteStart();
       context.read<CreateScheduleStore>().setSchduleCreated(
           await ScheduleCreated.create(
               scheduleList: context.read<CreateScheduleStore>().scheduleList,
@@ -80,8 +84,25 @@ class _CreateRouteTabState extends State<CreateRouteTab> {
         }
       }
 
+      context.read<CreateScheduleStore>().onFindingRouteEnd();
+      _routeMapController.moveCamera(CameraUpdate.newCameraPosition(
+          CameraPosition(
+              target: context
+                  .read<CreateScheduleStore>()
+                  .scheduleCreated
+                  .list[0]
+                  .place,
+              zoom: 15)));
       return _googleMap();
     } else {
+      _routeMapController.moveCamera(CameraUpdate.newCameraPosition(
+          CameraPosition(
+              target: context
+                  .read<CreateScheduleStore>()
+                  .scheduleCreated
+                  .list[0]
+                  .place,
+              zoom: 15)));
       return _googleMap();
     }
   }
@@ -147,7 +168,7 @@ class _CreateRouteTabState extends State<CreateRouteTab> {
 
   @override
   Widget build(BuildContext context) {
-    //super.build(context);
+    super.build(context);
     return Stack(children: [
       displayFoundRoute,
       if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
@@ -207,8 +228,8 @@ class _CreateRouteTabState extends State<CreateRouteTab> {
     ]);
   }
 
-  // @override
-  // bool get wantKeepAlive => true;
+  @override
+  bool get wantKeepAlive => true;
 }
 
 // class MapForRouteFind extends StatefulWidget {

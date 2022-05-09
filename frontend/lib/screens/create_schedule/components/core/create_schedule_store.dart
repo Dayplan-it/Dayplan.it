@@ -693,6 +693,7 @@ class CreateScheduleStore with ChangeNotifier {
     onCreateRouteTabEnd();
     clearScheduleCreated();
     clearMarkers();
+    onFindingRouteEnd();
     timeLineScrollController.dispose();
     if (googleMapController != null) {
       googleMapController!.dispose();
@@ -980,6 +981,7 @@ class CreateScheduleStore with ChangeNotifier {
 
     if (_isRouteCreateAble && isScheduleCreated) {
       bool _isScheduleChanged = false;
+
       if (scheduleList.length * 2 - 1 != scheduleCreated.list.length) {
         _isScheduleChanged = true;
       } else {
@@ -993,8 +995,6 @@ class CreateScheduleStore with ChangeNotifier {
                 _routeCreatedSchedulePlace.placeType !=
                     _scheduleListPlace.placeType ||
                 _routeCreatedSchedulePlace.color != _scheduleListPlace.color ||
-                _routeCreatedSchedulePlace.duration !=
-                    _scheduleListPlace.duration ||
                 _routeCreatedSchedulePlace.isFixed !=
                     _scheduleListPlace.isFixed ||
                 _routeCreatedSchedulePlace.place != _scheduleListPlace.place ||
@@ -1015,7 +1015,7 @@ class CreateScheduleStore with ChangeNotifier {
                 break;
               }
             } else {
-              if (i != 0) {
+              if (i != 0 && i != scheduleList.length - 1) {
                 bool _isPreviousScheduleFixed = scheduleList[i - 1].isFixed;
                 RouteOrder _previousRouteOrder =
                     scheduleCreated.list[i * 2 - 1];
@@ -1033,16 +1033,48 @@ class CreateScheduleStore with ChangeNotifier {
                           _scheduleListPlace.startsAt ||
                       _nextRouteOrder.endsAt != _scheduleListPlace.endsAt) {
                     _isScheduleChanged = true;
+                    print('dd');
                     break;
                   }
                 }
-              } else {
+              } else if (i == 0) {
+                if (scheduleList.length == 1) {
+                  if (_routeCreatedSchedulePlace.startsAt !=
+                          _scheduleListPlace.startsAt ||
+                      _routeCreatedSchedulePlace.endsAt !=
+                          _scheduleListPlace.endsAt) {
+                    _isScheduleChanged = true;
+                  }
+                  break;
+                }
                 RouteOrder _nextRouteOrder = scheduleCreated.list[1];
                 if (_routeCreatedSchedulePlace.startsAt !=
                         _scheduleListPlace.startsAt ||
                     _nextRouteOrder.endsAt != _scheduleListPlace.endsAt) {
                   _isScheduleChanged = true;
                   break;
+                }
+              } else {
+                bool _isPreviousScheduleFixed = scheduleList[i - 1].isFixed;
+
+                if (_isPreviousScheduleFixed) {
+                  RouteOrder _previousRouteOrder =
+                      scheduleCreated.list[i * 2 - 1];
+                  if (_previousRouteOrder.startsAt !=
+                          _scheduleListPlace.startsAt ||
+                      _routeCreatedSchedulePlace.endsAt !=
+                          _scheduleListPlace.endsAt) {
+                    _isScheduleChanged = true;
+                    break;
+                  }
+                } else {
+                  if (_routeCreatedSchedulePlace.startsAt !=
+                          _scheduleListPlace.startsAt ||
+                      _routeCreatedSchedulePlace.endsAt !=
+                          _scheduleListPlace.endsAt) {
+                    _isScheduleChanged = true;
+                    break;
+                  }
                 }
               }
             }
@@ -1057,6 +1089,19 @@ class CreateScheduleStore with ChangeNotifier {
     } else {
       return _isRouteCreateAble ? 2 : 0;
     }
+  }
+
+  /// 경로 로딩중 여부를 확인하는 변수
+  bool isFindingRoute = false;
+
+  void onFindingRouteStart() {
+    isFindingRoute = true;
+    notifyListeners();
+  }
+
+  void onFindingRouteEnd() {
+    isFindingRoute = false;
+    notifyListeners();
   }
 
   ///

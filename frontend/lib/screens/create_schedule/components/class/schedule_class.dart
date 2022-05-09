@@ -96,7 +96,7 @@ class Place {
 /// 실제 완성되는 스케줄이 담기는 클래스
 /// scheduleCreated = [ Schedule, Route, Schedule, ... ]
 class ScheduleCreated {
-  ScheduleCreated._addSchedules({required List<dynamic> scheduleList})
+  ScheduleCreated._initWithSchedules({required List<dynamic> scheduleList})
       : list = [
           for (int i = 0; i < scheduleList.length; i++) ...[
             scheduleList[i].copy(),
@@ -108,7 +108,7 @@ class ScheduleCreated {
       {required List<dynamic> scheduleList,
       required DateTime scheduleDate}) async {
     ScheduleCreated tempScheduleCreated =
-        ScheduleCreated._addSchedules(scheduleList: scheduleList);
+        ScheduleCreated._initWithSchedules(scheduleList: scheduleList);
 
     for (int i = 0; i < tempScheduleCreated.list.length; i++) {
       if (i % 2 == 1) {

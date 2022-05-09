@@ -102,24 +102,28 @@ class _TimeLineState extends State<TimeLine> {
     } else {
       if (context.watch<CreateScheduleStore>().isCreateRouteTabOn &&
           context.watch<CreateScheduleStore>().isScheduleCreated) {
-        List<dynamic> scheduleCreatedList =
-            context.read<CreateScheduleStore>().scheduleCreated.list;
-        return Column(children: [
-          SizedBox(
-            height: reorderDragTargetHeight / 2 +
-                dateTimeToHeight(scheduleCreatedList[0].startsAt!),
-          ),
-          for (int i = 0; i < scheduleCreatedList.length; i++)
-            if (scheduleCreatedList[i].runtimeType == Place) ...[
-              ScheduleBoxForCreatedSchedule(
-                place: scheduleCreatedList[i],
-              ),
-            ] else ...[
-              RouteBox(
-                route: scheduleCreatedList[i],
-              )
-            ],
-        ]);
+        if (!context.watch<CreateScheduleStore>().isFindingRoute) {
+          List<dynamic> scheduleCreatedList =
+              context.read<CreateScheduleStore>().scheduleCreated.list;
+          return Column(children: [
+            SizedBox(
+              height: reorderDragTargetHeight / 2 +
+                  dateTimeToHeight(scheduleCreatedList[0].startsAt!),
+            ),
+            for (int i = 0; i < scheduleCreatedList.length; i++)
+              if (scheduleCreatedList[i].runtimeType == Place) ...[
+                ScheduleBoxForCreatedSchedule(
+                  place: scheduleCreatedList[i],
+                ),
+              ] else ...[
+                RouteBox(
+                  route: scheduleCreatedList[i],
+                )
+              ],
+          ]);
+        } else {
+          return const SizedBox.shrink();
+        }
       }
       return Column(children: [
         SizedBox(
