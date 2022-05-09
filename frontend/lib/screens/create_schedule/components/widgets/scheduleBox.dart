@@ -1,6 +1,5 @@
-import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -39,9 +38,6 @@ class ScheduleBox extends StatelessWidget {
               context.read<CreateScheduleStore>().tabController.animateTo(1);
             }
 
-            if (context.read<CreateScheduleStore>().isScheduleCreated) {
-              context.read<CreateScheduleStore>().setShouldRouteReCreatedTrue();
-            }
             context.read<CreateScheduleStore>().toggleScheduleFixedOrNot(index);
           },
           child: Container(
@@ -194,8 +190,14 @@ class DetectBoxTapAndDrag extends StatelessWidget {
 
           context.read<CreateScheduleStore>().setMarkers(newMarkers: {
             markerId: await markerWithCustomInfoWindow(
-                context, markerId, placeLatLng, title, null, null,
-                isRecommended: true)
+                context.read<CreateScheduleStore>().screenKey,
+                markerId,
+                placeLatLng,
+                title,
+                null,
+                null,
+                isRecommended: true,
+                isForDecidingPlace: false)
           });
 
           await context
@@ -203,31 +205,53 @@ class DetectBoxTapAndDrag extends StatelessWidget {
               .googleMapController!
               .animateCamera(CameraUpdate.newLatLngZoom(placeLatLng, 17));
 
-          showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
-                  content: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    child: const PlaceDetail(),
-                  ),
-                  actions: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: PlaceDetailConfirmButton(
-                          marker: context
-                              .read<CreateScheduleStore>()
-                              .markers[markerId]!,
-                          markerId: markerId),
-                    )
-                  ],
-                  actionsAlignment: MainAxisAlignment.center,
-                );
-              });
+          // showDialog(
+          //     context: context,
+          //     builder: (context) {
+          //       return AlertDialog(
+          //         contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+          //         backgroundColor: Colors.white,
+          //         shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
+          //         content: SizedBox(
+          //           width: MediaQuery.of(context).size.width * 0.7,
+          //           height: MediaQuery.of(context).size.height * 0.7,
+          //           child: const PlaceDetail(),
+          //         ),
+          //         actions: [
+          //           SizedBox(
+          //             width: double.infinity,
+          //             child: PlaceDetailConfirmButton(markerId: markerId),
+          //           )
+          //         ],
+          //         actionsAlignment: MainAxisAlignment.center,
+          //       );
+          //     });
+        } else {
+          var temp = context
+              .read<CreateScheduleStore>()
+              .checkAndGetIndexForPlaceRecommend();
+          if (temp.runtimeType == int &&
+              context.read<CreateScheduleStore>().markers.isNotEmpty) {
+            context.read<CreateScheduleStore>().setMarkers(
+              newMarkers: {
+                MarkerId(context
+                        .read<CreateScheduleStore>()
+                        .scheduleList[temp]
+                        .placeId!):
+                    context.read<CreateScheduleStore>().markers[MarkerId(context
+                        .read<CreateScheduleStore>()
+                        .scheduleList[temp]
+                        .placeId!)]!,
+                centertargetId: await markerForCenterTarget(
+                    placeLatLng: context
+                        .read<CreateScheduleStore>()
+                        .scheduleList[temp]
+                        .place!)
+              },
+            );
+          } else {
+            context.read<CreateScheduleStore>().clearMarkers();
+          }
         }
       },
       child: LongPressDraggable(
@@ -522,21 +546,21 @@ class ScheduleBoxForCreatedSchedule extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
             child: Center(
-              child: FittedBox(
-                fit: BoxFit.fitWidth,
-                child: Column(
-                  children: [
-                    if (!isEmpty)
-                      Text(
-                        place.placeName ?? place.nameKor,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!isEmpty)
+                    Text(place.placeName ?? place.nameKor,
                         style: mainFont(
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
-                            fontSize: itemHeight / 5,
+                            fontSize: itemHeight / 6,
                             letterSpacing: 1),
-                      ),
-                    Visibility(
-                      visible: place.toHeight() > 60,
+                        overflow: TextOverflow.ellipsis),
+                  Visibility(
+                    visible: place.toHeight() > 60,
+                    child: FittedBox(
+                      fit: BoxFit.fitWidth,
                       child: Column(
                         children: [
                           const SizedBox(
@@ -567,9 +591,9 @@ class ScheduleBoxForCreatedSchedule extends StatelessWidget {
                           ),
                         ],
                       ),
-                    )
-                  ],
-                ),
+                    ),
+                  )
+                ],
               ),
             ),
           ),

@@ -4,12 +4,16 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 /// Create Schedule Screen을 위한 `Store`
 /// 클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
 
 class CreateScheduleStore with ChangeNotifier {
+  /// Screen의 메인 키, 위젯이 아닌데 context가 필요한 경우 사용
+  GlobalKey screenKey = GlobalKey();
+
   /// 스케줄 날짜
   late DateTime scheduleDate;
 
@@ -312,9 +316,11 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 위, 아래 화살표를 드래그 할 시 스케쥴 duration 또한 바꾸는 내용
   /// 경우의 수가 많아 복잡하며, 버그 발생 확률 높으므로 주의를 요함
+  ///
   /// 두가지 타입의 코드가 있음
   /// 1. 조절이 다음 블록에 영향을 주지 않는 타입
   /// 2. 조절이 다음 블록에도 영향을 주는 타입
+  ///
   /// 지금은 1번 타입으로 해놨지만 언제든지 주석처리된 코드를 주석해제하면 2번타입으로 변경 가능
   void changeDurationOfScheduleForUpDownBtn(
       int index, double delta, bool isUp) {
@@ -687,7 +693,6 @@ class CreateScheduleStore with ChangeNotifier {
     onCreateRouteTabEnd();
     clearScheduleCreated();
     clearMarkers();
-    setShouldRouteReCreatedFalse();
     timeLineScrollController.dispose();
     if (googleMapController != null) {
       googleMapController!.dispose();
@@ -820,7 +825,7 @@ class CreateScheduleStore with ChangeNotifier {
   /// 구글맵에 들어가는 마커
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
-  // Marker 모두 지우는 함수
+  /// Marker 모두 지우는 함수
   void clearMarkers() {
     markers = {};
     notifyListeners();
@@ -908,6 +913,13 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 유저의 위치를 저장
+  late LatLng userLocation;
+  void setUserLocation(LatLng newUserLocation) {
+    userLocation = newUserLocation;
+    notifyListeners();
+  }
+
   ///
   /// 이하 경로 생성 탭을 위한 Store
   ///
@@ -928,8 +940,8 @@ class CreateScheduleStore with ChangeNotifier {
     if (scheduleList.isEmpty) {
       return false;
     } else {
-      for (Place place in scheduleList) {
-        if (place.place == null) {
+      for (Place schedule in scheduleList) {
+        if (schedule.place == null) {
           return false;
         }
       }
@@ -943,8 +955,6 @@ class CreateScheduleStore with ChangeNotifier {
   void setSchduleCreated(ScheduleCreated scheduleCreated) {
     this.scheduleCreated = scheduleCreated;
     isScheduleCreated = true;
-    // scheduleList = scheduleCreated.list;
-    // indexOfPlaceDecidingSchedule = 0;
     notifyListeners();
   }
 
@@ -956,16 +966,97 @@ class CreateScheduleStore with ChangeNotifier {
     }
   }
 
-  /// 경로 갱신 필요 여부를 확인하는 변수
-  bool shouldRouteReCreated = false;
-  void setShouldRouteReCreatedTrue() {
-    shouldRouteReCreated = true;
-    notifyListeners();
-  }
+  /// 경로가 새로 생성돼야하는지 여부를 0, 1, 2의 세가지 경우로 리턴
+  ///
+  /// 0 : 경로 생성이 불가한 경우
+  /// 1 : 경로 생성을 새로 할 필요가 없는 경우
+  /// 2 : 경로를 생성해야 하는 경우
+  ///
+  /// 이는 두가지를 비교하여 이루어짐
+  /// * 현재 scheduleList로 경로 생성이 가능한지 여부
+  /// * 이전에 생성된 scheduleCreated가 있다면, 바뀐 부분이 있는지 여부
+  int checkShouldRouteBeReCreated() {
+    bool _isRouteCreateAble = isRouteCreateAble();
 
-  void setShouldRouteReCreatedFalse() {
-    shouldRouteReCreated = false;
-    notifyListeners();
+    if (_isRouteCreateAble && isScheduleCreated) {
+      bool _isScheduleChanged = false;
+      if (scheduleList.length * 2 - 1 != scheduleCreated.list.length) {
+        _isScheduleChanged = true;
+      } else {
+        for (int i = 0; i < scheduleList.length; i++) {
+          if (scheduleCreated.list[i * 2] != null) {
+            Place _routeCreatedSchedulePlace = scheduleCreated.list[i * 2];
+            Place _scheduleListPlace = scheduleList[i];
+
+            if (_routeCreatedSchedulePlace.nameKor !=
+                    _scheduleListPlace.nameKor ||
+                _routeCreatedSchedulePlace.placeType !=
+                    _scheduleListPlace.placeType ||
+                _routeCreatedSchedulePlace.color != _scheduleListPlace.color ||
+                _routeCreatedSchedulePlace.duration !=
+                    _scheduleListPlace.duration ||
+                _routeCreatedSchedulePlace.isFixed !=
+                    _scheduleListPlace.isFixed ||
+                _routeCreatedSchedulePlace.place != _scheduleListPlace.place ||
+                _routeCreatedSchedulePlace.placeName !=
+                    _scheduleListPlace.placeName ||
+                _routeCreatedSchedulePlace.placeId !=
+                    _scheduleListPlace.placeId) {
+              _isScheduleChanged = true;
+              break;
+            }
+
+            if (_routeCreatedSchedulePlace.isFixed) {
+              if (_routeCreatedSchedulePlace.startsAt !=
+                      _scheduleListPlace.startsAt ||
+                  _routeCreatedSchedulePlace.endsAt !=
+                      _scheduleListPlace.endsAt) {
+                _isScheduleChanged = true;
+                break;
+              }
+            } else {
+              if (i != 0) {
+                bool _isPreviousScheduleFixed = scheduleList[i - 1].isFixed;
+                RouteOrder _previousRouteOrder =
+                    scheduleCreated.list[i * 2 - 1];
+                RouteOrder _nextRouteOrder = scheduleCreated.list[i * 2 + 1];
+
+                if (_isPreviousScheduleFixed) {
+                  if (_previousRouteOrder.startsAt !=
+                          _scheduleListPlace.startsAt ||
+                      _nextRouteOrder.endsAt != _scheduleListPlace.endsAt) {
+                    _isScheduleChanged = true;
+                    break;
+                  }
+                } else {
+                  if (_routeCreatedSchedulePlace.startsAt !=
+                          _scheduleListPlace.startsAt ||
+                      _nextRouteOrder.endsAt != _scheduleListPlace.endsAt) {
+                    _isScheduleChanged = true;
+                    break;
+                  }
+                }
+              } else {
+                RouteOrder _nextRouteOrder = scheduleCreated.list[1];
+                if (_routeCreatedSchedulePlace.startsAt !=
+                        _scheduleListPlace.startsAt ||
+                    _nextRouteOrder.endsAt != _scheduleListPlace.endsAt) {
+                  _isScheduleChanged = true;
+                  break;
+                }
+              }
+            }
+          } else {
+            _isScheduleChanged = true;
+            break;
+          }
+        }
+      }
+
+      return _isScheduleChanged ? 2 : 1;
+    } else {
+      return _isRouteCreateAble ? 2 : 0;
+    }
   }
 
   ///

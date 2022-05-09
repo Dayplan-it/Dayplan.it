@@ -25,6 +25,7 @@ class _SelectPlaceTabState extends State<SelectPlaceTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     return Stack(
       children: [
         const MapWithSearchBox(),
@@ -109,9 +110,8 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     Position tempUserPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
     if (mounted) {
-      setState(() {
-        _userPosition = tempUserPosition;
-      });
+      context.read<CreateScheduleStore>().setUserLocation(
+          LatLng(tempUserPosition.latitude, tempUserPosition.longitude));
     }
     // if (await Permission.location.request().isGranted) {
     //   _userPosition = await Geolocator.getCurrentPosition(
@@ -152,16 +152,8 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     await _getUserLoc();
     return MapWithCustomInfoWindow(
       onMapCreated: _onMapCreated,
-      initPosition: _userPosition,
+      initPosition: context.read<CreateScheduleStore>().userLocation,
     );
-  }
-
-  Future<Marker> _createMarker(LatLng placeLatLng, String title, String? rating,
-      int? length, String placeId) async {
-    final MarkerId markerId = MarkerId(placeId);
-
-    return await markerWithCustomInfoWindow(
-        context, markerId, placeLatLng, title, rating, length);
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -176,7 +168,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
 
     try {
       context.read<CreateScheduleStore>().setPlaceRecommendPoint(
-          LatLng(_userPosition.latitude, _userPosition.longitude));
+          context.read<CreateScheduleStore>().userLocation);
     } catch (e) {
       setState(() {
         _isPlaceForRecommendFound = false;
@@ -234,29 +226,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
             .placeType,
         position: recommendLatLng);
 
-    /// 별점 역순으로 정렬해서
-    /// MarkerWindow를 별점순으로 겹치게끔 함 (추후 Stack되므로 역순정렬)
-    // for (int i = 0; i < recommendedPlaces.length; i++) {
-    //   for (int j = i + 1; j < recommendedPlaces.length; j++) {
-    //     double ratingI = recommendedPlaces[i]["rating"].toString() != "-"
-    //         ? (recommendedPlaces[i]["rating"].runtimeType == int
-    //             ? recommendedPlaces[i]["rating"].toDouble()
-    //             : recommendedPlaces[i]["rating"])
-    //         : 0.0;
-    //     double ratingJ = recommendedPlaces[j]["rating"].toString() != "-"
-    //         ? (recommendedPlaces[j]["rating"].runtimeType == int
-    //             ? recommendedPlaces[j]["rating"].toDouble()
-    //             : recommendedPlaces[j]["rating"])
-    //         : 0.0;
-
-    //     if (ratingI < ratingJ) {
-    //       var temp = recommendedPlaces[i];
-    //       recommendedPlaces[i] = recommendedPlaces[j];
-    //       recommendedPlaces[j] = temp;
-    //     }
-    //   }
-    // }
-
     Map<MarkerId, Marker> createdMarkers = {};
 
     createdMarkers[centertargetId] =
@@ -264,12 +233,14 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
 
     for (Map place in recommendedPlaces) {
       MarkerId markerId = MarkerId(place["place_id"]);
-      createdMarkers[markerId] = await _createMarker(
+      createdMarkers[markerId] = await markerWithCustomInfoWindow(
+          context.read<CreateScheduleStore>().screenKey,
+          MarkerId(place["place_id"]),
           LatLng(double.parse(place["lat"]), double.parse(place["lng"])),
           place["name"],
           place["rating"].toString(),
           place["distance"],
-          place["place_id"]);
+          isForDecidingPlace: true);
       int convexIndex = 0;
       if (place["distance"] <= 100) {
         convexIndex = 0;
@@ -295,7 +266,6 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
   bool _isSearchPressed = false;
   bool _isSearchFound = false;
 
-  late Position _userPosition;
   late Future<dynamic> _autocomplete;
   late String _input;
 
@@ -340,8 +310,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
 
                 _autocomplete = fetchAutoComplete(
                     input: _input,
-                    position: LatLng(
-                        _userPosition.latitude, _userPosition.longitude));
+                    position: context.read<CreateScheduleStore>().userLocation);
                 context.read<CreateScheduleStore>().clearMarkers();
               });
             },
@@ -434,7 +403,9 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                           List result = jsonDecode(
                               snapshot.data!.toString())['predictions'];
 
-                          return ListView.builder(
+                          return ListView.separated(
+                            separatorBuilder: (context, index) =>
+                                const Divider(),
                             itemCount: result.length,
                             itemBuilder: (context, index) {
                               String address = result[index]['description']
@@ -446,7 +417,9 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                     ['structured_formatting']['main_text']),
                                 subtitle: Text(address),
                                 trailing: Text(
-                                  "${result[index]['distance_meters']}m",
+                                  result[index]['distance_meters'] < 1000
+                                      ? "${result[index]['distance_meters']}m"
+                                      : "${(result[index]['distance_meters'].toDouble() / 1000).toStringAsFixed(1)}km",
                                   style: mainFont(
                                       color: const Color.fromARGB(201, 0, 0, 0),
                                       fontSize: 11),
@@ -470,14 +443,16 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                                       .read<CreateScheduleStore>()
                                       .setMarkers(newMarkers: {
                                     markerId: await markerWithCustomInfoWindow(
-                                      context,
-                                      markerId,
-                                      placeLatLng,
-                                      result[index]['structured_formatting']
-                                          ['main_text'],
-                                      placeDetail['rating'].toString(),
-                                      result[index]['distance_meters'],
-                                    )
+                                        context
+                                            .read<CreateScheduleStore>()
+                                            .screenKey,
+                                        markerId,
+                                        placeLatLng,
+                                        result[index]['structured_formatting']
+                                            ['main_text'],
+                                        placeDetail['rating'].toString(),
+                                        result[index]['distance_meters'],
+                                        isForDecidingPlace: true)
                                   });
 
                                   context
@@ -564,8 +539,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                         .read<CreateScheduleStore>()
                         .googleMapController!
                         .animateCamera(CameraUpdate.newLatLngZoom(
-                            LatLng(_userPosition.latitude,
-                                _userPosition.longitude),
+                            context.read<CreateScheduleStore>().userLocation,
                             15));
                   });
                 },

@@ -18,9 +18,30 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final HomeRepository _homeRepository = HomeRepository();
 
+  late Widget weekCalendar;
+
   @override
   void initState() {
     super.initState();
+    weekCalendar = FutureBuilder(
+        future: _homeRepository.getScheduleList(context),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          //해당 부분은 data를 아직 받아 오지 못했을때 실행되는 부분을 의미한다.
+          if (snapshot.hasData == false) {
+            return Column(children: [
+              const SizedBox(height: 65),
+              Text("일정을 불러오는 중입니다!",
+                  style: mainFont(
+                      textStyle: const TextStyle(color: subTextColor),
+                      fontSize: 12)),
+              const CircularProgressIndicator()
+            ]);
+          }
+          // 데이터를 정상적으로 받아오게 되면 다음 부분을 실행하게 되는 것이다.
+          else {
+            return const WeeklyCalander();
+          }
+        });
     initNotification();
   }
 
@@ -34,25 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // 주 축 기준 중앙
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-            FutureBuilder(
-                future: _homeRepository.getScheduleList(context),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  //해당 부분은 data를 아직 받아 오지 못했을때 실행되는 부분을 의미한다.
-                  if (snapshot.hasData == false) {
-                    return Column(children: [
-                      const SizedBox(height: 65),
-                      Text("일정을 불러오는 중입니다!",
-                          style: mainFont(
-                              textStyle: const TextStyle(color: subTextColor),
-                              fontSize: 12)),
-                      const CircularProgressIndicator()
-                    ]);
-                  }
-                  // 데이터를 정상적으로 받아오게 되면 다음 부분을 실행하게 되는 것이다.
-                  else {
-                    return const WeeklyCalander();
-                  }
-                }),
+            weekCalendar,
             Padding(padding: EdgeInsets.all(0.007 * deviceheight)),
             const Schedule(),
             Padding(padding: EdgeInsets.all(0.007 * deviceheight)),

@@ -20,13 +20,136 @@ class CreateRouteTab extends StatefulWidget {
   State<CreateRouteTab> createState() => _CreateRouteTabState();
 }
 
-class _CreateRouteTabState extends State<CreateRouteTab>
-    with AutomaticKeepAliveClientMixin {
+class _CreateRouteTabState extends State<CreateRouteTab> {
+  Widget _googleMap() {
+    return ClipRRect(
+      borderRadius: defaultBoxRadius,
+      child: Stack(
+        children: [
+          GoogleMap(
+              onTap: (position) async {},
+              onCameraMove: (position) {},
+              myLocationEnabled: true,
+              gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                Factory<OneSequenceGestureRecognizer>(
+                  () => EagerGestureRecognizer(),
+                ),
+              },
+              rotateGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              markers: Set<Marker>.of(markers.values),
+              polylines: Set<Polyline>.of(polylines.values),
+              initialCameraPosition: CameraPosition(
+                  target: context
+                      .read<CreateScheduleStore>()
+                      .scheduleCreated
+                      .list[0]
+                      .place,
+                  zoom: 15)),
+        ],
+      ),
+    );
+  }
+
+  Future<Widget> _createScheduleAndBuildGoogleMap() async {
+    int routeReCreateFlag =
+        context.read<CreateScheduleStore>().checkShouldRouteBeReCreated();
+    if (routeReCreateFlag == 0) {
+      return const SizedBox.shrink();
+    } else if (routeReCreateFlag == 2) {
+      context.read<CreateScheduleStore>().setSchduleCreated(
+          await ScheduleCreated.create(
+              scheduleList: context.read<CreateScheduleStore>().scheduleList,
+              scheduleDate: context.read<CreateScheduleStore>().scheduleDate));
+
+      for (var order
+          in context.read<CreateScheduleStore>().scheduleCreated.list) {
+        if (order.runtimeType == RouteOrder) {
+          _addPolyLine(
+              decodePolyline(order.polyline)
+                  .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+                  .toList(),
+              order.polyline,
+              Colors.blue,
+              8);
+        } else {
+          _addMarker(
+            order.place,
+            order.placeId,
+          );
+        }
+      }
+
+      return _googleMap();
+    } else {
+      return _googleMap();
+    }
+  }
+
+  _addPolyLine(List<LatLng> polylineCoordinates, String lineId, Color color,
+      int lineWidth) {
+    PolylineId id = PolylineId(lineId);
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: color,
+      points: polylineCoordinates,
+      width: lineWidth,
+    );
+
+    setState(() {
+      polylines[id] = polyline;
+    });
+  }
+
+  _addMarker(LatLng position, String markerId) {
+    MarkerId id = MarkerId(markerId);
+    Marker marker = Marker(markerId: id, position: position);
+
+    setState(() {
+      markers[id] = marker;
+    });
+  }
+
+  Map<MarkerId, Marker> markers = {};
+  Map<PolylineId, Polyline> polylines = {};
+
+  Widget displayFoundRoute = const SizedBox.shrink();
+
+  _onTabChange() {
+    if (mounted) {
+      if (context.read<CreateScheduleStore>().tabController.index == 2) {
+        setState(() {
+          displayFoundRoute = FutureBuilder<Widget>(
+              future: _createScheduleAndBuildGoogleMap(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return snapshot.data!;
+                }
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: primaryColor,
+                  ),
+                );
+              });
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    context.read<CreateScheduleStore>().tabController.addListener(() {
+      _onTabChange();
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    //super.build(context);
     return Stack(children: [
-      const MapForRouteFind(),
+      displayFoundRoute,
       if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
         Positioned.fill(
             child: Container(
@@ -84,148 +207,75 @@ class _CreateRouteTabState extends State<CreateRouteTab>
     ]);
   }
 
-  @override
-  bool get wantKeepAlive => true;
+  // @override
+  // bool get wantKeepAlive => true;
 }
 
-class MapForRouteFind extends StatefulWidget {
-  const MapForRouteFind({
-    Key? key,
-  }) : super(key: key);
+// class MapForRouteFind extends StatefulWidget {
+//   const MapForRouteFind({
+//     Key? key,
+//   }) : super(key: key);
 
-  @override
-  State<MapForRouteFind> createState() => _MapForRouteFindState();
-}
+//   @override
+//   State<MapForRouteFind> createState() => _MapForRouteFindState();
+// }
 
-class _MapForRouteFindState extends State<MapForRouteFind> {
-  Future _createSchedule() async {
-    context.read<CreateScheduleStore>().setSchduleCreated(
-        await ScheduleCreated.create(
-            scheduleList: context.read<CreateScheduleStore>().scheduleList,
-            scheduleDate: context.read<CreateScheduleStore>().scheduleDate));
-
-    for (var order
-        in context.read<CreateScheduleStore>().scheduleCreated.list) {
-      if (order.runtimeType == RouteOrder) {
-        _addPolyLine(
-            decodePolyline(order.polyline)
-                .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
-                .toList(),
-            order.polyline,
-            Colors.blue,
-            8);
-      } else {
-        _addMarker(
-          order.place,
-          order.placeId,
-        );
-      }
-    }
-
-    context.read<CreateScheduleStore>().setShouldRouteReCreatedFalse();
-  }
-
-  _addPolyLine(List<LatLng> polylineCoordinates, String lineId, Color color,
-      int lineWidth) {
-    PolylineId id = PolylineId(lineId);
-    Polyline polyline = Polyline(
-      polylineId: id,
-      color: color,
-      points: polylineCoordinates,
-      width: lineWidth,
-    );
-
-    setState(() {
-      polylines[id] = polyline;
-    });
-  }
-
-  _addMarker(LatLng position, String markerId) {
-    MarkerId id = MarkerId(markerId);
-    Marker marker = Marker(markerId: id, position: position);
-
-    setState(() {
-      markers[id] = marker;
-    });
-  }
-
-  Map<MarkerId, Marker> markers = {};
-  Map<PolylineId, Polyline> polylines = {};
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (context.watch<CreateScheduleStore>().isScheduleCreated) ...[
-          const Expanded(flex: 1, child: SizedBox.shrink()),
-          Expanded(
-              flex: 15,
-              child: ClipRRect(
-                borderRadius: defaultBoxRadius,
-                child: Stack(
-                  children: [
-                    GoogleMap(
-                        onTap: (position) async {
-                          // if (FocusScope.of(context).hasFocus) {
-                          //   FocusScope.of(context).unfocus();
-                          //   // InfoWindow의 위치를 변경해야 하는데,
-                          //   // 키보드 높이의 변경된 값을 얻으려면 약간의 딜레이가 필요함
-                          //   // 추후 퍼포먼스 보고 값을 바꿀 수 있음
-                          //   await Future.delayed(const Duration(milliseconds: 1000));
-                          //   widget.customInfoWindowController.updateInfoWindow!();
-                          // }
-                          // else {
-                          //   // widget.customInfoWindowController.hideAllInfoWindow!();
-
-                          //   context.read<CreateScheduleStore>().onLookingPlaceDetailEnd();
-                          //   await Future.delayed(const Duration(milliseconds: 1000));
-                          //   widget.customInfoWindowController.updateInfoWindow!();
-                          // }
-                        },
-                        onCameraMove: (position) {},
-                        myLocationEnabled: true,
-                        // myLocationButtonEnabled:
-                        //     context.watch<CreateScheduleStore>().isLookingPlaceDetail
-                        //         ? false
-                        //         : true,
-                        gestureRecognizers: <
-                            Factory<OneSequenceGestureRecognizer>>{
-                          Factory<OneSequenceGestureRecognizer>(
-                            () => EagerGestureRecognizer(),
-                          ),
-                        },
-                        rotateGesturesEnabled: false,
-                        tiltGesturesEnabled: false,
-                        markers: Set<Marker>.of(markers.values),
-                        polylines: Set<Polyline>.of(polylines.values),
-                        initialCameraPosition: CameraPosition(
-                            target: context
-                                .read<CreateScheduleStore>()
-                                .scheduleCreated
-                                .list[0]
-                                .place,
-                            zoom: 15)),
-                    // ModifiedCustomInfoWindow(
-                    //   controller: widget.customInfoWindowController,
-                    //   offset: 40,
-                    // ),
-                  ],
-                ),
-              )),
-        ],
-        Expanded(
-          flex: 3,
-          child: Center(
-            child: SquareButtonWithLoading(
-                title: context.watch<CreateScheduleStore>().isScheduleCreated
-                    ? "경로 다시 생성하기"
-                    : "경로 생성하기",
-                futureFunction: _createSchedule,
-                activate:
-                    context.watch<CreateScheduleStore>().isRouteCreateAble()),
-          ),
-        ),
-      ],
-    );
-  }
-}
+// class _MapForRouteFindState extends State<MapForRouteFind> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       children: [
+//         if (context.watch<CreateScheduleStore>().isScheduleCreated) ...[
+//           const Expanded(flex: 1, child: SizedBox.shrink()),
+//           Expanded(
+//               flex: 15,
+//               child: ClipRRect(
+//                 borderRadius: defaultBoxRadius,
+//                 child: Stack(
+//                   children: [
+//                     GoogleMap(
+//                         onTap: (position) async {},
+//                         onCameraMove: (position) {},
+//                         myLocationEnabled: true,
+//                         // myLocationButtonEnabled:
+//                         //     context.watch<CreateScheduleStore>().isLookingPlaceDetail
+//                         //         ? false
+//                         //         : true,
+//                         gestureRecognizers: <
+//                             Factory<OneSequenceGestureRecognizer>>{
+//                           Factory<OneSequenceGestureRecognizer>(
+//                             () => EagerGestureRecognizer(),
+//                           ),
+//                         },
+//                         rotateGesturesEnabled: false,
+//                         tiltGesturesEnabled: false,
+//                         markers: Set<Marker>.of(markers.values),
+//                         polylines: Set<Polyline>.of(polylines.values),
+//                         initialCameraPosition: CameraPosition(
+//                             target: context
+//                                 .read<CreateScheduleStore>()
+//                                 .scheduleCreated
+//                                 .list[0]
+//                                 .place,
+//                             zoom: 15)),
+//                     // ModifiedCustomInfoWindow(
+//                     //   controller: widget.customInfoWindowController,
+//                     //   offset: 40,
+//                     // ),
+//                   ],
+//                 ),
+//               )),
+//         ],
+//         Center(
+//           child: SquareButtonWithLoading(
+//               title: context.watch<CreateScheduleStore>().isScheduleCreated
+//                   ? "경로 다시 생성하기"
+//                   : "경로 생성하기",
+//               futureFunction: _createSchedule,
+//               activate:
+//                   context.watch<CreateScheduleStore>().isRouteCreateAble()),
+//         ),
+//       ],
+//     );
+//   }
+// }

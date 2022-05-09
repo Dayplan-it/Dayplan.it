@@ -62,13 +62,14 @@ def dijkstra_distance(ori_lng, ori_lat, des_lng, des_lat):
     return corrected_distance, geom
 
 
-def get_nearby_place(startNode, lng, lat, type, distance=1800):
+def get_nearby_place(startNode, lng, lat, type, distance=1000):
     nearbystr = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'\
         + f'?location={str(lat)},{str(lng)}'\
         + '&type='+type\
-        + '&radius='+str(distance)\
+        + f'&radius={distance}'\
         + '&language=ko'\
         + '&key='+settings.GOOGLE_API_KEY
+    # @+ '&radius='+str(distance)\
     # main branch settings에 GOOGLE_API_KEY가 있음
 
     response = requests.get(nearbystr)
@@ -82,24 +83,22 @@ def get_nearby_place(startNode, lng, lat, type, distance=1800):
     points = []
     # 사전형으로 변환
     for result in results:
-        if 'rating' in result:
-            if result['rating'] > 3.5:
-                dic = {}
-                dic['name'] = result['name']
-                dic['lng'] = str(result['geometry']['location']['lng'])
-                dic['lat'] = str(result['geometry']['location']['lat'])
-
-                line = LineString(
-                    [(float(lng), float(lat)), (float(result['geometry']['location']['lng']), float(result['geometry']['location']['lat']))], srid=settings.SRID)
-                line.transform(3857)
-                dic['distance'] = round(line.length)  # 미터
-
-                # points.append(
-                #     [str(result['geometry']['location']['lng']), str(result['geometry']['location']['lat'])])
-                dic['place_id'] = result['place_id']
-                dic['rating'] = result['rating'] if 'rating' in result else '-'
-                dic['user_ratings_total'] = result['user_ratings_total'] if 'user_ratings_total' in result else '-'
-                new_list.append(dic)
+        # if 'rating' in result:
+        # if result['rating'] > 3.5:
+        dic = {}
+        dic['name'] = result['name']
+        dic['lng'] = str(result['geometry']['location']['lng'])
+        dic['lat'] = str(result['geometry']['location']['lat'])
+        line = LineString(
+            [(float(lng), float(lat)), (float(result['geometry']['location']['lng']), float(result['geometry']['location']['lat']))], srid=settings.SRID)
+        line.transform(3857)
+        dic['distance'] = round(line.length)  # 미터
+        # points.append(
+        #     [str(result['geometry']['location']['lng']), str(result['geometry']['location']['lat'])])
+        dic['place_id'] = result['place_id']
+        dic['rating'] = result['rating'] if 'rating' in result else '-'
+        dic['user_ratings_total'] = result['user_ratings_total'] if 'user_ratings_total' in result else '-'
+        new_list.append(dic)
         # else:
     # 이부분에서 걸리는 시간 받아서 데이터프레임 저장
     # node_list = getMinuteList(points)
@@ -317,7 +316,7 @@ def place_autocomplete(inputStr, lat, lng, isRankByDistance):
 
     url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?'\
         + f'input={inputStr}'\
-        + f'&origin={lat},{lng}'\
+        + f'&location={lat},{lng}&origin={lat},{lng}&radius=20000'\
         + f'&language=ko&components=country:kr{"&rankby=distance" if isRankByDistance else ""}'\
         + f'&key={settings.GOOGLE_API_KEY}'
     response = requests.get(url)

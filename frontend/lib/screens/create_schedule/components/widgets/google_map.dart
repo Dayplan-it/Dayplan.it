@@ -6,7 +6,6 @@ import 'package:flutter/gestures.dart';
 
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
@@ -20,7 +19,7 @@ class MapWithCustomInfoWindow extends StatefulWidget {
       {Key? key, required this.onMapCreated, required this.initPosition})
       : super(key: key);
   final Function(GoogleMapController) onMapCreated;
-  final Position initPosition;
+  final LatLng initPosition;
 
   @override
   State<MapWithCustomInfoWindow> createState() =>
@@ -28,10 +27,6 @@ class MapWithCustomInfoWindow extends StatefulWidget {
 }
 
 class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
-  // _getMarkers() {
-  //   return Set<Marker>.of(context.watch<CreateScheduleStore>().markers.values);
-  // }
-
   @override
   Widget build(BuildContext context) {
     print('build');
@@ -48,25 +43,32 @@ class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
             () => EagerGestureRecognizer(),
           ),
         },
+        mapToolbarEnabled: false,
         rotateGesturesEnabled: false,
         tiltGesturesEnabled: false,
         markers:
             Set<Marker>.of(context.watch<CreateScheduleStore>().markers.values),
-        initialCameraPosition: CameraPosition(
-            target: LatLng(
-                widget.initPosition.latitude, widget.initPosition.longitude),
-            zoom: 15));
+        initialCameraPosition:
+            CameraPosition(target: widget.initPosition, zoom: 15));
   }
 }
 
+Future<Uint8List> _widgetToUint8List(Widget widget) async {
+  ScreenshotController screenshotController = ScreenshotController();
+
+  return await screenshotController.captureFromWidget(widget,
+      delay: const Duration(seconds: 0));
+}
+
 Future<Marker> markerWithCustomInfoWindow(
-    BuildContext context,
+    GlobalKey parentKey,
     MarkerId markerId,
     LatLng placeLatLng,
     String title,
     String? rating,
     int? length,
-    {bool isRecommended = false}) async {
+    {bool isRecommended = false,
+    required bool isForDecidingPlace}) async {
   Widget _widget() {
     return FittedBox(
       child: Column(
@@ -104,7 +106,9 @@ Future<Marker> markerWithCustomInfoWindow(
                           child: Text(
                             length < 1000
                                 ? length.toString() + "m"
-                                : (length.toDouble() / 1000).toStringAsFixed(1),
+                                : (length.toDouble() / 1000)
+                                        .toStringAsFixed(1) +
+                                    "km",
                             style: mainFont(
                                 color: subTextColor,
                                 fontWeight: FontWeight.w700),
@@ -154,35 +158,28 @@ Future<Marker> markerWithCustomInfoWindow(
     );
   }
 
-  ScreenshotController screenshotController = ScreenshotController();
-
-  Uint8List _createdWidgetByte = await screenshotController
-      .captureFromWidget(_widget(), delay: const Duration(seconds: 0));
-
-  _onTap() async {
-    context
-        .read<CreateScheduleStore>()
-        .setSelectedPlace(markerId.value, title, placeLatLng);
-
+  _onTap() {
     return showDialog(
-        context: context,
+        context: parentKey.currentContext!,
         builder: (context) {
+          context.read<CreateScheduleStore>().selectedPlaceId = markerId.value;
           return AlertDialog(
-            contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+            contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.7,
               height: MediaQuery.of(context).size.height * 0.7,
-              child: const PlaceDetail(),
+              child: PlaceDetail(
+                context,
+                markerId,
+                placeLatLng,
+                title,
+                rating,
+                length,
+                isForDecidingPlace: isForDecidingPlace,
+              ),
             ),
-            actions: [
-              PlaceDetailConfirmButton(
-                  marker:
-                      context.read<CreateScheduleStore>().markers[markerId]!,
-                  markerId: markerId),
-            ],
-            actionsAlignment: MainAxisAlignment.center,
           );
         });
   }
@@ -190,7 +187,7 @@ Future<Marker> markerWithCustomInfoWindow(
   return Marker(
     markerId: markerId,
     position: placeLatLng,
-    icon: BitmapDescriptor.fromBytes(_createdWidgetByte),
+    icon: BitmapDescriptor.fromBytes(await _widgetToUint8List(_widget())),
     onTap: _onTap,
   );
 }
@@ -207,15 +204,10 @@ Future<Marker> markerForCenterTarget({
     );
   }
 
-  ScreenshotController screenshotController = ScreenshotController();
-
-  Uint8List _createdWidgetByte = await screenshotController
-      .captureFromWidget(_widget(), delay: const Duration(seconds: 0));
-
   return Marker(
     anchor: const Offset(0.5, 0.5),
     markerId: centertargetId,
     position: placeLatLng,
-    icon: BitmapDescriptor.fromBytes(_createdWidgetByte),
+    icon: BitmapDescriptor.fromBytes(await _widgetToUint8List(_widget())),
   );
 }

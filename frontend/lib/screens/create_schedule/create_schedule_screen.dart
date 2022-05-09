@@ -45,7 +45,15 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
                 "${widget.date.month.toString()}월 ${widget.date.day.toString()}일",
             isHomePage: false,
           ),
-          body: const CreateScheduleScreenBody()),
+          body: GestureDetector(
+              onTap: () {
+                FocusScopeNode currentFocus = FocusScope.of(context);
+
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+              },
+              child: const CreateScheduleScreenBody())),
     );
   }
 }
@@ -64,6 +72,7 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     return Padding(
+        key: context.read<CreateScheduleStore>().screenKey,
         padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
         child: Row(children: [
           AnimatedSize(
@@ -145,21 +154,11 @@ class _CreateScheduleScreenRightSideState
       index = context.read<CreateScheduleStore>().tabController.index;
     });
     context.read<CreateScheduleStore>().setTimeLineWidthFlexByTabIndex(index);
-    // if (context.read<CreateScheduleStore>().googleMapController !=
-    //     null) {
-    //   if (index == 1) {
-    //     context
-    //         .read<CreateScheduleStore>()
-    //         .customInfoWindowController!
-    //         .showAllInfoWindow!();
-    //   }
-    // }
     if (index == 2) {
       context.read<CreateScheduleStore>().onCreateRouteTabStart();
     } else {
       context.read<CreateScheduleStore>().onCreateRouteTabEnd();
     }
-    //context.read<CreateScheduleStore>().animateTimeLine();
   }
 
   @override
@@ -228,12 +227,12 @@ class _CreateScheduleScreenRightSideState
                           title: "일정이 없습니다",
                           isRed: true,
                         ),
-                      if (context
-                          .watch<CreateScheduleStore>()
-                          .shouldRouteReCreated)
-                        const NotificationText(
-                          title: "일정이 변경되어 경로를 다시 생성해야 합니다",
-                        ),
+                      // if (context
+                      //     .watch<CreateScheduleStore>()
+                      //     .checkShouldRouteBeReCreated())
+                      //   const NotificationText(
+                      //     title: "일정이 변경되어 경로를 다시 생성해야 합니다",
+                      //   ),
                       Visibility(
                         visible: context
                                 .watch<CreateScheduleStore>()
