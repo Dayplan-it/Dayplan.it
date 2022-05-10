@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_calendar_week/flutter_calendar_week.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
@@ -21,7 +20,11 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
     HomeRepository _homeRepository = HomeRepository();
     List<DecorationItem> decorationList =
         Provider.of<HomeProvider>(context, listen: false).decorationList;
-
+    if (Provider.of<HomeProvider>(context, listen: false).hasTodaySchedule) {
+      DateTime todayTime = DateTime.now();
+      DateTime today = DateTime(todayTime.year, todayTime.month, todayTime.day);
+      _homeRepository.setSchedule(today, context);
+    }
     return SizedBox(
         height: 120,
         child: CalendarWeek(
@@ -49,42 +52,9 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
 
           ///날짜를 클릭했을 때 해당 날짜 지도, 스케줄, provider 설정
           onDatePressed: (DateTime date) async {
-            ///provider 현재날짜설정
-            DateTime datetime = DateTime(date.year, date.month, date.day);
-            Provider.of<HomeProvider>(context, listen: false)
-                .selectDate(datetime);
-
-            ///provider 기존 지도, 스케줄 초기화
+            Provider.of<HomeProvider>(context, listen: false).selectDate(date);
             Provider.of<HomeProvider>(context, listen: false).deleteData();
-
-            ///선택일정의 일정상세정보 불러오기
-            Future<Map<String, List<dynamic>>> responseDetail =
-                _homeRepository.getScheduleDetail(
-                    Provider.of<HomeProvider>(context, listen: false).id,
-                    datetime);
-
-            responseDetail.then((value) {
-              if (value.length > 2) {
-                //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
-                Provider.of<HomeProvider>(context, listen: false)
-                    .setNoSchedult(false);
-
-                Provider.of<HomeProvider>(context, listen: false)
-                    .setScheduleDetail(value);
-                Map<dynamic, dynamic> mapdata =
-                    _homeRepository.setRouteData(value);
-
-                Provider.of<HomeProvider>(context, listen: false)
-                    .setGeom(mapdata);
-              } else {
-                //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
-                Provider.of<HomeProvider>(context, listen: false)
-                    .setNoSchedult(true);
-              }
-            }).catchError((onError) {
-              Provider.of<HomeProvider>(context, listen: false)
-                  .setNoSchedult(true);
-            });
+            await _homeRepository.setSchedule(date, context);
           },
           monthViewBuilder: (DateTime time) => Align(
             alignment: FractionalOffset.center,

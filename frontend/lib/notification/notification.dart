@@ -83,13 +83,13 @@ Future<void> registerMessage({
 
 setNotification(date, context) async {
   HomeRepository homeRepository = HomeRepository();
-  int id = Provider.of<HomeProvider>(context, listen: false).id;
+
   final prefs = await SharedPreferences.getInstance();
   print(date.toString() + "이건 로컬에 저장된 이름");
   prefs.setInt(date.toString(), 1);
   //아이디+날짜로 일정시작 알람
   Map<String, List<dynamic>> detail =
-      await homeRepository.getScheduleDetail(id, date);
+      await homeRepository.getScheduleDetail(date);
   List<dynamic> startTime = detail['start_time'] ?? [""];
   //이동시작 20분전에 알람 - 홀수인덱스의 시작시간 20분전
   for (int i = 0; i < startTime.length; i++) {
@@ -132,13 +132,13 @@ setNotification(date, context) async {
 
 cancelNotification(date, context) async {
   HomeRepository homeRepository = HomeRepository();
-  int id = Provider.of<HomeProvider>(context, listen: false).id;
+
   final prefs = await SharedPreferences.getInstance();
   print(date.toString() + "이건 로컬에 삭제된 이름");
   prefs.remove(date.toString());
   //아이디+날짜로 일정시작
   Map<String, List<dynamic>> detail =
-      await homeRepository.getScheduleDetail(id, date);
+      await homeRepository.getScheduleDetail(date);
   List<dynamic> startTime = detail['start_time'] ?? [""];
   //이동시작 20분전에 알람 - 홀수인덱스의 시작시간 20분전
   for (int i = 0; i < startTime.length; i++) {

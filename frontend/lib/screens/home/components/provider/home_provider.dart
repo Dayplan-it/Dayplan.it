@@ -6,7 +6,7 @@ class HomeProvider extends ChangeNotifier {
   //id값이 넘어오거나 해서 있다고 가정한다.
   //예시 데이터 id= 30
   // 밑에 변수들 Const선언하라고 파란줄 뜨는데 이부분은 상수인가?
-  int _id = 44;
+
   //사용자의 모든 일정리스트로 불러옴
   List<DateTime> _allSchedule = [];
   //현재 사용자가 선택한 날짜를 나타내는 변수(default = 오늘)
@@ -14,6 +14,8 @@ class HomeProvider extends ChangeNotifier {
   List<DecorationItem> _decorationList = [];
   //일정하나의 상세일정
   Map<String, List<dynamic>> _scheduLedetail = {};
+  //오늘 일정 유무
+  bool _hasTodaySchedule = false;
   //현재 선택날짜에 따른 카메라 위치(default = 남한전역)
   CameraPosition _initialLocation =
       CameraPosition(target: LatLng(36, 127), zoom: 5.0);
@@ -22,7 +24,7 @@ class HomeProvider extends ChangeNotifier {
   Map<PolylineId, Polyline> _polylines = {};
   bool _showNoSchedule = true;
   //Getter
-  int get id => _id;
+
   DateTime get nowDate => _nowDate;
   List<DateTime> get allSchedule => _allSchedule;
   List<DecorationItem> get decorationList => _decorationList;
@@ -31,6 +33,13 @@ class HomeProvider extends ChangeNotifier {
   Map<MarkerId, Marker> get markers => _markers;
   Map<PolylineId, Polyline> get polylines => _polylines;
   bool get showNoSchedule => _showNoSchedule;
+  bool get hasTodaySchedule => _hasTodaySchedule;
+
+  ///오늘 일정이 있음을 저장
+  setTodaySchedule(bool a) {
+    _hasTodaySchedule = a;
+    notifyListeners();
+  }
 
   ///구글맵geometry 저장 및 카메라위치 설정
   setGeom(data) {
