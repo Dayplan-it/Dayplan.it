@@ -52,7 +52,10 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
 
           ///날짜를 클릭했을 때 해당 날짜 지도, 스케줄, provider 설정
           onDatePressed: (DateTime date) async {
-            Provider.of<HomeProvider>(context, listen: false).selectDate(date);
+            DateTime datetime = DateTime(date.year, date.month, date.day);
+
+            Provider.of<HomeProvider>(context, listen: false)
+                .selectDate(datetime);
             Provider.of<HomeProvider>(context, listen: false).deleteData();
             await _homeRepository.setSchedule(date, context);
           },
