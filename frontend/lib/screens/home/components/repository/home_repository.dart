@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeRepository {
-  Future<Map<String, List<dynamic>>> getScheduleDetail(id, date) async {
+  Future<Map<String, List<dynamic>>> getScheduleDetail(date) async {
     //datetime to timestamp
 
     DateTime date2 = DateTime(date.year, date.month, date.day);
@@ -119,7 +119,10 @@ class HomeRepository {
 
   //userid로 사용자의 일정정보 조회  API 요청
   Future<bool> getScheduleList(context) async {
+    DateTime today = DateTime.now();
+    bool hasTodaySchedule = false;
     var dio = Dio();
+
     var url = '$commonUrl/schedules/findlist';
     //사용자토큰가져오기
     var prefs = await SharedPreferences.getInstance();
@@ -131,14 +134,54 @@ class HomeRepository {
       List<int> list = response.data["found_schedule_dates"].cast<int>();
 
       List<DateTime> datetime = [];
+
       for (int i = 0; i < list.length; i++) {
         //datetime 저장하고 알람설정
-        datetime.add(DateTime.fromMillisecondsSinceEpoch(list[i] * 1000));
+        DateTime tempDate = DateTime.fromMillisecondsSinceEpoch(list[i] * 1000);
+        if (tempDate.year == today.year &&
+            tempDate.month == today.month &&
+            tempDate.day == today.day) {
+          hasTodaySchedule = true;
+        }
+        datetime.add(tempDate);
       }
-
       Provider.of<HomeProvider>(context, listen: false)
           .setallschdulelist(datetime);
+
+      //오늘 일정이 있을 때 로직수행
+      if (hasTodaySchedule) {
+        Provider.of<HomeProvider>(context, listen: false)
+            .setTodaySchedule(true);
+      }
     }
     return true;
+  }
+
+  //일정상세정보 새로고침
+  Future<void> setSchedule(date, context) async {
+    ///provider 현재날짜설정
+    DateTime datetime = DateTime(date.year, date.month, date.day);
+
+    ///선택일정의 일정상세정보 불러오기
+    Future<Map<String, List<dynamic>>> responseDetail =
+        getScheduleDetail(datetime);
+
+    responseDetail.then((value) {
+      if (value.length > 2) {
+        //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
+        Provider.of<HomeProvider>(context, listen: false).setNoSchedult(false);
+
+        Provider.of<HomeProvider>(context, listen: false)
+            .setScheduleDetail(value);
+        Map<dynamic, dynamic> mapdata = setRouteData(value);
+
+        Provider.of<HomeProvider>(context, listen: false).setGeom(mapdata);
+      } else {
+        //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
+        Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
+      }
+    }).catchError((onError) {
+      Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
+    });
   }
 }
