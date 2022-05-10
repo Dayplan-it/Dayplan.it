@@ -12,4 +12,4 @@ class PolylineDecoderForPostGIS():
         self.polyline_decoded = polyline.decode(polyline_before_decode)
 
     def get(self):
-        return [(point[1], point[0]) for point in self.polyline_decoded]
+        return [(point[0], point[1]) for point in self.polyline_decoded]

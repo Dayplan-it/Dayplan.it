@@ -113,7 +113,7 @@ class DeleteScheduleAPIView(APIView):
         except schedule_models.Schedule.DoesNotExist:
             raise ObjectDoesNotExist
 
-    @LoginConfirm
+    # s@LoginConfirm
     def delete(self, request):
         try:
             token = request.META.get('HTTP_AUTHORIZATION')

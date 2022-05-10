@@ -1,4 +1,6 @@
 import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
+import 'package:dayplan_it/screens/home/home_screen.dart';
+import 'package:dayplan_it/screens/mainpage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -174,6 +176,17 @@ class _CreateScheduleScreenRightSideState
     super.initState();
   }
 
+  Future _postSchedule() async {
+    context.read<CreateScheduleStore>().scheduleCreated.title = "테스트";
+    context.read<CreateScheduleStore>().scheduleCreated.memo = "메모";
+    await fetchCreateSchedule(
+        scheduleCreated: context.read<CreateScheduleStore>().scheduleCreated);
+
+    context.read<CreateScheduleStore>().onPopCreateScheduleScreen();
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => const MainPage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(clipBehavior: Clip.none, // Positioned 사용하기 위해 Stack 사용함
@@ -251,20 +264,7 @@ class _CreateScheduleScreenRightSideState
                                   .list
                                   .isNotEmpty
                               : false),
-                          futureFunction: () async {
-                            context
-                                .read<CreateScheduleStore>()
-                                .scheduleCreated
-                                .title = "테스트";
-                            context
-                                .read<CreateScheduleStore>()
-                                .scheduleCreated
-                                .memo = "메모";
-                            await fetchCreateSchedule(
-                                scheduleCreated: context
-                                    .read<CreateScheduleStore>()
-                                    .scheduleCreated);
-                          },
+                          futureFunction: _postSchedule,
                         ),
                       )
                     ],
