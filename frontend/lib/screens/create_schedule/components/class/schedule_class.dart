@@ -28,7 +28,7 @@ class Place {
       this.placeName,
       this.placeId});
 
-  final String nameKor;
+  String nameKor;
   final String placeType;
   final Color color;
   Duration duration;

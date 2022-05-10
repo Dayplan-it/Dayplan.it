@@ -249,9 +249,8 @@ class _CreateCustomBlockState extends State<CreateCustomBlock> {
   Widget build(BuildContext context) {
     _onAddCustomScheduleBtnPressed() {
       context.read<CreateScheduleStore>().addSchedule(Place(
-          nameKor: "커스텀",
+          nameKor: _input,
           placeType: "custom",
-          placeName: _input,
           color: pointColor,
           duration: Duration.zero));
       context.read<CreateScheduleStore>().onEndMakingCustomBlock();

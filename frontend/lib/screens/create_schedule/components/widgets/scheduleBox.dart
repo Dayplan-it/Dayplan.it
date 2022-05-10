@@ -75,7 +75,10 @@ class ScheduleBox extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (!isEmpty)
-                    Text(place.placeName ?? place.nameKor,
+                    Text(
+                        place.placeType == 'custom'
+                            ? place.nameKor
+                            : place.placeName ?? place.nameKor,
                         style: mainFont(
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -312,7 +315,10 @@ class OnScheduleBoxLongPress extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (place.nameKor.isNotEmpty)
-                    Text(place.placeName ?? place.nameKor,
+                    Text(
+                        place.placeType == 'custom'
+                            ? place.nameKor
+                            : place.placeName ?? place.nameKor,
                         style: mainFont(
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -532,7 +538,10 @@ class ScheduleBoxForCreatedSchedule extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (!isEmpty)
-                    Text(place.placeName ?? place.nameKor,
+                    Text(
+                        place.placeType == 'custom'
+                            ? place.nameKor
+                            : place.placeName ?? place.nameKor,
                         style: mainFont(
                             fontWeight: FontWeight.w700,
                             color: Colors.white,

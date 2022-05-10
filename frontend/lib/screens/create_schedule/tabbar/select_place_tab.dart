@@ -522,7 +522,16 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
             ],
           )),
       Visibility(
-          visible: _isSearchFound,
+          visible: _isSearchFound &&
+              (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty
+                  ? context
+                          .watch<CreateScheduleStore>()
+                          .scheduleList[context
+                              .watch<CreateScheduleStore>()
+                              .indexOfPlaceDecidingSchedule]
+                          .placeType !=
+                      'custom'
+                  : true),
           child: Column(
             children: [
               SquareButtonWithLoading(
