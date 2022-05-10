@@ -102,7 +102,8 @@ class _TimeLineState extends State<TimeLine> {
     } else {
       if (context.watch<CreateScheduleStore>().isCreateRouteTabOn &&
           context.watch<CreateScheduleStore>().isScheduleCreated) {
-        if (!context.watch<CreateScheduleStore>().isFindingRoute) {
+        if (!context.watch<CreateScheduleStore>().isFindingRoute &&
+            context.watch<CreateScheduleStore>().isRouteCreateAble()) {
           List<dynamic> scheduleCreatedList =
               context.read<CreateScheduleStore>().scheduleCreated.list;
           return Column(children: [

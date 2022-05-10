@@ -179,53 +179,20 @@ class DetectBoxTapAndDrag extends StatelessWidget {
 
         if (context.read<CreateScheduleStore>().scheduleList[index].place !=
             null) {
-          MarkerId markerId = MarkerId(
-              context.read<CreateScheduleStore>().scheduleList[index].placeId!);
-          LatLng placeLatLng =
-              context.read<CreateScheduleStore>().scheduleList[index].place!;
-          String title = context
-              .read<CreateScheduleStore>()
-              .scheduleList[index]
-              .placeName!;
+          Place _place =
+              context.read<CreateScheduleStore>().scheduleList[index];
 
           context.read<CreateScheduleStore>().setMarkers(newMarkers: {
-            markerId: await markerWithCustomInfoWindow(
-                context.read<CreateScheduleStore>().screenKey,
-                markerId,
-                placeLatLng,
-                title,
-                null,
-                null,
-                isRecommended: true,
-                isForDecidingPlace: false)
+            MarkerId(_place.placeId!): await markerForPlace(
+              place: _place,
+              parentKey: context.read<CreateScheduleStore>().screenKey,
+            )
           });
 
           await context
               .read<CreateScheduleStore>()
               .googleMapController!
-              .animateCamera(CameraUpdate.newLatLngZoom(placeLatLng, 17));
-
-          // showDialog(
-          //     context: context,
-          //     builder: (context) {
-          //       return AlertDialog(
-          //         contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-          //         backgroundColor: Colors.white,
-          //         shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
-          //         content: SizedBox(
-          //           width: MediaQuery.of(context).size.width * 0.7,
-          //           height: MediaQuery.of(context).size.height * 0.7,
-          //           child: const PlaceDetail(),
-          //         ),
-          //         actions: [
-          //           SizedBox(
-          //             width: double.infinity,
-          //             child: PlaceDetailConfirmButton(markerId: markerId),
-          //           )
-          //         ],
-          //         actionsAlignment: MainAxisAlignment.center,
-          //       );
-          //     });
+              .animateCamera(CameraUpdate.newLatLngZoom(_place.place!, 17));
         } else {
           var temp = context
               .read<CreateScheduleStore>()
@@ -234,14 +201,15 @@ class DetectBoxTapAndDrag extends StatelessWidget {
               context.read<CreateScheduleStore>().markers.isNotEmpty) {
             context.read<CreateScheduleStore>().setMarkers(
               newMarkers: {
-                MarkerId(context
+                MarkerId(
+                    context
                         .read<CreateScheduleStore>()
                         .scheduleList[temp]
-                        .placeId!):
-                    context.read<CreateScheduleStore>().markers[MarkerId(context
-                        .read<CreateScheduleStore>()
-                        .scheduleList[temp]
-                        .placeId!)]!,
+                        .placeId!): await markerForPlace(
+                    place:
+                        context.read<CreateScheduleStore>().scheduleList[temp],
+                    parentKey: context.read<CreateScheduleStore>().screenKey,
+                    isOtherPlace: true),
                 centertargetId: await markerForCenterTarget(
                     placeLatLng: context
                         .read<CreateScheduleStore>()
@@ -249,8 +217,22 @@ class DetectBoxTapAndDrag extends StatelessWidget {
                         .place!)
               },
             );
+            await context
+                .read<CreateScheduleStore>()
+                .googleMapController!
+                .animateCamera(CameraUpdate.newLatLngZoom(
+                    context
+                        .read<CreateScheduleStore>()
+                        .scheduleList[temp]
+                        .place!,
+                    17));
           } else {
             context.read<CreateScheduleStore>().clearMarkers();
+            context
+                .read<CreateScheduleStore>()
+                .googleMapController!
+                .animateCamera(CameraUpdate.newLatLngZoom(
+                    context.read<CreateScheduleStore>().userLocation, 16));
           }
         }
       },
@@ -508,27 +490,27 @@ class ScheduleBoxForCreatedSchedule extends StatelessWidget {
 
   final Place place;
 
-  Widget _fixedToggle(String title) {
-    return Positioned(
-      top: itemHeight / 10,
-      right: itemHeight / 10,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
-        alignment: Alignment.center,
-        height: durationToHeight(minimumScheduleBoxDuration) / 2,
-        decoration: BoxDecoration(
-            color: const Color.fromARGB(83, 255, 255, 255),
-            borderRadius: BorderRadius.circular(30)),
-        child: Text(
-          title,
-          style: mainFont(
-              color: const Color.fromARGB(255, 255, 255, 255),
-              fontSize: durationToHeight(minimumScheduleBoxDuration) / 3.5,
-              fontWeight: FontWeight.w800),
-        ),
-      ),
-    );
-  }
+  // Widget _fixedToggle(String title) {
+  //   return Positioned(
+  //     top: itemHeight / 10,
+  //     right: itemHeight / 10,
+  //     child: Container(
+  //       padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
+  //       alignment: Alignment.center,
+  //       height: durationToHeight(minimumScheduleBoxDuration) / 2,
+  //       decoration: BoxDecoration(
+  //           color: const Color.fromARGB(83, 255, 255, 255),
+  //           borderRadius: BorderRadius.circular(30)),
+  //       child: Text(
+  //         title,
+  //         style: mainFont(
+  //             color: const Color.fromARGB(255, 255, 255, 255),
+  //             fontSize: durationToHeight(minimumScheduleBoxDuration) / 3.5,
+  //             fontWeight: FontWeight.w800),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -597,7 +579,7 @@ class ScheduleBoxForCreatedSchedule extends StatelessWidget {
               ),
             ),
           ),
-          place.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
+          // place.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
         ]));
   }
 }
@@ -639,19 +621,19 @@ class RouteBox extends StatelessWidget {
                           icon,
                           color: Colors.white,
                         ),
-                        Text(
-                          _isTransitRoute ? "대중교통" : "도보",
-                          style: mainFont(
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              fontSize: itemHeight / 5,
-                              letterSpacing: 1),
-                        ),
+                        // Text(
+                        //   _isTransitRoute ? "대중교통" : "도보",
+                        //   style: mainFont(
+                        //       fontWeight: FontWeight.w700,
+                        //       color: Colors.white,
+                        //       fontSize: itemHeight / 5,
+                        //       letterSpacing: 1),
+                        // ),
                       ],
                     ),
                   ),
                 )
-              : const SizedBox()),
+              : const SizedBox.shrink()),
     );
   }
 }

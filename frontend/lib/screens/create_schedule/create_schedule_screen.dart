@@ -242,8 +242,14 @@ class _CreateScheduleScreenRightSideState
                         child: SquareButtonWithLoading(
                           title: "일정 결정하기",
                           activate: (context
-                              .watch<CreateScheduleStore>()
-                              .isScheduleCreated),
+                                  .watch<CreateScheduleStore>()
+                                  .isScheduleCreated
+                              ? context
+                                  .watch<CreateScheduleStore>()
+                                  .scheduleCreated
+                                  .list
+                                  .isNotEmpty
+                              : false),
                           futureFunction: () async {},
                         ),
                       )

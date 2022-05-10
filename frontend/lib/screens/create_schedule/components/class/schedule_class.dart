@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
+
+import 'package:dio/dio.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 ///
@@ -77,6 +79,10 @@ class Place {
     this.place = place;
     this.placeName = placeName;
     this.placeId = placeId;
+  }
+
+  String getInstruction() {
+    return "${printDateTime(startsAt!)} 부터 ${printDateTime(endsAt!)}까지 ${printDuration(duration)}동안";
   }
 
   Map toJson() => {

@@ -750,6 +750,7 @@ class CreateScheduleStore with ChangeNotifier {
   }
 
   /// '다른 장소를 중심으로 추천받기'가 가능한지 여부를 체크하는 함수
+  /// 가능하다면 그 장소의 인덱스를 리턴함
   dynamic checkAndGetIndexForPlaceRecommend() {
     if (indexOfPlaceDecidingSchedule != 0) {
       for (int i = indexOfPlaceDecidingSchedule - 1; i >= 0; i--) {
@@ -769,7 +770,7 @@ class CreateScheduleStore with ChangeNotifier {
     return false;
   }
 
-  /// 현재 선택된 장소의 플레이스 id
+  /// 현재 선택된 장소
   String selectedPlaceId = "";
   late String selectedPlaceName;
   late LatLng selectedPlace;

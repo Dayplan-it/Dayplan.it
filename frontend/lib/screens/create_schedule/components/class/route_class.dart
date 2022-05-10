@@ -7,7 +7,7 @@ import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 /// Route의 공통되는 Interface
-abstract class Step {
+abstract class RouteStep {
   /// 거리 (km)
   final double distance;
 
@@ -32,10 +32,10 @@ abstract class Step {
   /// [Polyline] Getter
   Polyline getPolyline();
 
-  Step(this.distance, this.duration, this.departStopLatLng,
+  RouteStep(this.distance, this.duration, this.departStopLatLng,
       this.arrivalStopLatLng, this.polyline, this.instruction);
 
-  Step.fromJson(Map<String, dynamic> json)
+  RouteStep.fromJson(Map<String, dynamic> json)
       : distance = double.parse(
             (json['distance']!['value'] / 1000).toStringAsFixed(3)),
         duration = Duration(seconds: json['duration']!['value']),
@@ -50,7 +50,7 @@ abstract class Step {
 }
 
 /// 대중교통 Step
-class TransitStep extends Step {
+class TransitStep extends RouteStep {
   /// 출발시간
   final DateTime departTime;
 
@@ -134,7 +134,7 @@ class TransitStep extends Step {
 }
 
 /// Walking Step
-class WalkingStep extends Step {
+class WalkingStep extends RouteStep {
   @override
   Polyline getPolyline() {
     return Polyline(
@@ -183,7 +183,7 @@ class RouteOrder {
   String polyline;
 
   /// [WalkingStep], [TransitStep]이 들어갈 리스트
-  late List<Step> steps;
+  late List<RouteStep> steps;
 
   /// [Polyline] Getter
   Polyline getPolyline(Color color, int lineWidth) {
@@ -226,7 +226,7 @@ class RouteOrder {
           "distance": distance,
           "polyline": polyline,
         },
-        "step": [for (Step step in steps) step.toJson()]
+        "step": [for (RouteStep step in steps) step.toJson()]
       };
 
   double toHeight() {
@@ -234,7 +234,7 @@ class RouteOrder {
   }
 
   bool isTransitRoute() {
-    for (Step step in steps) {
+    for (RouteStep step in steps) {
       if (step.runtimeType == TransitStep) {
         return true;
       }
@@ -254,7 +254,7 @@ class RouteOrder {
         if (step.runtimeType == TransitStep) {
           if ((step as TransitStep).transitType == 'BUS') {
             _isBus = true;
-          } else if ((step as TransitStep).transitType == 'SUB') {
+          } else if ((step).transitType == 'SUB') {
             _isSub = true;
           }
         }
@@ -267,6 +267,27 @@ class RouteOrder {
       return (_isBoth ? 'BOTH' : (_isBus ? 'BUS' : 'SUB'));
     }
 
-    return 'WAKLING';
+    return 'WALKING';
+  }
+
+  String getInstruction() {
+    String _instruction;
+    switch (getType()) {
+      case "WALKING":
+        _instruction = "도보로 이동";
+        break;
+      case "BOTH":
+        _instruction = "대중교통으로 이동";
+        break;
+      case "BUS":
+        _instruction = "버스로 이동";
+        break;
+      case "SUBWAY":
+        _instruction = "지하철로 이동";
+        break;
+      default:
+        _instruction = "";
+    }
+    return "${printDuration(duration)}동안 $_instruction";
   }
 }

@@ -507,14 +507,17 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 futureFunction: _getPlaceRecommendForUserLoc,
                 activate: true,
               ),
-              SquareButtonWithLoading(
-                title: "다른 스케줄 중심으로 추천받기",
-                futureFunction: _getPlaceRecommendUsingOtherPlace,
-                activate: context
+              Visibility(
+                visible: context
                         .watch<CreateScheduleStore>()
                         .checkAndGetIndexForPlaceRecommend()
                         .runtimeType ==
                     int,
+                child: SquareButtonWithLoading(
+                  title: "이 스케줄 중심으로 추천받기",
+                  futureFunction: _getPlaceRecommendUsingOtherPlace,
+                  activate: true,
+                ),
               ),
             ],
           )),

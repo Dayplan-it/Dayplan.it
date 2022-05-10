@@ -9,10 +9,11 @@ import 'package:screenshot/screenshot.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
+import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/widgets/custom_shapes.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/custom_shapes.dart';
 
 class MapWithCustomInfoWindow extends StatefulWidget {
   const MapWithCustomInfoWindow(
@@ -208,6 +209,231 @@ Future<Marker> markerForCenterTarget({
     anchor: const Offset(0.5, 0.5),
     markerId: centertargetId,
     position: placeLatLng,
+    icon: BitmapDescriptor.fromBytes(await _widgetToUint8List(_widget())),
+  );
+}
+
+Color _placeColorByPlaceType(String placeTypeName) {
+  if (placeTypeName == 'custom') {
+    return pointColor;
+  }
+  for (List placeType in placeTypes) {
+    if (placeType[0] == placeTypeName) {
+      return placeType[2];
+    }
+  }
+
+  throw 'No Theme Color Found';
+}
+
+/// 장소가 결정된 일정 위젯 생성
+Future<Marker> markerForPlace(
+    {required Place place,
+    required GlobalKey parentKey,
+    bool isOtherPlace = false}) async {
+  MarkerId markerId = MarkerId(place.placeId!);
+  Widget _widget() {
+    if (!isOtherPlace) {
+      Color placeColor = _placeColorByPlaceType(place.placeType);
+      return FittedBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flex(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                direction: Axis.horizontal,
+                children: [
+                  Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        borderRadius: defaultBoxRadius,
+                        boxShadow: defaultBoxShadow,
+                        color: placeColor),
+                    child: Column(
+                      children: [
+                        Text(
+                          place.placeName!,
+                          style: mainFont(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
+                          style: mainFont(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                              fontSize: 12,
+                              letterSpacing: 1),
+                        ),
+                        Text(
+                          ((place.duration.inMinutes >= 60)
+                                  ? place.duration.inHours.toString() + "시간 "
+                                  : "") +
+                              ((place.duration.inMinutes % 60) != 0
+                                  ? (place.duration.inMinutes % 60).toString() +
+                                      "분"
+                                  : ""),
+                          style: mainFont(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                              fontSize: 12,
+                              letterSpacing: 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+            CustomPaint(
+              size: const Size(20, 15),
+              painter: DrawTriangleShape(fillColor: placeColor),
+            )
+          ],
+        ),
+      );
+    } else {
+      return FittedBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flex(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                direction: Axis.horizontal,
+                children: [
+                  Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        borderRadius: defaultBoxRadius,
+                        boxShadow: defaultBoxShadow,
+                        border: Border.all(color: primaryColor, width: 2),
+                        color: Colors.white),
+                    child: Column(
+                      children: [
+                        Text(
+                          "다른 일정",
+                          style: mainFont(
+                              color: pointColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13),
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        Text(
+                          place.placeName!,
+                          style: mainFont(
+                              color: primaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
+                          style: mainFont(
+                              fontWeight: FontWeight.w500,
+                              color: primaryColor,
+                              fontSize: 12,
+                              letterSpacing: 1),
+                        ),
+                        Text(
+                          ((place.duration.inMinutes >= 60)
+                                  ? place.duration.inHours.toString() + "시간 "
+                                  : "") +
+                              ((place.duration.inMinutes % 60) != 0
+                                  ? (place.duration.inMinutes % 60).toString() +
+                                      "분"
+                                  : ""),
+                          style: mainFont(
+                              fontWeight: FontWeight.w500,
+                              color: primaryColor,
+                              fontSize: 12,
+                              letterSpacing: 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+            CustomPaint(
+              size: const Size(20, 15),
+              painter: DrawTriangleShape(),
+            )
+          ],
+        ),
+      );
+    }
+  }
+
+  _onTap() {
+    return showDialog(
+        context: parentKey.currentContext!,
+        builder: (context) {
+          context.read<CreateScheduleStore>().selectedPlaceId = markerId.value;
+          return AlertDialog(
+            contentPadding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: defaultBoxRadius),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.7,
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: PlaceDetail(
+                context,
+                markerId,
+                place.place!,
+                place.placeName!,
+                null,
+                null,
+                isForDecidingPlace: false,
+              ),
+            ),
+          );
+        });
+  }
+
+  return Marker(
+    markerId: markerId,
+    position: place.place!,
+    icon: BitmapDescriptor.fromBytes(await _widgetToUint8List(_widget())),
+    onTap: _onTap,
+  );
+}
+
+/// 순서 번호 마커 생성
+Future<Marker> markerForCreatedRoute({
+  required int order,
+  required Place place,
+}) async {
+  Widget _widget() {
+    Color placeColor = _placeColorByPlaceType(place.placeType);
+    return Container(
+      alignment: Alignment.center,
+      //padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+          borderRadius: defaultBoxRadius,
+          boxShadow: defaultBoxShadow,
+          border: Border.all(color: placeColor, width: 7),
+          color: Colors.white),
+      width: 35,
+      height: 35,
+      child: FittedBox(
+        child: Text(
+          order.toString(),
+          style: mainFont(color: placeColor, fontWeight: FontWeight.w900),
+        ),
+      ),
+    );
+  }
+
+  return Marker(
+    anchor: const Offset(0.5, 0.5),
+    markerId: MarkerId(place.placeId!),
+    position: place.place!,
     icon: BitmapDescriptor.fromBytes(await _widgetToUint8List(_widget())),
   );
 }

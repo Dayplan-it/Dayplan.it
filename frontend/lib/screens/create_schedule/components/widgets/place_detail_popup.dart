@@ -198,21 +198,22 @@ class PlaceDetail extends StatelessWidget {
           SquareButton(
             title: isForDecidingPlace ? "이 장소로 결정" : "이 장소 선택 취소하기",
             onPressed: () async {
+              int _indexOfPlaceDecidingSchedule = context
+                  .read<CreateScheduleStore>()
+                  .indexOfPlaceDecidingSchedule;
               context
                   .read<CreateScheduleStore>()
                   .setSelectedPlace(markerId.value, title, placeLatLng);
               if (isForDecidingPlace) {
-                context.read<CreateScheduleStore>().setMarkers(newMarkers: {
-                  markerId: await markerWithCustomInfoWindow(
-                      context.read<CreateScheduleStore>().screenKey,
-                      markerId,
-                      placeLatLng,
-                      title,
-                      rating,
-                      length,
-                      isForDecidingPlace: false)
-                });
                 context.read<CreateScheduleStore>().setPlaceForSchedule();
+                context.read<CreateScheduleStore>().setMarkers(newMarkers: {
+                  markerId: await markerForPlace(
+                    place: context
+                        .read<CreateScheduleStore>()
+                        .scheduleList[_indexOfPlaceDecidingSchedule],
+                    parentKey: context.read<CreateScheduleStore>().screenKey,
+                  )
+                });
               } else {
                 context
                     .read<CreateScheduleStore>()
