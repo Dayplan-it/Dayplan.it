@@ -153,6 +153,7 @@ class _CreateRouteTabState extends State<CreateRouteTab>
                       () => EagerGestureRecognizer(),
                     ),
                   },
+                  myLocationButtonEnabled: false,
                   rotateGesturesEnabled: false,
                   tiltGesturesEnabled: false,
                   markers: Set<Marker>.of(markers.values),
