@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 ///
 /// ## 각 스케줄을 일컫는 객체
@@ -126,8 +127,14 @@ class ScheduleCreated {
             ? (scheduleBefore.endsAt!.millisecondsSinceEpoch / 1000).round()
             : (scheduleAfter.startsAt!.millisecondsSinceEpoch / 1000).round());
 
+        var prefs = await SharedPreferences.getInstance();
+        String? token = prefs.getString('apiToken');
+
+        Dio dio = Dio();
+        dio.options.headers['Authorization'] = token.toString();
+
         try {
-          final response = await Dio().get(
+          final response = await dio.get(
               '$commonUrl/api/getroute?lat_ori=${scheduleBefore.place!.latitude}&lng_ori=${scheduleBefore.place!.longitude}&lat_dest=${scheduleAfter.place!.latitude}&lng_dest=${scheduleAfter.place!.longitude}&should_use_depart_time=${shouldUseDepartTime ? "true" : "false"}&time=$time');
           if (response.statusCode == 200) {
             foundRoute = response.data;
@@ -161,10 +168,7 @@ class ScheduleCreated {
 
   String memo = "";
 
-  int userId = 10; // 추후 변경해야 함
-
   Map toJson() => {
-        "user_id": userId,
         "date": (date.millisecondsSinceEpoch / 1000).round(),
         "schedule_title": title,
         "memo": memo,

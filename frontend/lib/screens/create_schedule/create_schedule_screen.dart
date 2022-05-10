@@ -1,3 +1,4 @@
+import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -240,7 +241,7 @@ class _CreateScheduleScreenRightSideState
                                 .index ==
                             2,
                         child: SquareButtonWithLoading(
-                          title: "일정 결정하기",
+                          title: "일정 저장하기",
                           activate: (context
                                   .watch<CreateScheduleStore>()
                                   .isScheduleCreated
@@ -250,7 +251,20 @@ class _CreateScheduleScreenRightSideState
                                   .list
                                   .isNotEmpty
                               : false),
-                          futureFunction: () async {},
+                          futureFunction: () async {
+                            context
+                                .read<CreateScheduleStore>()
+                                .scheduleCreated
+                                .title = "테스트";
+                            context
+                                .read<CreateScheduleStore>()
+                                .scheduleCreated
+                                .memo = "메모";
+                            await fetchCreateSchedule(
+                                scheduleCreated: context
+                                    .read<CreateScheduleStore>()
+                                    .scheduleCreated);
+                          },
                         ),
                       )
                     ],

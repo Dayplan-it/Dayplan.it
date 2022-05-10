@@ -24,7 +24,7 @@ class HomeRepository {
     var dio = Dio();
     var prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('apiToken');
-    dio.options.headers['Authorization'] = "Token " + token.toString();
+    dio.options.headers['Authorization'] = token.toString();
     var url = '$commonUrl/schedules/find?date=${timestamp1 ~/ 1000}';
     Response response = await dio.get(url);
     var res = response.data;
@@ -127,7 +127,7 @@ class HomeRepository {
     //사용자토큰가져오기
     var prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('apiToken');
-    dio.options.headers['Authorization'] = "Token " + token.toString();
+    dio.options.headers['Authorization'] = token.toString();
     var response = await dio.get(url);
 
     if (response.statusCode == 200) {

@@ -8,6 +8,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NO
 from schedules.api.schedule_modules import findSchedule, findAllSchedule, createSchedule, createOrders
 from routes.api.route_modules import createPlace, createRoute, createStep, createTransitDetail
 from schedules import models as schedule_models
+from users.utils import LoginConfirm
 from users.jwt_decoder import token2userid
 
 # Define Param Names
@@ -52,10 +53,10 @@ class FindScheduleAPIView(APIView):
     - 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함
     """
 
-    # @LoginConfirm
+    @LoginConfirm
     def get(self, request):
         try:
-            token = request.META.get('HTTP_AUTHORIZATION')[6:]
+            token = request.META.get('HTTP_AUTHORIZATION')
             user_id = token2userid(token)
             date = datetime.fromtimestamp(
                 int(request.query_params[PARAM_DATE])).date()
@@ -80,10 +81,10 @@ class FindScheduleListAPIView(APIView):
     - 추후 user_id가 아닌 user_token으로 Permission을 확인하는 로직이 필요함
     """
 
-    # @LoginConfirm
+    @LoginConfirm
     def get(self, request):
         try:
-            token = request.META.get('HTTP_AUTHORIZATION')[6:]
+            token = request.META.get('HTTP_AUTHORIZATION')
             user_id = token2userid(token)
 
             return Response(findAllSchedule(user_id=user_id), status=HTTP_200_OK)
@@ -112,9 +113,10 @@ class DeleteScheduleAPIView(APIView):
         except schedule_models.Schedule.DoesNotExist:
             raise ObjectDoesNotExist
 
+    @LoginConfirm
     def delete(self, request):
         try:
-            token = request.META.get('HTTP_AUTHORIZATION')[6:]
+            token = request.META.get('HTTP_AUTHORIZATION')
             user_id = token2userid(token)
             date = datetime.fromtimestamp(
                 int(request.data[KEY_DATE])).date()
@@ -139,6 +141,7 @@ class DeleteScheduleAPIView(APIView):
             return JsonResponse({"message": "NO_SUCH_SCHEDULE"}, status=HTTP_404_NOT_FOUND)
 
 
+# @LoginConfirm
 class CreateScheduleAPIView(APIView):
     """
     스케쥴을 생성하는 API,
@@ -146,6 +149,7 @@ class CreateScheduleAPIView(APIView):
     부모 -> 자식 순으로 생성됨
     """
 
+    # @LoginConfirm
     def checkScheduleAndUserExists(self, user_id, date):
         """
         스케쥴 및 유저의 존재 여부를 확인
@@ -159,9 +163,10 @@ class CreateScheduleAPIView(APIView):
             if schedule_models.Schedule.objects.filter(user_id=user_id, date=date).exists():
                 raise MultipleObjectsReturned
 
+    # @LoginConfirm
     def post(self, request):
         try:
-            token = request.META.get('HTTP_AUTHORIZATION')[6:]
+            token = request.META.get('HTTP_AUTHORIZATION')
             user_id = token2userid(token)
             request.data[KEY_DATE] = datetime.fromtimestamp(
                 int(request.data[KEY_DATE])).date()

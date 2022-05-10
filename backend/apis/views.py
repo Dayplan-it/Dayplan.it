@@ -28,8 +28,7 @@ class PlaceRecommend(APIView):
     lng, lat값과 place_type을 받아
     각 장소별로 convex_hull값을 부여하는 API
     """
-    # @LoginConfirm
-
+    @LoginConfirm
     def get(self, request):
         # 예시데이터
         #lng = 126.99446459234908
@@ -55,7 +54,7 @@ class PlaceDetail(APIView):
     place_id를 받아 장소의 자세한 정보를 주는 API
     """
 
-    # @LoginConfirm
+    @LoginConfirm
     def get(self, request):
         # 예시데이터
         # ChIJKbC0o06ifDURYATbX7adyKg
@@ -87,7 +86,7 @@ class MakeRoute(APIView):
     #
     #       x['steps']            -상세경로
 
-    # @LoginConfirm
+    @LoginConfirm
     def get(self, request):
         # 두 지점의 위치정보와 이동타입을 를 쿼리로 입력
         lng_ori = request.query_params[PARAM_ROUTE_LNG_ORI]
@@ -125,7 +124,7 @@ class PlaceAutocomplete(APIView):
     검색어의 자동완성을 위한 API
     """
 
-    # @LoginConfirm
+    @LoginConfirm
     def get(self, request):
         inputStr = request.query_params[PARAM_QUERY_FOR_AUTOCOMPLETE]
         lat = request.query_params[PARAM_PLACE_LAT]
@@ -144,7 +143,7 @@ class FindAddressByLatLng(APIView):
     좌표를 이용해 주소를 얻는 API
     """
 
-    # @LoginConfirm
+    @LoginConfirm
     def get(self, request):
         lat = request.query_params[PARAM_PLACE_LAT]
         lng = request.query_params[PARAM_PLACE_LNG]
