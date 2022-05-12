@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -52,8 +54,13 @@ class _CreateRouteTabState extends State<CreateRouteTab>
         listLat.sort();
         listLng.sort();
 
-        southWest = LatLng(listLat[0], listLng[2]);
-        northEast = LatLng(listLat[2], listLng[0]);
+        // 안드로이드는 다르게 넣어줘야 함 (Google Map Bug)
+        southWest = Platform.isAndroid
+            ? LatLng(listLat[0], listLng[0])
+            : LatLng(listLat[0], listLng[2]);
+        northEast = Platform.isAndroid
+            ? LatLng(listLat[2], listLng[2])
+            : LatLng(listLat[2], listLng[0]);
       }
     }
 
@@ -147,6 +154,7 @@ class _CreateRouteTabState extends State<CreateRouteTab>
                   onMapCreated: (controller) => setState(() {
                         _routeMapController = controller;
                       }),
+                  mapToolbarEnabled: false,
                   myLocationEnabled: true,
                   gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                     Factory<OneSequenceGestureRecognizer>(
@@ -321,24 +329,27 @@ class _CreateRouteTabState extends State<CreateRouteTab>
                 decoration: BoxDecoration(
                     borderRadius: defaultBoxRadius,
                     color: const Color.fromARGB(212, 39, 39, 39)),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "장소가 선택되지 않은",
-                      style: mainFont(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      "일정이 있습니다",
-                      style: mainFont(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
+                child: FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "장소가 선택되지 않은",
+                        style: mainFont(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        "일정이 있습니다",
+                        style: mainFont(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 )))
       else if (context.watch<CreateScheduleStore>().isFindingRoute)
         Positioned.fill(

@@ -63,9 +63,13 @@ class ScheduleBox extends StatelessWidget {
         decoration: BoxDecoration(
             color: place.color,
             borderRadius: defaultBoxRadius,
-            boxShadow: defaultBoxShadow),
+            boxShadow: defaultBoxShadow,
+            border:
+                isLongPress ? Border.all(color: Colors.blue, width: 4) : null),
         height: place.toHeight(),
-        width: double.infinity,
+        width: isFeedBack
+            ? context.watch<CreateScheduleStore>().timeLineBoxAreaWidth
+            : double.infinity,
         clipBehavior: Clip.antiAlias,
         child: Stack(children: [
           Padding(

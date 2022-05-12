@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
@@ -104,48 +105,15 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
     super.initState();
   }
 
-  /// 기기로부터 위치정보 사용 권한을 받고 위치정보를 가져오거나
-  /// AlertDialog를 띄우는 함수
   _getUserLoc() async {
-    Position tempUserPosition = await Geolocator.getCurrentPosition(
+    Position tempUserPosition;
+    tempUserPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
+
     if (mounted) {
       context.read<CreateScheduleStore>().setUserLocation(
           LatLng(tempUserPosition.latitude, tempUserPosition.longitude));
     }
-    // if (await Permission.location.request().isGranted) {
-    //   _userPosition = await Geolocator.getCurrentPosition(
-    //       desiredAccuracy: LocationAccuracy.high);
-    // } else {
-    //   // 위치정보 사용 거절당했을 경우 필요하다는 다이얼로그 띄우기
-    //   await showDialog(
-    //       context: context,
-    //       builder: (BuildContext context) => CupertinoAlertDialog(
-    //             title: const Text('위치정보 요청'),
-    //             content: const Text('데이플래닛을 사용하기 위해서는 위치정보가 필요합니다.'),
-    //             actions: <Widget>[
-    //               CupertinoDialogAction(
-    //                 child: const Text('거절'),
-    //                 onPressed: () {
-    //                   context
-    //                       .read<CreateScheduleStore>()
-    //                       .tabController
-    //                       .animateTo(0);
-    //                 },
-    //               ),
-    //               CupertinoDialogAction(
-    //                 child: const Text('설정'),
-    //                 onPressed: () => openAppSettings(),
-    //               ),
-    //             ],
-    //           ));
-    //   if (await Permission.location.request().isGranted) {
-    //     _userPosition = await Geolocator.getCurrentPosition(
-    //         desiredAccuracy: LocationAccuracy.high);
-    //   } else {
-    //     throw Error();
-    //   }
-    // }
   }
 
   Future<Widget> _buildGoogleMap() async {

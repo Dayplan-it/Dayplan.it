@@ -151,8 +151,10 @@ class _TimeLineState extends State<TimeLine> {
                         context
                             .watch<CreateScheduleStore>()
                             .indexOfDraggingScheduleBox)
-                      OnScheduleBoxLongPress(
+                      ScheduleBox(
                         place: scheduleList[i],
+                        index: i,
+                        isLongPress: true,
                       )
                     else
                       SizedBox(

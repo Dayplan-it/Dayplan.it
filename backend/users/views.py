@@ -27,6 +27,7 @@ class SignIn(APIView):
 
         # 데이터 파싱
         data = JSONParser().parse(request)
+        print(data)
         try:
             # DB에서 유저 존재유무확인
             if User.objects.filter(email=data["email"]).exists():

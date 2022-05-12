@@ -105,12 +105,15 @@ class RecommendedSchedulesGrid extends StatelessWidget {
                     color: place.color,
                     size: 15,
                   ),
-                  label: Text(
-                    place.nameKor,
-                    style: mainFont(
-                      color: place.color,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+                  label: FittedBox(
+                    fit: BoxFit.cover,
+                    child: Text(
+                      place.nameKor,
+                      style: mainFont(
+                        color: place.color,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 );

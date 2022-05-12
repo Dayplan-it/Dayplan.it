@@ -1,6 +1,3 @@
-import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
-import 'package:dayplan_it/screens/home/home_screen.dart';
-import 'package:dayplan_it/screens/mainpage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -8,6 +5,8 @@ import 'package:provider/provider.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
+import 'package:dayplan_it/screens/mainpage.dart';
+import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
 import 'package:dayplan_it/screens/create_schedule/tabbar/create_route_tab.dart';
 import 'package:dayplan_it/screens/create_schedule/tabbar/select_place_tab.dart';
 import 'package:dayplan_it/screens/create_schedule/tabbar/set_schedule_tab.dart';
@@ -135,17 +134,14 @@ class _CreateScheduleScreenRightSideState
             size: 20,
           ),
         ] else ...[
-          SizedBox(
-            width: 45,
-            child: Text(
-              title,
-              style: mainFont(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: primaryColor,
-              ),
-              textAlign: TextAlign.center,
+          Text(
+            title,
+            style: mainFont(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: primaryColor,
             ),
+            textAlign: TextAlign.center,
           ),
         ]
       ],
@@ -207,15 +203,14 @@ class _CreateScheduleScreenRightSideState
                     labelPadding: EdgeInsets.zero,
                     tabs: [
                       Tab(
-                        child: _buildTabTitle(
-                            Icons.schedule_rounded, "일정 추가 및 조정", 0),
+                        child: _buildTabTitle(Icons.schedule_rounded, "일정", 0),
                       ),
                       Tab(
                         child: _buildTabTitle(
-                            CupertinoIcons.placemark_fill, "장소 설정", 1),
+                            CupertinoIcons.placemark_fill, "장소", 1),
                       ),
                       Tab(
-                        child: _buildTabTitle(Icons.route_rounded, "경로 생성", 2),
+                        child: _buildTabTitle(Icons.route_rounded, "경로", 2),
                       ),
                     ],
                   ),

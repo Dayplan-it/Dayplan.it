@@ -694,10 +694,10 @@ class CreateScheduleStore with ChangeNotifier {
     clearScheduleCreated();
     clearMarkers();
     onFindingRouteEnd();
-    timeLineScrollController.dispose();
-    if (googleMapController != null) {
-      googleMapController!.dispose();
-    }
+    // timeLineScrollController.dispose();
+    // if (googleMapController != null) {
+    //   googleMapController!.dispose();
+    // }
     isBeforeStartTap = false;
     tabController.index = 0;
   }
