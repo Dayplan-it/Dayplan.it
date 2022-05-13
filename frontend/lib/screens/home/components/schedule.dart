@@ -49,19 +49,24 @@ class _ScheduleState extends State<Schedule> {
                   width: 0.95 * devicewidth,
                   height: 0.3 * deviceheight,
                   child: Center(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.live_help,
-                        color: subTextColor,
-                      ),
-                      Text("해당 날짜엔 아직 일정이 없습니다!",
-                          style: mainFont(
-                              textStyle: const TextStyle(color: subTextColor),
-                              fontSize: 12)),
-                    ],
-                  )),
+                      child: Provider.of<HomeProvider>(context, listen: false)
+                              .getDetailLoading
+                          ? //Center(child: const CircularProgressIndicator())
+                          const Center(child: CircularProgressIndicator())
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.live_help,
+                                  color: subTextColor,
+                                ),
+                                Text("해당 날짜엔 아직 일정이 없습니다!",
+                                    style: mainFont(
+                                        textStyle: const TextStyle(
+                                            color: subTextColor),
+                                        fontSize: 12)),
+                              ],
+                            )),
                 ))
               : Container(
                   width: 0.95 * devicewidth,

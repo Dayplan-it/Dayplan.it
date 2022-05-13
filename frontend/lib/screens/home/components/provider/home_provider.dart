@@ -23,8 +23,10 @@ class HomeProvider extends ChangeNotifier {
   Map<MarkerId, Marker> _markers = {};
   Map<PolylineId, Polyline> _polylines = {};
   bool _showNoSchedule = true;
-  //Getter
+  bool _getDetailLoading = false;
 
+  //Getter
+  bool get getDetailLoading => _getDetailLoading;
   DateTime get nowDate => _nowDate;
   List<DateTime> get allSchedule => _allSchedule;
   List<DecorationItem> get decorationList => _decorationList;
@@ -34,6 +36,12 @@ class HomeProvider extends ChangeNotifier {
   Map<PolylineId, Polyline> get polylines => _polylines;
   bool get showNoSchedule => _showNoSchedule;
   bool get hasTodaySchedule => _hasTodaySchedule;
+
+  //로딩중 표시
+  setDetailLoading(bool a) {
+    _getDetailLoading = a;
+    notifyListeners();
+  }
 
   ///오늘 일정이 있음을 저장
   setTodaySchedule(bool a) {

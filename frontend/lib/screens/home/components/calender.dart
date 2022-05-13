@@ -56,8 +56,13 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
 
             Provider.of<HomeProvider>(context, listen: false)
                 .selectDate(datetime);
+            Provider.of<HomeProvider>(context, listen: false)
+                .setDetailLoading(true);
             Provider.of<HomeProvider>(context, listen: false).deleteData();
             await _homeRepository.setSchedule(date, context);
+
+            Provider.of<HomeProvider>(context, listen: false)
+                .setDetailLoading(false);
           },
           monthViewBuilder: (DateTime time) => Align(
             alignment: FractionalOffset.center,
