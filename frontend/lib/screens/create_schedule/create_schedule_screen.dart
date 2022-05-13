@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -70,41 +72,120 @@ class CreateScheduleScreenBody extends StatefulWidget {
 
 class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
     with SingleTickerProviderStateMixin {
+  bool _isTimelineOn = true;
+  bool _isHandleNeeded = false;
+  bool _isTimelineVisiable = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      context
+          .read<CreateScheduleStore>()
+          .tabController
+          .addListener(() => setState(() {
+                int _tabIndex =
+                    context.read<CreateScheduleStore>().tabController.index;
+
+                if (_tabIndex == 0) {
+                  _isTimelineOn = true;
+                  _isHandleNeeded = false;
+                  _isTimelineVisiable = true;
+                } else if (_tabIndex == 1) {
+                  _isTimelineOn = false;
+                  _isHandleNeeded = true;
+                  _isTimelineVisiable = true;
+                } else {
+                  _isTimelineVisiable = false;
+                }
+              }));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     return Padding(
         key: context.read<CreateScheduleStore>().screenKey,
-        padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
-        child: Row(children: [
-          AnimatedSize(
-              alignment: Alignment.centerLeft,
-              curve: Curves.fastOutSlowIn,
-              duration: tabResizeAnimationDuration,
-              child: SizedBox(
-                  width: (screenWidth - 24) *
-                      context
-                          .watch<CreateScheduleStore>()
-                          .timelineWidthFlex
-                          .toDouble() /
-                      100,
-                  child: const TimeLine())),
-          const SizedBox(
-            width: 8,
-          ),
-          AnimatedSize(
-              alignment: Alignment.centerLeft,
-              curve: Curves.fastOutSlowIn,
-              duration: tabResizeAnimationDuration,
-              child: SizedBox(
-                  width: (screenWidth - 24) *
+        padding: const EdgeInsets.fromLTRB(2, 15, 8, 15),
+        child: Stack(clipBehavior: Clip.none, children: [
+          Row(children: [
+            AnimatedSize(
+                alignment: Alignment.centerLeft,
+                curve: Curves.easeInOut,
+                duration: tabResizeAnimationDuration,
+                child: SizedBox(
+                  width: (screenWidth - 18) *
                       (1 -
-                          (context
+                          context
                                   .watch<CreateScheduleStore>()
-                                  .timelineWidthFlex
+                                  .tabWidthFlex
                                   .toDouble() /
-                              100)),
-                  child: const CreateScheduleScreenRightSide()))
+                              100),
+                )),
+            const SizedBox(
+              width: 8,
+            ),
+            AnimatedSize(
+                alignment: Alignment.centerLeft,
+                curve: Curves.easeInOut,
+                duration: tabResizeAnimationDuration,
+                child: SizedBox(
+                    width: (screenWidth - 18) *
+                        (context
+                                .watch<CreateScheduleStore>()
+                                .tabWidthFlex
+                                .toDouble() /
+                            100),
+                    child: const CreateScheduleScreenRightSide()))
+          ]),
+          if (_isTimelineVisiable)
+            Positioned.fill(
+              child: Stack(clipBehavior: Clip.none, children: [
+                AnimatedPositioned(
+                  top: -reorderDragTargetHeight / 2,
+                  bottom: 0,
+                  left: _isTimelineOn ? 0 : -(screenWidth - 18) * 0.37,
+                  width: (screenWidth - 18) * 0.47,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  child: Row(
+                    children: [
+                      const Expanded(child: TimeLine()),
+                      Container(
+                        width: 10,
+                        color: Colors.white,
+                      ),
+                      _isHandleNeeded
+                          ? InkWell(
+                              onTap: () => setState(() {
+                                _isTimelineOn = !_isTimelineOn;
+                              }),
+                              child: Container(
+                                  width: 20,
+                                  height: 50,
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(
+                                      borderRadius: BorderRadius.only(
+                                          topRight: Radius.circular(10),
+                                          bottomRight: Radius.circular(10)),
+                                      color: Colors.white,
+                                      boxShadow: defaultBoxShadow),
+                                  child: Transform.rotate(
+                                    angle: 90 * pi / 180,
+                                    child: const Icon(
+                                      Icons.drag_handle,
+                                      color: subTextColor,
+                                      size: 20,
+                                    ),
+                                  )),
+                            )
+                          : const SizedBox.shrink()
+                    ],
+                  ),
+                )
+              ]),
+            )
         ]));
   }
 }
@@ -152,7 +233,7 @@ class _CreateScheduleScreenRightSideState
     setState(() {
       index = context.read<CreateScheduleStore>().tabController.index;
     });
-    context.read<CreateScheduleStore>().setTimeLineWidthFlexByTabIndex(index);
+    context.read<CreateScheduleStore>().setTabWidthFlexByTabIndex(index);
     if (index == 2) {
       context.read<CreateScheduleStore>().onCreateRouteTabStart();
     } else {

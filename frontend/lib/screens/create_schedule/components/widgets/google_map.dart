@@ -38,6 +38,7 @@ class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
             FocusScope.of(context).unfocus();
           }
         },
+        onLongPress: (position) async {},
         myLocationEnabled: true,
         gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
           Factory<OneSequenceGestureRecognizer>(

@@ -1,7 +1,9 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
+import 'package:dayplan_it/components/route_card.dart';
+import 'package:dayplan_it/functions/google_map_move_to.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
@@ -27,46 +29,46 @@ class _CreateRouteTabState extends State<CreateRouteTab>
     with AutomaticKeepAliveClientMixin {
   late GoogleMapController _routeMapController;
 
-  CameraUpdate moveToPolyLine(String polyLineStr) {
-    List<LatLng> points = decodePolyline(polyLineStr)
-        .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
-        .toList();
+  // CameraUpdate moveToPolyLine(String polyLineStr) {
+  //   List<LatLng> points = decodePolyline(polyLineStr)
+  //       .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+  //       .toList();
 
-    LatLng? southWest;
-    LatLng? northEast;
+  //   LatLng? southWest;
+  //   LatLng? northEast;
 
-    for (int i = 0; i < points.length; i++) {
-      if (i == 0) {
-        southWest = points[i];
-        northEast = points[i];
-      } else {
-        List<double> listLat = [
-          southWest!.latitude,
-          northEast!.latitude,
-          points[i].latitude
-        ];
-        List<double> listLng = [
-          southWest.longitude,
-          northEast.longitude,
-          points[i].longitude
-        ];
+  //   for (int i = 0; i < points.length; i++) {
+  //     if (i == 0) {
+  //       southWest = points[i];
+  //       northEast = points[i];
+  //     } else {
+  //       List<double> listLat = [
+  //         southWest!.latitude,
+  //         northEast!.latitude,
+  //         points[i].latitude
+  //       ];
+  //       List<double> listLng = [
+  //         southWest.longitude,
+  //         northEast.longitude,
+  //         points[i].longitude
+  //       ];
 
-        listLat.sort();
-        listLng.sort();
+  //       listLat.sort();
+  //       listLng.sort();
 
-        // 안드로이드는 다르게 넣어줘야 함 (Google Map Bug)
-        southWest = Platform.isAndroid
-            ? LatLng(listLat[0], listLng[0])
-            : LatLng(listLat[0], listLng[2]);
-        northEast = Platform.isAndroid
-            ? LatLng(listLat[2], listLng[2])
-            : LatLng(listLat[2], listLng[0]);
-      }
-    }
+  //       // 안드로이드는 다르게 넣어줘야 함 (Google Map Bug)
+  //       southWest = Platform.isAndroid
+  //           ? LatLng(listLat[0], listLng[0])
+  //           : LatLng(listLat[0], listLng[2]);
+  //       northEast = Platform.isAndroid
+  //           ? LatLng(listLat[2], listLng[2])
+  //           : LatLng(listLat[2], listLng[0]);
+  //     }
+  //   }
 
-    return CameraUpdate.newLatLngBounds(
-        LatLngBounds(southwest: southWest!, northeast: northEast!), 20);
-  }
+  //   return CameraUpdate.newLatLngBounds(
+  //       LatLngBounds(southwest: southWest!, northeast: northEast!), 20);
+  // }
 
   Future _createScheduleAndAddMarkerAndLine() async {
     int routeReCreateFlag =
@@ -100,14 +102,8 @@ class _CreateRouteTabState extends State<CreateRouteTab>
       }
 
       context.read<CreateScheduleStore>().onFindingRouteEnd();
-      _routeMapController.moveCamera(CameraUpdate.newCameraPosition(
-          CameraPosition(
-              target: context
-                  .read<CreateScheduleStore>()
-                  .scheduleCreated
-                  .list[0]
-                  .place,
-              zoom: 16)));
+      _routeMapController
+          .moveCamera(moveToSchedule(scheduleOrder: _createdScheduleList));
       setState(() {
         markers = newMarkers;
         polylines = newPolylines;
@@ -173,125 +169,12 @@ class _CreateRouteTabState extends State<CreateRouteTab>
           ),
           if (context.watch<CreateScheduleStore>().isScheduleCreated)
             Expanded(
-              flex: 3,
-              child: ListView.builder(
-                  itemCount: context
-                      .read<CreateScheduleStore>()
-                      .scheduleCreated
-                      .list
-                      .length,
-                  itemBuilder: (context, index) {
-                    List scheduleOrders = context
-                        .read<CreateScheduleStore>()
-                        .scheduleCreated
-                        .list;
-
-                    Widget orderCard(IconData iconData, Color mainColor,
-                        String? title, String instructions,
-                        {bool isRoute = false}) {
-                      return InkWell(
-                        onTap: () async {
-                          if (isRoute) {
-                            await _routeMapController.animateCamera(
-                                moveToPolyLine(scheduleOrders[index].polyline));
-                          } else {
-                            await _routeMapController.animateCamera(
-                                CameraUpdate.newLatLngZoom(
-                                    scheduleOrders[index].place, 16));
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 5),
-                          child: Container(
-                              padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                              decoration: BoxDecoration(
-                                  boxShadow: defaultBoxShadow,
-                                  borderRadius: defaultBoxRadius,
-                                  color: isRoute
-                                      ? const Color.fromARGB(255, 137, 137, 137)
-                                      : Colors.white),
-                              height: isRoute ? 40 : 70,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    iconData,
-                                    color: mainColor,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(
-                                    width: 15,
-                                  ),
-                                  Expanded(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (!isRoute)
-                                          Text(
-                                            title!,
-                                            style: mainFont(
-                                                color: mainColor,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                        Text(
-                                          instructions,
-                                          style: mainFont(
-                                              color: isRoute
-                                                  ? Colors.white
-                                                  : subTextColor,
-                                              fontSize: isRoute ? null : 11),
-                                          textAlign: TextAlign.start,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              )),
-                        ),
-                      );
-                    }
-
-                    List _placeColorAndIconDataByPlaceType(
-                        String placeTypeName) {
-                      if (placeTypeName == 'custom') {
-                        return [pointColor, Icons.edit];
-                      }
-                      for (List placeType in placeTypes) {
-                        if (placeType[0] == placeTypeName) {
-                          return [placeType[2], placeType[3]];
-                        }
-                      }
-
-                      throw 'No Theme Color Found';
-                    }
-
-                    if (scheduleOrders[index].runtimeType == Place) {
-                      List colorAndIconData = _placeColorAndIconDataByPlaceType(
-                          scheduleOrders[index].placeType);
-                      return orderCard(
-                          colorAndIconData[1],
-                          colorAndIconData[0],
-                          scheduleOrders[index].placeName,
-                          scheduleOrders[index].getInstruction());
-                    } else {
-                      bool _isTransitRoute =
-                          scheduleOrders[index].isTransitRoute();
-                      String transitType = scheduleOrders[index].getType();
-                      IconData icon = (_isTransitRoute
-                          ? (transitType == 'BUS'
-                              ? CupertinoIcons.bus
-                              : (transitType == 'SUB'
-                                  ? CupertinoIcons.train_style_one
-                                  : Icons.directions_rounded))
-                          : Icons.directions_walk);
-                      return orderCard(icon, Colors.white, null,
-                          scheduleOrders[index].getInstruction(),
-                          isRoute: true);
-                    }
-                  }),
-            )
+                flex: 3,
+                child: ScheduleOrderCardListView(
+                  scheduleOrderList:
+                      context.read<CreateScheduleStore>().scheduleCreated.list,
+                  routeMapController: _routeMapController,
+                ))
         ],
       ),
       if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
@@ -384,72 +267,3 @@ class _CreateRouteTabState extends State<CreateRouteTab>
   @override
   bool get wantKeepAlive => true;
 }
-
-// class MapForRouteFind extends StatefulWidget {
-//   const MapForRouteFind({
-//     Key? key,
-//   }) : super(key: key);
-
-//   @override
-//   State<MapForRouteFind> createState() => _MapForRouteFindState();
-// }
-
-// class _MapForRouteFindState extends State<MapForRouteFind> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         if (context.watch<CreateScheduleStore>().isScheduleCreated) ...[
-//           const Expanded(flex: 1, child: SizedBox.shrink()),
-//           Expanded(
-//               flex: 15,
-//               child: ClipRRect(
-//                 borderRadius: defaultBoxRadius,
-//                 child: Stack(
-//                   children: [
-//                     GoogleMap(
-//                         onTap: (position) async {},
-//                         onCameraMove: (position) {},
-//                         myLocationEnabled: true,
-//                         // myLocationButtonEnabled:
-//                         //     context.watch<CreateScheduleStore>().isLookingPlaceDetail
-//                         //         ? false
-//                         //         : true,
-//                         gestureRecognizers: <
-//                             Factory<OneSequenceGestureRecognizer>>{
-//                           Factory<OneSequenceGestureRecognizer>(
-//                             () => EagerGestureRecognizer(),
-//                           ),
-//                         },
-//                         rotateGesturesEnabled: false,
-//                         tiltGesturesEnabled: false,
-//                         markers: Set<Marker>.of(markers.values),
-//                         polylines: Set<Polyline>.of(polylines.values),
-//                         initialCameraPosition: CameraPosition(
-//                             target: context
-//                                 .read<CreateScheduleStore>()
-//                                 .scheduleCreated
-//                                 .list[0]
-//                                 .place,
-//                             zoom: 15)),
-//                     // ModifiedCustomInfoWindow(
-//                     //   controller: widget.customInfoWindowController,
-//                     //   offset: 40,
-//                     // ),
-//                   ],
-//                 ),
-//               )),
-//         ],
-//         Center(
-//           child: SquareButtonWithLoading(
-//               title: context.watch<CreateScheduleStore>().isScheduleCreated
-//                   ? "경로 다시 생성하기"
-//                   : "경로 생성하기",
-//               futureFunction: _createSchedule,
-//               activate:
-//                   context.watch<CreateScheduleStore>().isRouteCreateAble()),
-//         ),
-//       ],
-//     );
-//   }
-// }

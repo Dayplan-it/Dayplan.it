@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -108,12 +107,12 @@ const List placeTypes = [
     Color.fromARGB(255, 34, 190, 154),
     Icons.theaters_rounded
   ],
-  [
-    'amusement_park',
-    '놀이공원',
-    Color.fromARGB(255, 34, 63, 190),
-    Icons.attractions_rounded
-  ],
+  // [
+  //   'amusement_park',
+  //   '놀이공원',
+  //   Color.fromARGB(255, 34, 63, 190),
+  //   Icons.attractions_rounded
+  // ],
   ['museum', '박물관', Color.fromARGB(255, 7, 127, 255), Icons.museum_rounded],
   ['library', '도서관', Color.fromARGB(255, 93, 1, 1), Icons.local_library],
   [
@@ -230,5 +229,4 @@ const List placeTypes = [
 // ['zoo
 ];
 
-final String commonUrl =
-    Platform.isAndroid ? 'http://3.39.16.200' : 'http://127.0.0.1:8000';
+final String commonUrl = 'http://3.39.16.200';

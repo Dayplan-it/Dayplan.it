@@ -643,14 +643,23 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 타임라인 너비 조정용
   /// Flex값이므로 %라고 생각하면 됨
-  int timelineWidthFlex = 47;
-  void setTimeLineWidthFlex(int flex) {
-    timelineWidthFlex = flex;
+  // int timelineWidthFlex = 47;
+
+  // /// 탭 너비 조정용
+  // /// timelineWidthFlex로 조절됨
+  int tabWidthFlex = 53;
+  // void setTimeLineWidthFlex(int timelineWidth) {
+  //   timelineWidthFlex = timelineWidth;
+  //   tabWidthFlex = tabWidth;
+  //   notifyListeners();
+  // }
+  void setTabWidthFlex(int tabWidth) {
+    tabWidthFlex = tabWidth;
     notifyListeners();
   }
 
-  void setTimeLineWidthFlexByTabIndex(int tabIndex) {
-    setTimeLineWidthFlex([47, 37, 37][tabIndex]);
+  void setTabWidthFlexByTabIndex(int tabIndex) {
+    setTabWidthFlex([53, 91, 100][tabIndex]);
   }
 
   /// 타임라인의 박스가 들어가는 곳 너비를 넣는 변수
@@ -685,7 +694,8 @@ class CreateScheduleStore with ChangeNotifier {
     setCurrentlyDecidingScheduleStartsAtBeforeStart();
     onEndMakingCustomBlock();
     onScheduleBoxDragEnd();
-    setTimeLineWidthFlexByTabIndex(0);
+    setTabWidthFlexByTabIndex(0);
+    //setTimeLineWidthFlexByTabIndex(0);
     setIndexOfPlaceDecidingSchedule(0);
     onPlaceRecommendedEnd();
     onDecidingScheduleStartsAtEnd();
@@ -694,10 +704,10 @@ class CreateScheduleStore with ChangeNotifier {
     clearScheduleCreated();
     clearMarkers();
     onFindingRouteEnd();
-    // timeLineScrollController.dispose();
-    // if (googleMapController != null) {
-    //   googleMapController!.dispose();
-    // }
+    timeLineScrollController.dispose();
+    if (googleMapController != null) {
+      googleMapController!.dispose();
+    }
     isBeforeStartTap = false;
     tabController.index = 0;
   }

@@ -25,7 +25,7 @@ class SquareButton extends StatelessWidget {
         onPressed: isCancle ? onPressed : (activate ? onPressed : null),
         style: ElevatedButton.styleFrom(
             primary: isCancle ? pointColor : primaryColor,
-            minimumSize: const Size.fromHeight(40),
+            minimumSize: const Size.fromHeight(50),
             shape: RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
         child: Text(
           title,
@@ -79,13 +79,12 @@ class _SquareButtonWithLoadingState extends State<SquareButtonWithLoading> {
               primary: primaryColor,
               minimumSize: Size(
                   (screenWidth - 24) *
-                      (1 -
-                          (context
-                                  .watch<CreateScheduleStore>()
-                                  .timelineWidthFlex
-                                  .toDouble() /
-                              100)),
-                  40),
+                      (context
+                              .watch<CreateScheduleStore>()
+                              .tabWidthFlex
+                              .toDouble() /
+                          100),
+                  50),
               shape: RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

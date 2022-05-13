@@ -112,7 +112,7 @@ class RecommendedSchedulesGrid extends StatelessWidget {
                       style: mainFont(
                         color: place.color,
                         fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        fontSize: 14,
                       ),
                     ),
                   ),

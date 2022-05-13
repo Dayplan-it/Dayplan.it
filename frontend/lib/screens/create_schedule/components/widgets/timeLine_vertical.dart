@@ -41,7 +41,7 @@ class _TimeLineState extends State<TimeLine> {
           .pixels;
     });
     super.initState();
-    WidgetsBinding.instance!
+    WidgetsBinding.instance
         .addPostFrameCallback((timeStamp) => _getAndSetTimeLineBoxAreaWidth());
   }
 
@@ -49,7 +49,7 @@ class _TimeLineState extends State<TimeLine> {
     return Row(
       children: [
         const SizedBox(
-          width: 42,
+          width: 40,
         ),
         Expanded(
           child: Column(
@@ -98,7 +98,7 @@ class _TimeLineState extends State<TimeLine> {
         context.watch<CreateScheduleStore>().scheduleList;
 
     if (scheduleList.isEmpty) {
-      return const SizedBox();
+      return const SizedBox.shrink();
     } else {
       if (context.watch<CreateScheduleStore>().isCreateRouteTabOn &&
           context.watch<CreateScheduleStore>().isScheduleCreated) {
@@ -170,47 +170,34 @@ class _TimeLineState extends State<TimeLine> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none, // Positioned 사용하기 위해 Stack 사용함
-      // 스케줄 Reorder시에 0시에 생기는 DragTarget때문에 이같은 과정이 필요
-      children: [
-        Positioned(
-          top: -reorderDragTargetHeight / 2,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          // Scroll 위해서는 모든 방향 position 지정해주어야 작동함
-          child: SingleChildScrollView(
-              controller:
-                  context.read<CreateScheduleStore>().timeLineScrollController,
-              physics: const BouncingScrollPhysics(),
-              scrollDirection: Axis.vertical,
-              child: Stack(children: [
-                const TimelineBackground(),
-                Positioned.fill(child: _buildScheduleStartsAt()),
-                Positioned.fill(
-                    child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 42,
-                    ),
-                    Expanded(
-                      key: _timeLineBoxAreaKey,
-                      child: Stack(children: [
-                        _buildScheduleBoxTimeLine(),
-                        if (context
-                            .watch<CreateScheduleStore>()
-                            .isScheduleBoxDragging)
-                          const Positioned.fill(
-                              child: TimeLineReorderDragTargetCol()),
-                      ]),
-                    )
-                  ],
-                ))
-              ])),
-        ),
-      ],
-    );
+    return SingleChildScrollView(
+        controller:
+            context.read<CreateScheduleStore>().timeLineScrollController,
+        physics: const BouncingScrollPhysics(),
+        scrollDirection: Axis.vertical,
+        child: Stack(children: [
+          const TimelineBackground(),
+          Positioned.fill(child: _buildScheduleStartsAt()),
+          Positioned.fill(
+              child: Row(
+            children: [
+              const SizedBox(
+                width: 42,
+              ),
+              Expanded(
+                key: _timeLineBoxAreaKey,
+                child: Stack(children: [
+                  _buildScheduleBoxTimeLine(),
+                  if (context
+                      .watch<CreateScheduleStore>()
+                      .isScheduleBoxDragging)
+                    const Positioned.fill(
+                        child: TimeLineReorderDragTargetCol()),
+                ]),
+              )
+            ],
+          ))
+        ]));
   }
 }
 
@@ -224,7 +211,7 @@ class TimelineBackground extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-            width: 37,
+            width: 35,
             child: Column(
               children: [
                 const SizedBox(
