@@ -1,6 +1,7 @@
 import jwt
 # 비밀번호 해쉬함수로 암호화
 import bcrypt
+from users.jwt_decoder import token2userid
 # 이메일 인증을 위해 수정
 from .token import account_activation_token
 # 이메일 텍스트를 저장한 함수
@@ -78,21 +79,6 @@ class Signup(APIView):
                 is_active=False,
                 nickname=nick)
 
-            # 인증url을 만들기 위한 변수들
-            current_site = get_current_site(request)
-            domain = current_site.domain
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-            # 토큰 만들기
-            token = account_activation_token.make_token(user)
-            # text.py에서 message 가져옴
-            message_data = message(domain, uidb64, token)
-
-            # 이메일 제목, 내용, 보낼사람을 정해서 이메일 전송
-            mail_title = "이메일 인증을 완료해주세요"
-            mail_to = emaill
-            email = EmailMessage(mail_title, message_data, to=[mail_to])
-            email.send()
-
             return JsonResponse({"message": "SUCCESS"}, status=HTTP_200_OK)
         except KeyError:
             return JsonResponse({"message": "INVALID_KEY"}, status=HTTP_400_BAD_REQUEST)
@@ -115,6 +101,21 @@ class Activate(APIView):
                 user.save()
                 return JsonResponse({"message": "SUCCESS"}, status=HTTP_200_OK)
             return JsonResponse({"message": "AUTH FAIL"}, status=HTTP_400_BAD_REQUEST)
+
+        except ValidationError:
+            return JsonResponse({"message": "TYPE_ERROR"}, status=HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return JsonResponse({"message": "INVALID_KEY"}, status=HTTP_400_BAD_REQUEST)
+
+
+class DeleteUser(APIView):
+    def post(self, request):
+        try:
+            token = request.META.get('HTTP_AUTHORIZATION')
+            user_id = token2userid(token)
+            user = User.objects.get(pk=user_id)
+            user.delete()
+            return JsonResponse({"message": "SUCCESS"}, status=HTTP_200_OK)
 
         except ValidationError:
             return JsonResponse({"message": "TYPE_ERROR"}, status=HTTP_400_BAD_REQUEST)

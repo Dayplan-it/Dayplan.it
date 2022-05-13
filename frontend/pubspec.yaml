@@ -50,7 +50,7 @@ dependencies:
   google_polyline_algorithm: ^3.1.0
   shared_preferences: ^2.0.13
   screenshot: ^1.2.3
-
+  google_maps_flutter_web: ^0.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

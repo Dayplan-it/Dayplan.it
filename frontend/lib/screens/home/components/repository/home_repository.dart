@@ -6,6 +6,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
 class HomeRepository {
   Future<Map<String, List<dynamic>>> getScheduleDetail(date) async {
@@ -20,6 +21,7 @@ class HomeRepository {
     final List<dynamic> geom = [];
     final List<dynamic> detail = [];
     final List<String> type = [];
+
     final timestamp1 = date2.millisecondsSinceEpoch;
     var dio = Dio();
     var prefs = await SharedPreferences.getInstance();
@@ -75,7 +77,6 @@ class HomeRepository {
   //Map<PolylineId, Polyline>를 반환
   Map<dynamic, dynamic> setRouteData(mapdata) {
     List<LatLng> polylineCoordinates = [];
-    PolylinePoints polylinePoints = PolylinePoints();
     Map<MarkerId, Marker> markers = {};
     Map<PolylineId, Polyline> polylines = {};
 
@@ -90,20 +91,16 @@ class HomeRepository {
             Marker(markerId: markerId, icon: descriptor, position: position);
         markers[markerId] = marker;
       } else {
-        List<PointLatLng> geom =
-            polylinePoints.decodePolyline(mapdata["geom"][i]);
+        polylineCoordinates = decodePolyline(mapdata["geom"][i])
+            .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+            .toList();
 
         PolylineId id = PolylineId(mapdata["geom"][i]);
 
-        if (geom.isNotEmpty) {
-          for (var point in geom) {
-            LatLng temp = LatLng(point.latitude, point.longitude);
-            polylineCoordinates.add(temp);
-          }
-        }
         Polyline polyline = Polyline(
             polylineId: id,
-            color: const Color.fromARGB(255, 227, 0, 0),
+            width: 5,
+            color: const Color.fromARGB(255, 153, 153, 153),
             points: polylineCoordinates);
         polylines[id] = polyline;
       }

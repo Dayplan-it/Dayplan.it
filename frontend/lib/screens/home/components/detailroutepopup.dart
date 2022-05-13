@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kumi_popup_window/kumi_popup_window.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:dayplan_it/constants.dart';
+import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
 ///detail popup
 ///스케쥴에서 카드를 눌렀을때 자세한 경로를 띄워준다.
@@ -124,20 +125,17 @@ class Detailpopup {
   /// 구글맵 폴리곤 객체, id를 반환하는 메소드
   List<dynamic> addPolyline(route) {
     List<LatLng> polylineCoordinates = [];
-    PolylinePoints polylinePoints = PolylinePoints();
     //도보이동일
     if (route['travel_mode'] == "WK") {
       ///Geometry 저장
-      List<PointLatLng> geom = polylinePoints.decodePolyline(route['polyline']);
+
+      polylineCoordinates = decodePolyline(route['polyline'])
+          .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+          .toList();
       PolylineId id = PolylineId(route['polyline']);
-      if (geom.isNotEmpty) {
-        for (var point in geom) {
-          LatLng temp = LatLng(point.latitude, point.longitude);
-          polylineCoordinates.add(temp);
-        }
-      }
       Polyline polyline = Polyline(
           polylineId: id,
+          width: 5,
           color: const Color.fromARGB(255, 155, 255, 184),
           points: polylineCoordinates);
 
@@ -154,16 +152,16 @@ class Detailpopup {
     } else {
       Color transitColor =
           _getColorFromHex(route['transit_detail']['transit_color']);
-      List<PointLatLng> geom = polylinePoints.decodePolyline(route['polyline']);
+      polylineCoordinates = decodePolyline(route['polyline'])
+          .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+          .toList();
       PolylineId id = PolylineId(route['polyline']);
-      if (geom.isNotEmpty) {
-        for (var point in geom) {
-          LatLng temp = LatLng(point.latitude, point.longitude);
-          polylineCoordinates.add(temp);
-        }
-      }
+
       Polyline polyline = Polyline(
-          polylineId: id, color: transitColor, points: polylineCoordinates);
+          polylineId: id,
+          width: 5,
+          color: transitColor,
+          points: polylineCoordinates);
 
       ///Contents(자세한 설명)저장
       Map detailComments = {};
