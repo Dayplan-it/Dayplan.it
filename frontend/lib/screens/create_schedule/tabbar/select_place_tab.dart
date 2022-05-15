@@ -6,11 +6,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/tab_alert.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
 
@@ -31,32 +33,12 @@ class _SelectPlaceTabState extends State<SelectPlaceTab>
       children: [
         const MapWithSearchBox(),
         if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
-          Positioned.fill(
-              child: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(30),
-                  decoration: BoxDecoration(
-                      borderRadius: defaultBoxRadius,
-                      color: const Color.fromARGB(212, 39, 39, 39)),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "장소를 선택할",
-                        style: mainFont(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        "일정이 없습니다",
-                        style: mainFont(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ))),
+          const GreyTabAlert(
+            title1: "장소를 선택할",
+            title2: "일정이 없습니다",
+            icon: FontAwesomeIcons.calendarXmark,
+            isFaIcon: true,
+          )
         // Positioned.fill(
         //     child: Column(
         //         mainAxisAlignment: MainAxisAlignment.end,
@@ -268,6 +250,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 FocusScope.of(context).unfocus();
                 _isSearchFound = false;
                 _isSearchPressed = false;
+                context.read<CreateScheduleStore>().onConvexHullControllOff();
               });
             },
             onSubmitted: (value) {
@@ -275,6 +258,7 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
                 _input = value;
                 _isSearchPressed = true;
                 _isSearchFound = false;
+                context.read<CreateScheduleStore>().onConvexHullControllOff();
 
                 _autocomplete = fetchAutoComplete(
                     input: _input,
@@ -288,17 +272,29 @@ class _MapWithSearchBoxState extends State<MapWithSearchBox> {
           ),
         ],
       ),
-      Visibility(
-          visible: context.watch<CreateScheduleStore>().isPlaceRecommended &&
-              context
-                      .watch<CreateScheduleStore>()
-                      .scheduleList[context
-                          .watch<CreateScheduleStore>()
-                          .indexOfPlaceDecidingSchedule]
-                      .placeType !=
-                  'custom' &&
-              !_isSearchPressed,
-          child: ConvexHullControl(convex: convex)),
+      if (context.watch<CreateScheduleStore>().scheduleList.isNotEmpty)
+        Visibility(
+            visible: context
+                        .watch<CreateScheduleStore>()
+                        .scheduleList[context
+                            .watch<CreateScheduleStore>()
+                            .indexOfPlaceDecidingSchedule]
+                        .placeType !=
+                    'custom' &&
+                context
+                    .watch<CreateScheduleStore>()
+                    .shouldConvexHullControllVisiable,
+            // context.watch<CreateScheduleStore>().isPlaceRecommended &&
+            //     context
+            //             .watch<CreateScheduleStore>()
+            //             .scheduleList[context
+            //                 .watch<CreateScheduleStore>()
+            //                 .indexOfPlaceDecidingSchedule]
+            //             .placeType !=
+            //         'custom' &&
+            //     !_isSearchPressed &&
+            //     !context.watch<CreateScheduleStore>().isPlaceNewSelected,
+            child: ConvexHullControl(convex: convex)),
       Expanded(
         child: Stack(
           children: [

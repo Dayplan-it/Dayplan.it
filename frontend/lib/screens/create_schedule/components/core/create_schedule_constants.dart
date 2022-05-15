@@ -81,15 +81,66 @@ double dateTimeToHeight(DateTime datetime) {
 }
 
 /// Duration을 받으면 HH:MM:SS 형식으로 반환해주는 함수
-String printDuration(Duration duration) {
+String printDuration(Duration duration, {bool noSecounds = false}) {
   String twoDigits(int n) => n.toString().padLeft(2, "0");
   String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
   String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-  return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  return "${twoDigits(duration.inHours)}:$twoDigitMinutes${noSecounds ? "" : ":" + twoDigitSeconds}";
 }
 
 /// DateTime을 받으면 HH:MM:SS 형식으로 반환해주는 함수
 String printDateTime(DateTime time) {
   return printDuration(
       Duration(hours: time.hour, minutes: time.minute, seconds: time.second));
+}
+
+/// DateTime을 받으면 HH:MM 형식으로 반환해주는 함수
+String printDateTimeHourAndMinuteOnly(DateTime time) {
+  return printDuration(Duration(hours: time.hour, minutes: time.minute),
+      noSecounds: true);
+}
+
+/// Duration을 받으면 H시간 M분으로 반환해주는 함수
+String printDurationKor(Duration duration) {
+  String printStr = "";
+
+  if (duration.inHours > 0) {
+    printStr += duration.inHours.toString() + "시간";
+  }
+
+  if (duration.inMinutes.remainder(60) > 0) {
+    if (printStr != "") {
+      printStr += " ";
+    }
+    printStr += duration.inMinutes.remainder(60).toString() + "분";
+  }
+
+  return printStr;
+}
+
+/// HH:MM:SS를 Duration으로 반환해주는 함수
+Duration stringToDuration(String durationStr) {
+  List<String> durationStrArr = durationStr.split(":");
+
+  return Duration(
+      hours: int.parse(durationStrArr[0]),
+      minutes: int.parse(durationStrArr[1]),
+      seconds: int.parse(durationStrArr[2]));
+}
+
+/// HH:MM:SS를 DateTime으로 반환해주는 함수
+/// 오늘 날짜를 넣어줘야 함
+DateTime stringToDateTime(
+    {required String datetimeStr, required DateTime date}) {
+  Duration _duration = stringToDuration(datetimeStr);
+
+  return date.add(_duration);
+}
+
+/// YYYY-mm-dd를 DateTime으로 반환해주는 함수
+DateTime dashStringToDate(String datetimeStr) {
+  List<String> datetimeStrArr = datetimeStr.split("-");
+
+  return DateTime(int.parse(datetimeStrArr[0]), int.parse(datetimeStrArr[1]),
+      int.parse(datetimeStrArr[2]));
 }

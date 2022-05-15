@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
 import 'package:dayplan_it/functions/google_map_move_to.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 class ScheduleOrderCardListView extends StatelessWidget {
@@ -26,7 +26,7 @@ class ScheduleOrderCardListView extends StatelessWidget {
         itemCount: scheduleOrderList.length,
         itemBuilder: (context, index) {
           Widget orderCard(IconData iconData, Color mainColor, String? title,
-              String instructions,
+              String instructions, String durationStr,
               {bool isRoute = false}) {
             bool isRouteClicked = false;
             return InkWell(
@@ -44,7 +44,7 @@ class ScheduleOrderCardListView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.only(top: 5),
                 child: Container(
-                    padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
                     decoration: BoxDecoration(
                         boxShadow: defaultBoxShadow,
                         borderRadius: defaultBoxRadius,
@@ -72,18 +72,26 @@ class ScheduleOrderCardListView extends StatelessWidget {
                                   title!,
                                   style: mainFont(
                                       color: mainColor,
-                                      fontWeight: FontWeight.w700),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16),
                                 ),
                               Text(
                                 instructions,
                                 style: mainFont(
                                     color:
                                         isRoute ? Colors.white : subTextColor,
-                                    fontSize: isRoute ? null : 11),
+                                    fontSize: isRoute ? 14 : 14),
                                 textAlign: TextAlign.start,
                               ),
                             ],
                           ),
+                        ),
+                        Text(
+                          durationStr,
+                          style: mainFont(
+                              color: isRoute ? Colors.white : mainColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15),
                         )
                       ],
                     )),
@@ -107,11 +115,15 @@ class ScheduleOrderCardListView extends StatelessWidget {
           if (scheduleOrderList[index].runtimeType == Place) {
             List colorAndIconData = _placeColorAndIconDataByPlaceType(
                 scheduleOrderList[index].placeType);
+            Map<String, String> instruction =
+                scheduleOrderList[index].getInstruction();
+
             return orderCard(
                 colorAndIconData[1],
                 colorAndIconData[0],
                 scheduleOrderList[index].placeName,
-                scheduleOrderList[index].getInstruction());
+                "${instruction["startsAt"]}부터 ${instruction["endsAt"]}까지",
+                instruction["duration"]!);
           } else {
             bool _isTransitRoute = scheduleOrderList[index].isTransitRoute();
             String transitType = scheduleOrderList[index].getType();
@@ -122,8 +134,11 @@ class ScheduleOrderCardListView extends StatelessWidget {
                         ? CupertinoIcons.train_style_one
                         : Icons.directions_rounded))
                 : Icons.directions_walk);
+            Map<String, String> instruction =
+                scheduleOrderList[index].getInstruction();
+
             return orderCard(icon, Colors.white, null,
-                scheduleOrderList[index].getInstruction(),
+                instruction["instruction"]!, instruction["duration"]!,
                 isRoute: true);
           }
         });

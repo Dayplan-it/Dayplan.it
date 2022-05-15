@@ -9,7 +9,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/place_detail_popup.dart';
@@ -214,19 +214,6 @@ Future<Marker> markerForCenterTarget({
   );
 }
 
-Color _placeColorByPlaceType(String placeTypeName) {
-  if (placeTypeName == 'custom') {
-    return pointColor;
-  }
-  for (List placeType in placeTypes) {
-    if (placeType[0] == placeTypeName) {
-      return placeType[2];
-    }
-  }
-
-  throw 'No Theme Color Found';
-}
-
 /// 장소가 결정된 일정 위젯 생성
 Future<Marker> markerForPlace(
     {required Place place,
@@ -235,7 +222,7 @@ Future<Marker> markerForPlace(
   MarkerId markerId = MarkerId(place.placeId!);
   Widget _widget() {
     if (!isOtherPlace) {
-      Color placeColor = _placeColorByPlaceType(place.placeType);
+      Color placeColor = placeColorByPlaceType(place.placeType);
       return FittedBox(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -264,7 +251,7 @@ Future<Marker> markerForPlace(
                           height: 8,
                         ),
                         Text(
-                          "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
+                          "${printDateTimeHourAndMinuteOnly(place.startsAt!)} ~ ${printDateTimeHourAndMinuteOnly(place.endsAt!)}",
                           style: mainFont(
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
@@ -272,13 +259,7 @@ Future<Marker> markerForPlace(
                               letterSpacing: 1),
                         ),
                         Text(
-                          ((place.duration.inMinutes >= 60)
-                                  ? place.duration.inHours.toString() + "시간 "
-                                  : "") +
-                              ((place.duration.inMinutes % 60) != 0
-                                  ? (place.duration.inMinutes % 60).toString() +
-                                      "분"
-                                  : ""),
+                          printDurationKor(place.duration),
                           style: mainFont(
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
@@ -336,7 +317,7 @@ Future<Marker> markerForPlace(
                           height: 8,
                         ),
                         Text(
-                          "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
+                          "${printDateTimeHourAndMinuteOnly(place.startsAt!)} ~ ${printDateTimeHourAndMinuteOnly(place.endsAt!)}",
                           style: mainFont(
                               fontWeight: FontWeight.w500,
                               color: primaryColor,
@@ -344,13 +325,7 @@ Future<Marker> markerForPlace(
                               letterSpacing: 1),
                         ),
                         Text(
-                          ((place.duration.inMinutes >= 60)
-                                  ? place.duration.inHours.toString() + "시간 "
-                                  : "") +
-                              ((place.duration.inMinutes % 60) != 0
-                                  ? (place.duration.inMinutes % 60).toString() +
-                                      "분"
-                                  : ""),
+                          printDurationKor(place.duration),
                           style: mainFont(
                               fontWeight: FontWeight.w500,
                               color: primaryColor,
@@ -411,7 +386,7 @@ Future<Marker> markerForCreatedRoute({
   required Place place,
 }) async {
   Widget _widget() {
-    Color placeColor = _placeColorByPlaceType(place.placeType);
+    Color placeColor = placeColorByPlaceType(place.placeType);
     return Container(
       alignment: Alignment.center,
       //padding: const EdgeInsets.all(10),

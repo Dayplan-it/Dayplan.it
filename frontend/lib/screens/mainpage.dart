@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:dayplan_it/screens/profile/profile_screen.dart';
-import 'package:dayplan_it/components/app_bar.dart';
 import 'package:dayplan_it/components/bottom_nav_bar.dart';
 
 class MainPage extends StatefulWidget {
@@ -24,9 +24,6 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const DayplanitAppBar(
-        isHomePage: true,
-      ),
       body: screenList[_selectedIndex],
       bottomNavigationBar: DayplaitBottomNavBar(
         selectedIndex: _selectedIndex,

@@ -30,9 +30,11 @@ class DayplanitStyles {
         obscureText: obscureText,
         controller: controller,
         decoration: InputDecoration(
-          filled: true,
           labelText: labeText,
-          fillColor: const Color.fromARGB(255, 255, 255, 255),
+          labelStyle:
+              mainFont(color: subTextColor, fontWeight: FontWeight.w500),
+          focusColor: primaryColor,
+          hoverColor: primaryColor,
           border: const UnderlineInputBorder(),
         ));
   }
@@ -40,24 +42,16 @@ class DayplanitStyles {
   ///AlertDialog 스타일
   ///input - Context, 제목, 내용
   ///output - AlertDialog
-  AlertDialog getAlertDialog(context, title, content) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+  CupertinoAlertDialog getAlertDialog(context, title, content) {
+    return CupertinoAlertDialog(
       //Dialog Main Title
       title: Text(title),
-      //
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            content,
-          ),
-        ],
+      content: Text(
+        content,
       ),
       actions: <Widget>[
-        ElevatedButton(
-          child: const Text("확인"),
+        CupertinoDialogAction(
+          child: Text("확인", style: mainFont()),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -229,4 +223,30 @@ const List placeTypes = [
 // ['zoo
 ];
 
-final String commonUrl = 'http://3.39.16.200';
+Color placeColorByPlaceType(String placeTypeName) {
+  if (placeTypeName == 'custom') {
+    return pointColor;
+  }
+  for (List placeType in placeTypes) {
+    if (placeType[0] == placeTypeName) {
+      return placeType[2];
+    }
+  }
+
+  throw 'No Theme Color Found';
+}
+
+String placeTypeNameKorByPlaceType(String placeTypeName) {
+  if (placeTypeName == 'custom') {
+    return "커스텀";
+  }
+  for (List placeType in placeTypes) {
+    if (placeType[0] == placeTypeName) {
+      return placeType[1];
+    }
+  }
+
+  throw 'No Place Type Found';
+}
+
+const String commonUrl = 'http://3.39.16.200';

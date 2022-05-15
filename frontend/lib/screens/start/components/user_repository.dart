@@ -13,12 +13,12 @@ class LoginRepository {
 
 class SignupRepository {
   Future<String> sendSignup(
-      name, password1, password2, email, nickname, phone) async {
+      username, password1, password2, email, nickname, phone) async {
     var dio = Dio();
 
     var url = '$commonUrl/users/signup';
     Map data = {
-      'username': name,
+      'username': username,
       'password1': password1,
       'password2': password2,
       'email': email,

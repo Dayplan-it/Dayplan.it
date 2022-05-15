@@ -13,9 +13,12 @@ class _SignupPageState extends State<SignupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics()),
             child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(10, 30, 10, 0),
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 100, 20, 0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     //회원가입페이지 header
                     SignupHeader(),

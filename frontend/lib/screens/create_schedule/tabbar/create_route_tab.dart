@@ -1,21 +1,20 @@
-import 'dart:io';
-
-import 'package:dayplan_it/components/route_card.dart';
-import 'package:dayplan_it/functions/google_map_move_to.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
 import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
+import 'package:dayplan_it/class/route_class.dart';
+import 'package:dayplan_it/components/route_card.dart';
+import 'package:dayplan_it/functions/google_map_move_to.dart';
+import 'package:dayplan_it/screens/create_schedule/exceptions/exceptions.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/tab_alert.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
 
 class CreateRouteTab extends StatefulWidget {
@@ -29,47 +28,6 @@ class _CreateRouteTabState extends State<CreateRouteTab>
     with AutomaticKeepAliveClientMixin {
   late GoogleMapController _routeMapController;
 
-  // CameraUpdate moveToPolyLine(String polyLineStr) {
-  //   List<LatLng> points = decodePolyline(polyLineStr)
-  //       .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
-  //       .toList();
-
-  //   LatLng? southWest;
-  //   LatLng? northEast;
-
-  //   for (int i = 0; i < points.length; i++) {
-  //     if (i == 0) {
-  //       southWest = points[i];
-  //       northEast = points[i];
-  //     } else {
-  //       List<double> listLat = [
-  //         southWest!.latitude,
-  //         northEast!.latitude,
-  //         points[i].latitude
-  //       ];
-  //       List<double> listLng = [
-  //         southWest.longitude,
-  //         northEast.longitude,
-  //         points[i].longitude
-  //       ];
-
-  //       listLat.sort();
-  //       listLng.sort();
-
-  //       // 안드로이드는 다르게 넣어줘야 함 (Google Map Bug)
-  //       southWest = Platform.isAndroid
-  //           ? LatLng(listLat[0], listLng[0])
-  //           : LatLng(listLat[0], listLng[2]);
-  //       northEast = Platform.isAndroid
-  //           ? LatLng(listLat[2], listLng[2])
-  //           : LatLng(listLat[2], listLng[0]);
-  //     }
-  //   }
-
-  //   return CameraUpdate.newLatLngBounds(
-  //       LatLngBounds(southwest: southWest!, northeast: northEast!), 20);
-  // }
-
   Future _createScheduleAndAddMarkerAndLine() async {
     int routeReCreateFlag =
         context.read<CreateScheduleStore>().checkShouldRouteBeReCreated();
@@ -78,10 +36,21 @@ class _CreateRouteTabState extends State<CreateRouteTab>
       return;
     } else if (routeReCreateFlag == 2) {
       context.read<CreateScheduleStore>().onFindingRouteStart();
-      context.read<CreateScheduleStore>().setSchduleCreated(
-          await ScheduleCreated.create(
-              scheduleList: context.read<CreateScheduleStore>().scheduleList,
-              scheduleDate: context.read<CreateScheduleStore>().scheduleDate));
+
+      ScheduleCreated _tempScheduleCreated;
+      try {
+        _tempScheduleCreated = await ScheduleCreated.create(
+            scheduleList: context.read<CreateScheduleStore>().scheduleList,
+            scheduleDate: context.read<CreateScheduleStore>().scheduleDate);
+        context
+            .read<CreateScheduleStore>()
+            .setSchduleCreated(_tempScheduleCreated);
+      } on TravelTimeException catch (e) {
+        context.read<CreateScheduleStore>().onFindingRouteEnd(
+            isTravelTimeExceedsSchedule: true,
+            indexOfTravelTimeExceededSchedule: e.scheduleIndex);
+        return;
+      }
 
       Map<MarkerId, Marker> newMarkers = {};
       Map<PolylineId, Polyline> newPolylines = {};
@@ -116,7 +85,7 @@ class _CreateRouteTabState extends State<CreateRouteTab>
                   .scheduleCreated
                   .list[0]
                   .place,
-              zoom: 16)));
+              zoom: 17)));
     }
   }
 
@@ -137,13 +106,19 @@ class _CreateRouteTabState extends State<CreateRouteTab>
   }
 
   @override
+  void dispose() {
+    _routeMapController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
     return Stack(children: [
       Column(
         children: [
           Expanded(
-            flex: 1,
+            flex: 3,
             child: ClipRRect(
               borderRadius: defaultBoxRadius,
               child: GoogleMap(
@@ -167,73 +142,39 @@ class _CreateRouteTabState extends State<CreateRouteTab>
                       zoom: 15)),
             ),
           ),
-          if (context.watch<CreateScheduleStore>().isScheduleCreated)
+          if (context.watch<CreateScheduleStore>().isScheduleCreated) ...[
             Expanded(
-                flex: 3,
+                flex: 4,
                 child: ScheduleOrderCardListView(
                   scheduleOrderList:
                       context.read<CreateScheduleStore>().scheduleCreated.list,
                   routeMapController: _routeMapController,
                 ))
+          ] else ...[
+            const Expanded(flex: 4, child: SizedBox.shrink())
+          ]
         ],
       ),
       if (context.watch<CreateScheduleStore>().scheduleList.isEmpty)
-        Positioned.fill(
-            child: Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(30),
-                decoration: BoxDecoration(
-                    borderRadius: defaultBoxRadius,
-                    color: const Color.fromARGB(212, 39, 39, 39)),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "경로를 생성할",
-                      style: mainFont(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      "일정이 없습니다",
-                      style: mainFont(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                )))
+        const GreyTabAlert(
+          title1: "경로를 생성할",
+          title2: "일정이 없습니다",
+          icon: FontAwesomeIcons.calendarXmark,
+          isFaIcon: true,
+        )
       else if (!context.watch<CreateScheduleStore>().isRouteCreateAble())
-        Positioned.fill(
-            child: Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(30),
-                decoration: BoxDecoration(
-                    borderRadius: defaultBoxRadius,
-                    color: const Color.fromARGB(212, 39, 39, 39)),
-                child: FittedBox(
-                  fit: BoxFit.fitWidth,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "장소가 선택되지 않은",
-                        style: mainFont(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        "일정이 있습니다",
-                        style: mainFont(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                )))
+        const GreyTabAlert(
+          title1: "장소가 선택되지 않은",
+          title2: "일정이 있습니다",
+          icon: Icons.wrong_location_rounded,
+        )
+      else if (context.watch<CreateScheduleStore>().isTravelTimeExceedsSchedule)
+        GreyTabAlert(
+          title1:
+              "${context.read<CreateScheduleStore>().indexOfTravelTimeExceededSchedule + 1}번째 스케줄이 이동시간보다 짧습니다",
+          title2: "장소를 바꾸거나 시간을 조정해주세요",
+          icon: Icons.wrong_location_rounded,
+        )
       else if (context.watch<CreateScheduleStore>().isFindingRoute)
         Positioned.fill(
             child: Container(

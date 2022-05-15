@@ -1,6 +1,13 @@
+import 'dart:io';
+
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
@@ -16,77 +23,95 @@ class _GooglemapState extends State<Googlemap> {
 
   @override
   void initState() {
+    _googleMap = FutureBuilder<Widget>(
+        future: _buildGoogleMap(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(
+                child: CircularProgressIndicator(
+              color: primaryColor,
+            ));
+          } else {
+            return snapshot.data;
+          }
+        });
     super.initState();
   }
 
+  Future<void> _getUserLocPermission() async {
+    var status = await Permission.location.status;
+
+    if (status.isDenied) {
+      status = await Permission.location.request();
+
+      if (status.isDenied) {
+        // 위치정보 사용 거절당했을 경우 필요하다는 다이얼로그 띄우기
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+                  title: const Text('데이플래닛에 착륙🚀하기'),
+                  content: const Text('데이플래닛을 사용하기 위해서는 위치 권한이 필요합니다.'),
+                  actions: <Widget>[
+                    CupertinoDialogAction(
+                      child: const Text('앱 종료'),
+                      onPressed: () => exit(0),
+                    ),
+                    CupertinoDialogAction(
+                      child: const Text('설정'),
+                      onPressed: () => openAppSettings(),
+                    ),
+                  ],
+                ));
+      }
+    }
+  }
+
+  Future<Widget> _buildGoogleMap() async {
+    await _getUserLocPermission().then((value) async {
+      Position tempUserPosition;
+      tempUserPosition = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+
+      if (mounted) {
+        context.read<HomeProvider>().setUserLocation(
+            LatLng(tempUserPosition.latitude, tempUserPosition.longitude));
+      }
+    });
+    return GoogleMapBody();
+  }
+
+  late Widget
+      _googleMap; // = Center(child: ProgressIndicator(color: primaryColor),);
+
   @override
   Widget build(BuildContext context) {
-    final devicewidth = MediaQuery.of(context).size.width;
-    final deviceheight = MediaQuery.of(context).size.height;
-    return Consumer<HomeProvider>(builder: (context, provider, widget) {
-      Map<MarkerId, Marker> markers =
-          Provider.of<HomeProvider>(context, listen: false).markers;
-      Map<PolylineId, Polyline> polylines =
-          Provider.of<HomeProvider>(context, listen: false).polylines;
+    return Container(
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+          borderRadius: defaultBoxRadius, boxShadow: defaultBoxShadow),
+      child: _googleMap,
+    );
+  }
+}
 
-      CameraPosition initlocation =
-          Provider.of<HomeProvider>(context, listen: false).initialLocation;
+class GoogleMapBody extends StatelessWidget {
+  const GoogleMapBody({Key? key}) : super(key: key);
 
-      //줌하는 부분
-      try {
-        mapController
-            .animateCamera(CameraUpdate.newCameraPosition(initlocation));
-      } catch (e) {
-        null;
-      }
-      return Container(
-          width: 0.95 * devicewidth,
-          height: 0.3 * deviceheight,
-          decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 255, 255, 255),
-            borderRadius: BorderRadius.all(
-              Radius.circular(40),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromARGB(71, 158, 158, 158),
-                offset: Offset(4.0, 4.0),
-                blurRadius: 15.0,
-                spreadRadius: 1.0,
-              ),
-              BoxShadow(
-                color: Colors.white,
-                offset: Offset(-4.0, -4.0),
-                blurRadius: 15.0,
-                spreadRadius: 1.0,
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-              bottomRight: Radius.circular(30),
-              bottomLeft: Radius.circular(30),
-            ),
-            child: Align(
-              alignment: Alignment.bottomRight,
-              heightFactor: 0.3,
-              widthFactor: 2.5,
-              child: GoogleMap(
-                padding: const EdgeInsets.only(left: 60),
-                mapType: MapType.normal,
-                myLocationEnabled: true,
-                onMapCreated: (GoogleMapController controller) {
-                  mapController = controller;
-                },
-                myLocationButtonEnabled: true,
-                initialCameraPosition: initlocation,
-                markers: Set<Marker>.of(markers.values),
-                polylines: Set<Polyline>.of(polylines.values),
-              ),
-            ),
-          ));
-    });
+  @override
+  Widget build(BuildContext context) {
+    return GoogleMap(
+        onMapCreated: (controller) =>
+            (context.read<HomeProvider>().mainMapController = controller),
+        mapToolbarEnabled: false,
+        myLocationEnabled: true,
+        myLocationButtonEnabled: true,
+        rotateGesturesEnabled: false,
+        tiltGesturesEnabled: false,
+        markers: Set<Marker>.of(context.watch<HomeProvider>().markers.values),
+        polylines:
+            Set<Polyline>.of(context.watch<HomeProvider>().polylines.values),
+        initialCameraPosition: CameraPosition(
+            target: context.read<HomeProvider>().userLocation, zoom: 15));
   }
 }

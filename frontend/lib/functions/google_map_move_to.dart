@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
-import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
+import 'package:dayplan_it/class/route_class.dart';
 
 Map<String, LatLng> _findBoundary(List<LatLng> points) {
   LatLng? southWest;
@@ -52,7 +52,7 @@ CameraUpdate moveToPolyLine({required String polyLineStr}) {
   return CameraUpdate.newLatLngBounds(
       LatLngBounds(
           southwest: boundary['southWest']!, northeast: boundary['northEast']!),
-      20);
+      50);
 }
 
 CameraUpdate moveToSchedule({required List scheduleOrder}) {
@@ -72,5 +72,5 @@ CameraUpdate moveToSchedule({required List scheduleOrder}) {
   return CameraUpdate.newLatLngBounds(
       LatLngBounds(
           southwest: boundary['southWest']!, northeast: boundary['northEast']!),
-      20);
+      50);
 }

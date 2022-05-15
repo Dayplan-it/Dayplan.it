@@ -97,6 +97,7 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
                   _isTimelineVisiable = true;
                 } else {
                   _isTimelineVisiable = false;
+                  _isHandleNeeded = false;
                 }
               }));
     });
@@ -157,13 +158,13 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
                         color: Colors.white,
                       ),
                       _isHandleNeeded
-                          ? InkWell(
+                          ? GestureDetector(
                               onTap: () => setState(() {
                                 _isTimelineOn = !_isTimelineOn;
                               }),
                               child: Container(
                                   width: 20,
-                                  height: 50,
+                                  height: 70,
                                   alignment: Alignment.center,
                                   decoration: const BoxDecoration(
                                       borderRadius: BorderRadius.only(
@@ -174,7 +175,7 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
                                   child: Transform.rotate(
                                     angle: 90 * pi / 180,
                                     child: const Icon(
-                                      Icons.drag_handle,
+                                      Icons.unfold_more_rounded,
                                       color: subTextColor,
                                       size: 20,
                                     ),
@@ -243,9 +244,11 @@ class _CreateScheduleScreenRightSideState
 
   @override
   void initState() {
-    context.read<CreateScheduleStore>().tabController = TabController(
-        length: 3, vsync: this, animationDuration: tabResizeAnimationDuration);
-
+    context.read<CreateScheduleStore>().initTabController(TabController(
+        initialIndex: 0,
+        length: 3,
+        vsync: this,
+        animationDuration: tabResizeAnimationDuration));
     context.read<CreateScheduleStore>().tabController.addListener(() {
       _onTabChange();
     });
@@ -282,6 +285,10 @@ class _CreateScheduleScreenRightSideState
                     indicatorColor: primaryColor,
                     labelColor: primaryColor,
                     labelPadding: EdgeInsets.zero,
+                    onTap: (index) => context
+                        .read<CreateScheduleStore>()
+                        .tabController
+                        .animateTo(index),
                     tabs: [
                       Tab(
                         child: _buildTabTitle(Icons.schedule_rounded, "일정", 0),
@@ -297,7 +304,7 @@ class _CreateScheduleScreenRightSideState
                   ),
                   Expanded(
                     child: TabBarView(
-                      physics: const NeverScrollableScrollPhysics(),
+                      //physics: const NeverScrollableScrollPhysics(),
                       controller:
                           context.read<CreateScheduleStore>().tabController,
                       children: const [

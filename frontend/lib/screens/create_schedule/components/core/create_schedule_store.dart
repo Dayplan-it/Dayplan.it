@@ -3,14 +3,39 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/route_class.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
+import 'package:dayplan_it/class/route_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 /// Create Schedule Screen을 위한 `Store`
 /// 클래스간 getter setter 이동보다는 Store 사용을 지향하도록 함
 
 class CreateScheduleStore with ChangeNotifier {
+  /// 중요한 변수들을 초기화함
+  /// 스케줄 생성 스크린 pop시 호출
+  void onPopCreateScheduleScreen() {
+    clearScheduleList();
+    setCurrentlyDecidingScheduleStartsAtBeforeStart();
+    onEndMakingCustomBlock();
+    onScheduleBoxDragEnd();
+    setTabWidthFlexByTabIndex(0);
+    //setTimeLineWidthFlexByTabIndex(0);
+    setIndexOfPlaceDecidingSchedule(0);
+    onPlaceRecommendedEnd();
+    onDecidingScheduleStartsAtEnd();
+    onLookingPlaceDetailEnd();
+    onCreateRouteTabEnd();
+    clearScheduleCreated();
+    clearMarkers();
+    onFindingRouteEnd();
+    timeLineScrollController.dispose();
+    if (googleMapController != null) {
+      googleMapController!.dispose();
+    }
+    isBeforeStartTap = false;
+    tabController.index = 0;
+  }
+
   /// Screen의 메인 키, 위젯이 아닌데 context가 필요한 경우 사용
   GlobalKey screenKey = GlobalKey();
 
@@ -63,6 +88,11 @@ class CreateScheduleStore with ChangeNotifier {
 
     scheduleList.removeAt(scheduleIndex);
     calSchedulesStartsAndEndsAt();
+
+    if (indexOfPlaceDecidingSchedule == scheduleIndex) {
+      clearMarkers();
+      onPlaceRecommendedEnd();
+    }
 
     // 스케줄 시작시간을 조정중에 삭제할 경우
     // 경우에 따라 indexOfcurrentlyDecidingStartsAtSchedule, indexOfPlaceDecidingSchedule을 바꿔줘야 함
@@ -687,31 +717,6 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
-  /// 중요한 변수들을 초기화함
-  /// 스케줄 생성 스크린 pop시 호출
-  void onPopCreateScheduleScreen() {
-    clearScheduleList();
-    setCurrentlyDecidingScheduleStartsAtBeforeStart();
-    onEndMakingCustomBlock();
-    onScheduleBoxDragEnd();
-    setTabWidthFlexByTabIndex(0);
-    //setTimeLineWidthFlexByTabIndex(0);
-    setIndexOfPlaceDecidingSchedule(0);
-    onPlaceRecommendedEnd();
-    onDecidingScheduleStartsAtEnd();
-    onLookingPlaceDetailEnd();
-    onCreateRouteTabEnd();
-    clearScheduleCreated();
-    clearMarkers();
-    onFindingRouteEnd();
-    timeLineScrollController.dispose();
-    if (googleMapController != null) {
-      googleMapController!.dispose();
-    }
-    isBeforeStartTap = false;
-    tabController.index = 0;
-  }
-
   ///
   /// 이하 장소 선택 탭을 위한 Store
   ///
@@ -878,8 +883,6 @@ class CreateScheduleStore with ChangeNotifier {
 
     markersStored = markers;
 
-    notifyListeners();
-
     int convexHullIndex = 0;
     for (int i = 0; i < convex.length; i++) {
       if (convex[i].isNotEmpty) {
@@ -899,6 +902,21 @@ class CreateScheduleStore with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 컨벡스홀 컨트롤 온오프
+  bool shouldConvexHullControllVisiable = false;
+
+  /// 컨벡스홀 컨트롤 온
+  void onConvexHullControllOn() {
+    shouldConvexHullControllVisiable = true;
+    notifyListeners();
+  }
+
+  /// 컨벡스홀 컨트롤 오프
+  void onConvexHullControllOff() {
+    shouldConvexHullControllVisiable = false;
+    notifyListeners();
+  }
+
   // 컨벡스홀 가시성 바뀐 마커를 갱신하는 함수
   void setConvexHullVisibility(
       List<List<MarkerId>> convex, int convexHullIndex) {
@@ -914,6 +932,7 @@ class CreateScheduleStore with ChangeNotifier {
     googleMapController!.animateCamera(CameraUpdate.newLatLngZoom(
         placeRecommendPoint, [17.0, 16.5, 16.0, 15.5, 15.0][convexHullIndex]));
     setMarkers(newMarkers: markersReturn);
+    onConvexHullControllOn();
     notifyListeners();
   }
 
@@ -1105,13 +1124,26 @@ class CreateScheduleStore with ChangeNotifier {
   /// 경로 로딩중 여부를 확인하는 변수
   bool isFindingRoute = false;
 
+  /// 경로 로딩중 [TravelTimeException] 발생여부를 담는 변수
+  bool isTravelTimeExceedsSchedule = false;
+
+  /// [TravelTimeException] 발생시 해당 스케줄의 인덱스를 담는 변수
+  int indexOfTravelTimeExceededSchedule = 0;
+
+  /// 경로 로딩 시작
   void onFindingRouteStart() {
     isFindingRoute = true;
+    isTravelTimeExceedsSchedule = false;
     notifyListeners();
   }
 
-  void onFindingRouteEnd() {
+  /// 경로 로딩 종료 혹은 중단
+  void onFindingRouteEnd(
+      {bool isTravelTimeExceedsSchedule = false,
+      int indexOfTravelTimeExceededSchedule = 0}) {
     isFindingRoute = false;
+    this.isTravelTimeExceedsSchedule = isTravelTimeExceedsSchedule;
+    this.indexOfTravelTimeExceededSchedule = indexOfTravelTimeExceededSchedule;
     notifyListeners();
   }
 
@@ -1121,6 +1153,9 @@ class CreateScheduleStore with ChangeNotifier {
 
   /// 탭 컨트롤
   late TabController tabController;
+  void initTabController(TabController initTabController) {
+    tabController = initTabController;
+  }
 
   /// 타임라인 스크롤 컨트롤
   late ScrollController timeLineScrollController;

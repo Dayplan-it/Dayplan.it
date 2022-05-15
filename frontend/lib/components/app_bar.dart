@@ -1,19 +1,24 @@
-import 'package:dayplan_it/screens/home/components/notificationpage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/constants.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:provider/provider.dart';
+
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/settings/settings_screen.dart';
+import 'package:dayplan_it/screens/home/components/notificationpage.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 
 class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const DayplanitAppBar({
-    this.title = "Dayplan.it",
-    this.subtitle = "",
-    this.isHomePage = false,
-  });
+  // ignore: use_key_in_widget_constructors
+  const DayplanitAppBar(
+      {this.title = "Dayplan.it",
+      this.subtitle = "",
+      this.isHomePage = false,
+      this.isAlarmScreen = false});
   final String title;
   final String subtitle;
   final bool isHomePage;
+  final bool isAlarmScreen;
 
   @override
   Size get preferredSize => const Size.fromHeight(50);
@@ -33,9 +38,11 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
               : IconButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    context
-                        .read<CreateScheduleStore>()
-                        .onPopCreateScheduleScreen();
+                    if (!isAlarmScreen) {
+                      context
+                          .read<CreateScheduleStore>()
+                          .onPopCreateScheduleScreen();
+                    }
                   },
                   icon: const Icon(
                     Icons.arrow_back_ios,
@@ -84,7 +91,13 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
                   color: primaryColor,
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsScreen()),
+                    );
+                  },
                   icon: const Icon(Icons.settings),
                   color: primaryColor,
                 ),

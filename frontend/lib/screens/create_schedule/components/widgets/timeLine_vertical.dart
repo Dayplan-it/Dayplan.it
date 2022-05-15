@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/scheduleBox.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
@@ -100,32 +99,32 @@ class _TimeLineState extends State<TimeLine> {
     if (scheduleList.isEmpty) {
       return const SizedBox.shrink();
     } else {
-      if (context.watch<CreateScheduleStore>().isCreateRouteTabOn &&
-          context.watch<CreateScheduleStore>().isScheduleCreated) {
-        if (!context.watch<CreateScheduleStore>().isFindingRoute &&
-            context.watch<CreateScheduleStore>().isRouteCreateAble()) {
-          List<dynamic> scheduleCreatedList =
-              context.read<CreateScheduleStore>().scheduleCreated.list;
-          return Column(children: [
-            SizedBox(
-              height: reorderDragTargetHeight / 2 +
-                  dateTimeToHeight(scheduleCreatedList[0].startsAt!),
-            ),
-            for (int i = 0; i < scheduleCreatedList.length; i++)
-              if (scheduleCreatedList[i].runtimeType == Place) ...[
-                ScheduleBoxForCreatedSchedule(
-                  place: scheduleCreatedList[i],
-                ),
-              ] else ...[
-                RouteBox(
-                  route: scheduleCreatedList[i],
-                )
-              ],
-          ]);
-        } else {
-          return const SizedBox.shrink();
-        }
-      }
+      // if (context.watch<CreateScheduleStore>().isCreateRouteTabOn &&
+      //     context.watch<CreateScheduleStore>().isScheduleCreated) {
+      //   if (!context.watch<CreateScheduleStore>().isFindingRoute &&
+      //       context.watch<CreateScheduleStore>().isRouteCreateAble()) {
+      //     List<dynamic> scheduleCreatedList =
+      //         context.read<CreateScheduleStore>().scheduleCreated.list;
+      //     return Column(children: [
+      //       SizedBox(
+      //         height: reorderDragTargetHeight / 2 +
+      //             dateTimeToHeight(scheduleCreatedList[0].startsAt!),
+      //       ),
+      //       for (int i = 0; i < scheduleCreatedList.length; i++)
+      //         if (scheduleCreatedList[i].runtimeType == Place) ...[
+      //           ScheduleBoxForCreatedSchedule(
+      //             place: scheduleCreatedList[i],
+      //           ),
+      //         ] else ...[
+      //           RouteBox(
+      //             route: scheduleCreatedList[i],
+      //           )
+      //         ],
+      //     ]);
+      //   } else {
+      //     return const SizedBox.shrink();
+      //   }
+      // }
       return Column(children: [
         SizedBox(
           height: reorderDragTargetHeight / 2 +
@@ -143,6 +142,25 @@ class _TimeLineState extends State<TimeLine> {
                   ),
               ],
             ),
+            if (context.watch<CreateScheduleStore>().tabController.index == 1)
+              Positioned.fill(
+                child: Column(children: [
+                  for (int i = 0; i < scheduleList.length; i++)
+                    if (i ==
+                        context
+                            .watch<CreateScheduleStore>()
+                            .indexOfPlaceDecidingSchedule)
+                      ScheduleBox(
+                        place: scheduleList[i],
+                        index: i,
+                        isLongPress: true,
+                      )
+                    else
+                      SizedBox(
+                        height: scheduleList[i].toHeight(),
+                      ),
+                ]),
+              ),
             if (context.watch<CreateScheduleStore>().isScheduleBoxDragging)
               Positioned.fill(
                 child: Column(children: [
@@ -290,16 +308,7 @@ class TimeLineReorderDragTargetCol extends StatelessWidget {
         for (int i = 0;
             i < context.read<CreateScheduleStore>().scheduleList.length * 2 + 1;
             i++)
-          if (i % 2 == 0)
-            ScheduleBoxDragTarget(targetId: i)
-          else
-            SizedBox(
-              height: context
-                      .read<CreateScheduleStore>()
-                      .scheduleList[(i / 2).floor()]
-                      .toHeight() -
-                  reorderDragTargetHeight,
-            ),
+          if (i % 2 == 0) ScheduleBoxDragTarget(targetId: i)
       ],
     );
   }

@@ -1,7 +1,10 @@
-import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/start/components/user_repository.dart';
-import 'package:dayplan_it/screens/start/loginpage.dart';
 import 'package:flutter/material.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/mainpage.dart';
+import 'package:dayplan_it/screens/start/components/user_repository.dart';
 import 'package:dayplan_it/screens/start/components/dialog.dart';
 
 class SignupForm extends StatefulWidget {
@@ -31,8 +34,8 @@ class _SignupFormState extends State<SignupForm> {
   final _password1Controller = TextEditingController();
   final _password2Controller = TextEditingController();
   final _emailController = TextEditingController();
-  final _nicknameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  // final _nicknameController = TextEditingController();
+  // final _phoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +46,8 @@ class _SignupFormState extends State<SignupForm> {
             child: Column(
               children: <Widget>[
                 const SizedBox(height: 12.0),
-                dayplanitStyles.getTextField(
-                    _usernameController, false, 'Username'),
+                dayplanitStyles.getTextField(_emailController, false, 'Email'),
+
                 const SizedBox(height: 12.0),
                 dayplanitStyles.getTextField(
                     _password1Controller, true, 'Password'),
@@ -52,48 +55,80 @@ class _SignupFormState extends State<SignupForm> {
                 dayplanitStyles.getTextField(
                     _password2Controller, true, 'Confirm password'),
                 const SizedBox(height: 12.0),
-                dayplanitStyles.getTextField(_emailController, false, 'Email'),
-                const SizedBox(height: 12.0),
                 dayplanitStyles.getTextField(
-                    _nicknameController, false, 'nickname'),
-                const SizedBox(height: 12.0),
-                dayplanitStyles.getTextField(_phoneController, false, 'Phone'),
+                    _usernameController, false, 'Username'),
+                // const SizedBox(height: 12.0),
+                // dayplanitStyles.getTextField(
+                //     _nicknameController, false, 'nickname'),
+                // const SizedBox(height: 12.0),
+                // dayplanitStyles.getTextField(_phoneController, false, 'Phone'),
                 ButtonBar(
                   children: <Widget>[
                     TextButton(
-                      child: const Text('CANCEL'),
+                      child: Text(
+                        '취소',
+                        style: mainFont(
+                            color: primaryColor, fontWeight: FontWeight.w500),
+                      ),
                       onPressed: () {
                         _usernameController.clear();
                         _password1Controller.clear();
                         _password2Controller.clear();
                         _emailController.clear();
-                        _nicknameController.clear();
-                        _phoneController.clear();
+                        //_nicknameController.clear();
+                        //_phoneController.clear();
+                        if (FocusScope.of(context).hasFocus) {
+                          FocusScope.of(context).unfocus();
+                        }
+
+                        Navigator.pop(context);
                       },
                     ),
                     ElevatedButton(
-                      child: const Text('NEXT'),
+                      child: const Text('가입하기'),
+                      style: ElevatedButton.styleFrom(
+                          textStyle: mainFont(fontWeight: FontWeight.w600),
+                          primary: primaryColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10))),
                       onPressed: () {
+                        if (_usernameController.text.isEmpty ||
+                            _password1Controller.text.isEmpty ||
+                            _password2Controller.text.isEmpty ||
+                            _emailController.text.isEmpty) {
+                          return dialog.signupErrorDialog(context);
+                        }
                         Future<String> tempp = _signupRepository.sendSignup(
-                          _usernameController.text,
-                          _password1Controller.text,
-                          _password2Controller.text,
-                          _emailController.text,
-                          _nicknameController.text,
-                          _phoneController.text,
-                        );
+                            _usernameController.text,
+                            _password1Controller.text,
+                            _password2Controller.text,
+                            _emailController.text,
+                            "foo",
+                            "00000000000"
+                            //_nicknameController.text,
+                            //_phoneController.text,
+                            );
 
                         ///tempp의 응답이 200일때 회원가입성공 dialog띄우고 로그인페이지로이동
-                        tempp.then((val) {
+                        tempp.then((val) async {
                           if (val == '200') {
-                            setState(() {
-                              showProgress = false;
-                            });
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const LoginPage()));
-                            dialog.signupSuccessDialog(context);
+                            List<dynamic> login = await LoginRepository()
+                                .loadToken(_emailController.text,
+                                    _password1Controller.text);
+
+                            if (login[1] == 200) {
+                              var prefs = await SharedPreferences.getInstance();
+                              prefs.setString('apiToken', login[0]);
+                              setState(() {
+                                showProgress = false;
+                              });
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const MainPage()));
+                              dialog.signupSuccessDialog(context);
+                            }
+
                             //status가 200이 아닐때 에러 메세지
                           } else {
                             dialog.signupErrorDialog(context);

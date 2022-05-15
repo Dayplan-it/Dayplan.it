@@ -1,3 +1,5 @@
+import 'package:dayplan_it/class/route_class.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
@@ -88,26 +90,16 @@ setNotification(date, context) async {
   print(date.toString() + "이건 로컬에 저장된 이름");
   prefs.setInt(date.toString(), 1);
   //아이디+날짜로 일정시작 알람
-  Map<String, List<dynamic>> detail =
-      await homeRepository.getScheduleDetail(date);
-  List<dynamic> startTime = detail['start_time'] ?? [""];
-  //이동시작 20분전에 알람 - 홀수인덱스의 시작시간 20분전
-  for (int i = 0; i < startTime.length; i++) {
-    if (i % 2 != 0) {
+  ScheduleCreated detail = await homeRepository.getScheduleDetail(date);
+  //이동시작 20분전에 알람
+  for (int i = 0; i < detail.list.length; i++) {
+    if (detail.list[i] is RouteOrder) {
       //다음장소에 대한 comments
-      String message = detail['comments']![i];
-      int hour = int.parse(detail['start_time']![i].toString().substring(0, 2));
-      int minute =
-          int.parse(detail['start_time']![i].toString().substring(3, 5));
-      int second = int.parse(detail['start_time']![i].toString().substring(6));
-      int new_minute = 0;
-      if (minute >= 20) {
-        new_minute = minute - 20;
-      } else if (minute < 20) {
-        new_minute = (60 - (20 - minute));
-      }
-      DateTime date2 =
-          DateTime(date.year, date.month, date.day, hour, new_minute, second);
+      String message =
+          "${(detail.list[i + 1] as Place).placeName}에서 ${(detail.list[i + 1] as Place).getInstruction()["duration"]}동안";
+      DateTime date2 = (detail.list[i] as RouteOrder)
+          .startsAt
+          .subtract(const Duration(minutes: 20));
 
       var time = tz.TZDateTime.from(
         date2,
@@ -137,24 +129,13 @@ cancelNotification(date, context) async {
   print(date.toString() + "이건 로컬에 삭제된 이름");
   prefs.remove(date.toString());
   //아이디+날짜로 일정시작
-  Map<String, List<dynamic>> detail =
-      await homeRepository.getScheduleDetail(date);
-  List<dynamic> startTime = detail['start_time'] ?? [""];
-  //이동시작 20분전에 알람 - 홀수인덱스의 시작시간 20분전
-  for (int i = 0; i < startTime.length; i++) {
-    if (i % 2 != 0) {
-      int hour = int.parse(detail['start_time']![i].toString().substring(0, 2));
-      int minute =
-          int.parse(detail['start_time']![i].toString().substring(3, 5));
-      int second = int.parse(detail['start_time']![i].toString().substring(6));
-      int new_minute = 0;
-      if (minute >= 20) {
-        new_minute = minute - 20;
-      } else if (minute < 20) {
-        new_minute = (60 - (20 - minute));
-      }
-      DateTime date2 =
-          DateTime(date.year, date.month, date.day, hour, new_minute, second);
+  ScheduleCreated detail = await homeRepository.getScheduleDetail(date);
+  //이동시작 20분전에 알람
+  for (int i = 0; i < detail.list.length; i++) {
+    if (detail.list[i] is RouteOrder) {
+      DateTime date2 = (detail.list[i] as RouteOrder)
+          .startsAt
+          .subtract(const Duration(minutes: 20));
 
       //알림의 고유한 아이디 만들기
       int notId = int.parse(date2.year.toString().substring(1) +

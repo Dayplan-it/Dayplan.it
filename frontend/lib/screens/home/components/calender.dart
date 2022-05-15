@@ -17,12 +17,12 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
 
   @override
   Widget build(BuildContext context) {
+    DateTime todayTime = DateTime.now();
+    DateTime today = DateTime(todayTime.year, todayTime.month, todayTime.day);
     HomeRepository _homeRepository = HomeRepository();
     List<DecorationItem> decorationList =
         Provider.of<HomeProvider>(context, listen: false).decorationList;
     if (Provider.of<HomeProvider>(context, listen: false).hasTodaySchedule) {
-      DateTime todayTime = DateTime.now();
-      DateTime today = DateTime(todayTime.year, todayTime.month, todayTime.day);
       _homeRepository.setSchedule(today, context);
     }
     return SizedBox(
@@ -30,25 +30,26 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
         child: CalendarWeek(
           controller: CalendarWeekController(),
           showMonth: true,
-          minDate: DateTime.now().add(
+          minDate: today.add(
             const Duration(days: -30),
           ),
-          maxDate: DateTime.now().add(
+          maxDate: today.add(
             const Duration(days: 30),
           ),
-          dayOfWeekStyle: const TextStyle(
-              color: Color.fromARGB(255, 195, 195, 195),
-              fontWeight: FontWeight.w600),
-          weekendsStyle: const TextStyle(
-              color: Color.fromARGB(255, 135, 17, 17),
+          dayOfWeekStyle:
+              mainFont(color: subTextColor, fontWeight: FontWeight.w600),
+          weekendsStyle: mainFont(
+              color: const Color.fromARGB(255, 135, 17, 17),
               fontWeight: FontWeight.w600),
           pressedDateBackgroundColor: primaryColor,
-          todayDateStyle: const TextStyle(
-              color: Color.fromARGB(255, 68, 68, 68),
+          todayDateStyle:
+              mainFont(color: Colors.white, fontWeight: FontWeight.w600),
+          todayBackgroundColor: Color.fromARGB(181, 1, 87, 141),
+          dateStyle: mainFont(
+              color: const Color.fromARGB(255, 68, 68, 68),
               fontWeight: FontWeight.w600),
-          dateStyle: const TextStyle(
-              color: Color.fromARGB(255, 68, 68, 68),
-              fontWeight: FontWeight.w600),
+          pressedDateStyle:
+              mainFont(color: Colors.white, fontWeight: FontWeight.w600),
 
           ///날짜를 클릭했을 때 해당 날짜 지도, 스케줄, provider 설정
           onDatePressed: (DateTime date) async {
@@ -57,7 +58,10 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
             Provider.of<HomeProvider>(context, listen: false)
                 .selectDate(datetime);
             Provider.of<HomeProvider>(context, listen: false).deleteData();
+
+            context.read<HomeProvider>().onDateNewlySelectedStrart();
             await _homeRepository.setSchedule(date, context);
+            context.read<HomeProvider>().onDateNewlySelectedEnd();
           },
           monthViewBuilder: (DateTime time) => Align(
             alignment: FractionalOffset.center,
@@ -65,12 +69,11 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
                   time.year.toString() + "년 " + time.month.toString() + "월",
-                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: DayplanitLogoFont(
-                      textStyle: const TextStyle(
-                          fontSize: 20, color: Color.fromARGB(221, 72, 72, 72)),
-                      fontWeight: FontWeight.w600),
+                  style: mainFont(
+                      fontSize: 20,
+                      color: const Color.fromARGB(221, 72, 72, 72),
+                      fontWeight: FontWeight.w800),
                 )),
           ),
 

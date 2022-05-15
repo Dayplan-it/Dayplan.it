@@ -25,7 +25,7 @@ class SquareButton extends StatelessWidget {
         onPressed: isCancle ? onPressed : (activate ? onPressed : null),
         style: ElevatedButton.styleFrom(
             primary: isCancle ? pointColor : primaryColor,
-            minimumSize: const Size.fromHeight(50),
+            minimumSize: const Size.fromHeight(40),
             shape: RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
         child: Text(
           title,
@@ -63,53 +63,60 @@ class _SquareButtonWithLoadingState extends State<SquareButtonWithLoading> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
-      child: ElevatedButton(
-          onPressed: (widget.activate
-              ? () async {
-                  setState(() {
-                    isLoading = true;
-                  });
-                  await widget.futureFunction();
-                  setState(() {
-                    isLoading = false;
-                  });
-                }
-              : null),
-          style: ElevatedButton.styleFrom(
-              primary: primaryColor,
-              minimumSize: Size(
-                  (screenWidth - 24) *
-                      (context
-                              .watch<CreateScheduleStore>()
-                              .tabWidthFlex
-                              .toDouble() /
-                          100),
-                  50),
-              shape: RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text(
-                widget.title,
-                style: mainFont(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              if (isLoading) ...[
-                const SizedBox(
-                  width: 5,
-                ),
-                const SizedBox(
-                  height: 10,
-                  width: 10,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 5,
+          ),
+          ElevatedButton(
+              onPressed: (widget.activate
+                  ? () async {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      await widget.futureFunction();
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
+                  : null),
+              style: ElevatedButton.styleFrom(
+                  primary: primaryColor,
+                  minimumSize: Size(
+                      (screenWidth - 24) *
+                          (context
+                                  .watch<CreateScheduleStore>()
+                                  .tabWidthFlex
+                                  .toDouble() /
+                              100),
+                      45),
+                  shape: RoundedRectangleBorder(borderRadius: buttonBoxRadius)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    widget.title,
+                    style: mainFont(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              ]
-            ],
-          )),
+                  if (isLoading) ...[
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    const SizedBox(
+                      height: 10,
+                      width: 10,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ]
+                ],
+              )),
+        ],
+      ),
     );
   }
 }

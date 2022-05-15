@@ -1,11 +1,13 @@
-import 'package:dayplan_it/components/app_bar_back.dart';
-import 'package:dayplan_it/notification/notification.dart';
 import 'package:flutter/material.dart';
-import 'package:dayplan_it/constants.dart';
+
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/components/app_bar.dart';
+import 'package:dayplan_it/notification/notification.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -33,7 +35,10 @@ class _NotificationPageState extends State<NotificationPage> {
             return const CircularProgressIndicator();
           } else {
             return Scaffold(
-                appBar: const DayplanitAppBarWithBack(),
+                appBar: const DayplanitAppBar(
+                  title: "알람 설정하기",
+                  isAlarmScreen: true,
+                ),
                 body: Container(
                     decoration: const BoxDecoration(
                       color: Color.fromARGB(255, 255, 255, 255),

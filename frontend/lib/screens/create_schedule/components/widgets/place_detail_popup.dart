@@ -201,6 +201,7 @@ class PlaceDetail extends StatelessWidget {
               int _indexOfPlaceDecidingSchedule = context
                   .read<CreateScheduleStore>()
                   .indexOfPlaceDecidingSchedule;
+              context.read<CreateScheduleStore>().onConvexHullControllOff();
               context
                   .read<CreateScheduleStore>()
                   .setSelectedPlace(markerId.value, title, placeLatLng);

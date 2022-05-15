@@ -14,7 +14,7 @@ class StartPageDialog {
         barrierDismissible: false,
         builder: (BuildContext context) {
           return dayplanitStyle.getAlertDialog(
-              context, '오류', '아이디 또는 비밀번호를 잘못 입력하셨습니다.');
+              context, '착륙 실패 🚀 💣', '아이디 또는 비밀번호를 잘못 입력하셨습니다.');
         });
   }
 
@@ -26,7 +26,8 @@ class StartPageDialog {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return dayplanitStyle.getAlertDialog(context, '오류', '회원가입 오류발생');
+          return dayplanitStyle.getAlertDialog(
+              context, '착륙 실패 🚀 💣', '회원정보가 잘못 입력됐습니다.');
         });
   }
 
@@ -40,7 +41,7 @@ class StartPageDialog {
         barrierDismissible: false,
         builder: (BuildContext context) {
           return dayplanitStyle.getAlertDialog(
-              context, '성공', '회원가입에 성공하였습니다. 이메일 인증을 완료해주세요!');
+              context, '성공적으로 착륙! 🚀💯', '회원가입에 성공하였습니다. 어서 오세요!');
         });
   }
 }

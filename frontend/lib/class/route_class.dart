@@ -46,6 +46,15 @@ abstract class RouteStep {
         polyline = json['polyline']!['points'],
         instruction = json['html_instructions']!;
 
+  RouteStep.fromGetScheduleApiJson(
+      Map<String, dynamic> json, LatLng privLatLng, LatLng nextLatLng)
+      : distance = json["distance"],
+        duration = stringToDuration(json["duration"]),
+        departStopLatLng = privLatLng,
+        arrivalStopLatLng = nextLatLng,
+        polyline = json['polyline'],
+        instruction = json['instruction'];
+
   Map toJson();
 }
 
@@ -107,6 +116,27 @@ class TransitStep extends RouteStep {
             json['transit_details']!['arrival_time']['value'] * 1000),
         super.fromJson(json);
 
+  TransitStep.fromGetScheduleApiJson(
+      {required Map<String, dynamic> json,
+      required LatLng privLatLng,
+      required LatLng nextLatLng,
+      required DateTime scheduleDate})
+      : departStopName = json['transit_detail']['departure_stop_name'],
+        arrivalStopName = json['transit_detail']['arrival_stop_name'],
+        color = Color(int.parse(
+            json['transit_detail']["transit_color"].replaceFirst('#', '0xFF'))),
+        numStops = json['transit_detail']['num_stops'],
+        transitShortName = json['transit_detail']['transit_short_name'],
+        transitName = json['transit_detail']['transit_name'],
+        transitType = json['transit_detail']['transit_type'],
+        departTime = stringToDateTime(
+            datetimeStr: json['transit_detail']['departure_time'],
+            date: scheduleDate),
+        arrivalTime = stringToDateTime(
+            datetimeStr: json['transit_detail']['arrival_time'],
+            date: scheduleDate),
+        super.fromGetScheduleApiJson(json, privLatLng, nextLatLng);
+
   @override
   Map toJson() {
     String colorStr = '#${color.red.toRadixString(16).padLeft(2, '0')}'
@@ -148,6 +178,12 @@ class WalkingStep extends RouteStep {
 
   WalkingStep.fromJson({required Map<String, dynamic> json})
       : super.fromJson(json);
+
+  WalkingStep.fromGetScheduleApiJson(
+      {required Map<String, dynamic> json,
+      required LatLng privLatLng,
+      required LatLng nextLatLng})
+      : super.fromGetScheduleApiJson(json, privLatLng, nextLatLng);
 
   @override
   Map toJson() => {
@@ -196,6 +232,7 @@ class RouteOrder {
             .toList());
   }
 
+  /// 구글 API용임에 유의
   RouteOrder.fromJson({required Map<String, dynamic> json})
       : distance = double.parse(
             (json['distance']!['value'] / 1000).toStringAsFixed(3)),
@@ -216,6 +253,67 @@ class RouteOrder {
             ] else
               TransitStep.fromJson(json: step),
         ];
+
+  static RouteOrder fromGetScheduleApiJson(
+      {required Map<String, dynamic> json,
+      required DateTime scheduleDate,
+      required LatLng privPlace,
+      required LatLng nextPlace}) {
+    RouteOrder resultRouteOrder = RouteOrder._fromGetScheduleApiJson(
+        json: json,
+        scheduleDate: scheduleDate,
+        privPlace: privPlace,
+        nextPlace: nextPlace);
+
+    for (int i = 0; i < (json["step"] as List).length; i++) {
+      List<LatLng> polylineLatLngList =
+          decodePolyline(json["step"][i]["polyline"])
+              .map((e) => LatLng(e[0].toDouble(), e[1].toDouble()))
+              .toList();
+      LatLng privLatLng =
+          i == 0 ? privPlace : resultRouteOrder.steps[i - 1].arrivalStopLatLng;
+      LatLng nextLatLng = i == (json["step"] as List).length - 1
+          ? nextPlace
+          : (polylineLatLngList[0] == privLatLng
+              ? polylineLatLngList[polylineLatLngList.length - 1]
+              : polylineLatLngList[0]);
+
+      if (json["step"][i]["travel_mode"] == "WK") {
+        resultRouteOrder.steps.add(WalkingStep.fromGetScheduleApiJson(
+            json: json["step"][i],
+            privLatLng: privLatLng,
+            nextLatLng: nextLatLng));
+      } else {
+        resultRouteOrder.steps.add(TransitStep.fromGetScheduleApiJson(
+            json: json["step"][i],
+            privLatLng: privLatLng,
+            nextLatLng: nextLatLng,
+            scheduleDate: scheduleDate));
+      }
+    }
+
+    return resultRouteOrder;
+  }
+
+  /// Get Schedule API용
+  /// LatLng은 필요 없으므로 더미로 채움
+  /// 참고로 폴리라인으로는 어디가 시작이고 끝인지 알수가 없었음
+  /// 추후 Backend API를 바꿀 필요가 있음
+  RouteOrder._fromGetScheduleApiJson(
+      {required Map<String, dynamic> json,
+      required DateTime scheduleDate,
+      required LatLng privPlace,
+      required LatLng nextPlace})
+      : distance = json["detail"]["distance"],
+        duration = stringToDuration(json["detail"]["duration"]),
+        departLatLng = privPlace,
+        arrivalLatLng = nextPlace,
+        startsAt = stringToDateTime(
+            datetimeStr: json["detail"]["starts_at"], date: scheduleDate),
+        endsAt = stringToDateTime(
+            datetimeStr: json["detail"]["ends_at"], date: scheduleDate),
+        polyline = json["detail"]["polyline"],
+        steps = [];
 
   Map toJson() => {
         "type": "RO",
@@ -270,7 +368,7 @@ class RouteOrder {
     return 'WALKING';
   }
 
-  String getInstruction() {
+  Map<String, String> getInstruction() {
     String _instruction;
     switch (getType()) {
       case "WALKING":
@@ -282,12 +380,15 @@ class RouteOrder {
       case "BUS":
         _instruction = "버스로 이동";
         break;
-      case "SUBWAY":
+      case "SUB":
         _instruction = "지하철로 이동";
         break;
       default:
         _instruction = "";
     }
-    return "${printDuration(duration)}동안 $_instruction";
+    return {
+      "instruction": _instruction,
+      "duration": printDurationKor(duration)
+    };
   }
 }

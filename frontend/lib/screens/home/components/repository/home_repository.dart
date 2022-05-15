@@ -1,119 +1,50 @@
+import 'package:dayplan_it/class/route_class.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/functions/google_map_move_to.dart';
+import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
+import 'package:dayplan_it/screens/create_schedule/exceptions/exceptions.dart';
+import 'package:dayplan_it/screens/start/landingpage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeRepository {
-  Future<Map<String, List<dynamic>>> getScheduleDetail(date) async {
-    //datetime to timestamp
+  Future<ScheduleCreated> getScheduleDetail(DateTime date) async {
+    final int timestamp = date.millisecondsSinceEpoch;
 
-    DateTime date2 = DateTime(date.year, date.month, date.day);
-
-    final List<String> comments = [];
-    final List<String> icons = [];
-    final List<String> stratTime = [];
-    final List<String> endTime = [];
-    final List<dynamic> geom = [];
-    final List<dynamic> detail = [];
-    final List<String> type = [];
-    final timestamp1 = date2.millisecondsSinceEpoch;
-    var dio = Dio();
-    var prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('apiToken');
-    dio.options.headers['Authorization'] = token.toString();
-    var url = '$commonUrl/schedules/find?date=${timestamp1 ~/ 1000}';
-    Response response = await dio.get(url);
-    var res = response.data;
-
-    for (int i = 0; i < res["order"].length; i++) {
-      if (res["order"][i]["type"] == "PL") {
-        comments.add(
-            "${res["order"][i]["detail"]["place_name"]} - ${res["order"][i]["detail"]["duration"]} 소요");
-        icons.add("loc");
-        stratTime.add("${res["order"][i]["detail"]["starts_at"]}");
-        endTime.add("${res["order"][i]["detail"]["ends_at"]}");
-        geom.add([
-          res["order"][i]["detail"]["point"]["latitude"],
-          res["order"][i]["detail"]["point"]["longitude"]
-        ]);
-        detail.add([
-          res["order"][i]["detail"]["point"]["latitude"],
-          res["order"][i]["detail"]["point"]["longitude"],
-          res["order"][i]["detail"]["place_id"]
-        ]);
-        type.add("PL");
-      } else {
-        comments.add(
-            "${res["order"][i]["detail"]["distance"]} km 이동 ${res["order"][i]["detail"]["duration"]} 소요");
-        icons.add("transit");
-        stratTime.add("${res["order"][i]["detail"]["starts_at"]}");
-        endTime.add("${res["order"][i]["detail"]["ends_at"]}");
-        geom.add(res["order"][i]["detail"]["polyline"]);
-        detail.add(res["order"][i]["step"]);
-        type.add("RO");
-      }
+    try {
+      return await ScheduleCreated.getSchedule(
+          date: (timestamp / 1000).floor());
+    } on NoScheduleFound {
+      rethrow;
     }
-    Map<String, List<dynamic>> result = {};
-    result['comments'] = comments;
-    result['icons'] = icons;
-    result['start_time'] = stratTime;
-    result['end_time'] = endTime;
-    result['type'] = type;
-    result['geom'] = geom;
-
-    result['detail'] = detail;
-
-    return result;
   }
 
-  //<Map<String, List<dynamic>>>를 받아옴
-  //Map<MarkerId, Marker>와
-  //Map<PolylineId, Polyline>를 반환
-  Map<dynamic, dynamic> setRouteData(mapdata) {
-    List<LatLng> polylineCoordinates = [];
-    PolylinePoints polylinePoints = PolylinePoints();
+  Future<Map<dynamic, dynamic>> setRouteData(ScheduleCreated schedule) async {
     Map<MarkerId, Marker> markers = {};
     Map<PolylineId, Polyline> polylines = {};
 
-    for (int i = 0; i < mapdata["comments"].length; i++) {
-      if (mapdata["type"][i] == "PL") {
-        MarkerId markerId = MarkerId(mapdata["detail"][i][2]);
-        double lat = mapdata["geom"][i][0];
-        double lng = mapdata["geom"][i][1];
-        LatLng position = LatLng(lat, lng);
-        BitmapDescriptor descriptor = BitmapDescriptor.defaultMarkerWithHue(90);
-        Marker marker =
-            Marker(markerId: markerId, icon: descriptor, position: position);
-        markers[markerId] = marker;
+    for (int i = 0; i < schedule.list.length; i++) {
+      if (i % 2 == 0) {
+        markers[MarkerId((schedule.list[i] as Place).placeId!)] =
+            await markerForCreatedRoute(
+                order: (i / 2).round() + 1, place: schedule.list[i]);
       } else {
-        List<PointLatLng> geom =
-            polylinePoints.decodePolyline(mapdata["geom"][i]);
-
-        PolylineId id = PolylineId(mapdata["geom"][i]);
-
-        if (geom.isNotEmpty) {
-          for (var point in geom) {
-            LatLng temp = LatLng(point.latitude, point.longitude);
-            polylineCoordinates.add(temp);
-          }
+        for (RouteStep step in (schedule.list[i] as RouteOrder).steps) {
+          polylines[PolylineId(step.polyline)] = step.getPolyline();
         }
-        Polyline polyline = Polyline(
-            polylineId: id,
-            color: const Color.fromARGB(255, 227, 0, 0),
-            points: polylineCoordinates);
-        polylines[id] = polyline;
       }
     }
+
     Map map = {};
     map["PL"] = markers;
     map["RO"] = polylines;
-    //카메라 위치관련 geom
-    map["camera_point_lat"] = mapdata["geom"][0][0];
-    map["camera_point_lng"] = mapdata["geom"][0][1];
+    map["camera"] = moveToSchedule(scheduleOrder: schedule.list);
     return map;
   }
 
@@ -128,60 +59,106 @@ class HomeRepository {
     var prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('apiToken');
     dio.options.headers['Authorization'] = token.toString();
-    var response = await dio.get(url);
 
-    if (response.statusCode == 200) {
-      List<int> list = response.data["found_schedule_dates"].cast<int>();
+    try {
+      var response = await dio.get(url);
 
-      List<DateTime> datetime = [];
+      if (response.statusCode == 200) {
+        List<int> list = response.data["found_schedule_dates"].cast<int>();
 
-      for (int i = 0; i < list.length; i++) {
-        //datetime 저장하고 알람설정
-        DateTime tempDate = DateTime.fromMillisecondsSinceEpoch(list[i] * 1000);
-        if (tempDate.year == today.year &&
-            tempDate.month == today.month &&
-            tempDate.day == today.day) {
-          hasTodaySchedule = true;
+        List<DateTime> datetime = [];
+
+        for (int i = 0; i < list.length; i++) {
+          //datetime 저장하고 알람설정
+          DateTime tempDate =
+              DateTime.fromMillisecondsSinceEpoch(list[i] * 1000);
+          if (tempDate.year == today.year &&
+              tempDate.month == today.month &&
+              tempDate.day == today.day) {
+            hasTodaySchedule = true;
+          }
+          datetime.add(tempDate);
         }
-        datetime.add(tempDate);
-      }
-      Provider.of<HomeProvider>(context, listen: false)
-          .setallschdulelist(datetime);
-
-      //오늘 일정이 있을 때 로직수행
-      if (hasTodaySchedule) {
         Provider.of<HomeProvider>(context, listen: false)
-            .setTodaySchedule(true);
+            .setallschdulelist(datetime);
+
+        //오늘 일정이 있을 때 로직수행
+        if (hasTodaySchedule) {
+          Provider.of<HomeProvider>(context, listen: false)
+              .setTodaySchedule(true);
+        }
+      }
+    } on DioError catch (e) {
+      if (e.response!.statusCode == 500) {
+        /// 회원탈퇴된 상태라고 간주함
+        ///
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) => const CupertinoAlertDialog(
+                  title: Text('사용자 정보가 바뀌었습니다'),
+                  content: Text('앱을 다시 시작합니다'),
+                ));
+
+        await Future.delayed(const Duration(seconds: 2));
+
+        await prefs.clear();
+
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const LandingPage()));
+      } else {
+        rethrow;
       }
     }
     return true;
   }
 
-  //일정상세정보 새로고침
-  Future<void> setSchedule(date, context) async {
-    ///provider 현재날짜설정
-    DateTime datetime = DateTime(date.year, date.month, date.day);
-
+//일정상세정보 새로고침
+  Future<void> setSchedule(DateTime date, BuildContext context) async {
     ///선택일정의 일정상세정보 불러오기
-    Future<Map<String, List<dynamic>>> responseDetail =
-        getScheduleDetail(datetime);
+    Future<ScheduleCreated> responseDetail = getScheduleDetail(date);
 
-    responseDetail.then((value) {
-      if (value.length > 2) {
-        //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
-        Provider.of<HomeProvider>(context, listen: false).setNoSchedult(false);
+    await responseDetail.then((schedule) async {
+      //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
+      Provider.of<HomeProvider>(context, listen: false).setNoSchedule(false);
 
-        Provider.of<HomeProvider>(context, listen: false)
-            .setScheduleDetail(value);
-        Map<dynamic, dynamic> mapdata = setRouteData(value);
+      Provider.of<HomeProvider>(context, listen: false)
+          .setScheduleDetail(schedule);
+      Map<dynamic, dynamic> mapdata = await setRouteData(schedule);
 
-        Provider.of<HomeProvider>(context, listen: false).setGeom(mapdata);
-      } else {
-        //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
-        Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
+      Provider.of<HomeProvider>(context, listen: false).setGeom(mapdata);
+    }).catchError((error) {
+      if (error is NoScheduleFound) {
+        Provider.of<HomeProvider>(context, listen: false).setNoSchedule(true);
       }
-    }).catchError((onError) {
-      Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
     });
   }
+
+  // //일정상세정보 새로고침
+  // Future<void> setSchedule(date, context) async {
+  //   ///provider 현재날짜설정
+  //   DateTime datetime = DateTime(date.year, date.month, date.day);
+
+  //   ///선택일정의 일정상세정보 불러오기
+  //   Future<Map<String, List<dynamic>>> responseDetail =
+  //       getScheduleDetail(datetime);
+
+  //   responseDetail.then((value) {
+  //     if (value.length > 2) {
+  //       //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
+  //       Provider.of<HomeProvider>(context, listen: false).setNoSchedult(false);
+
+  //       Provider.of<HomeProvider>(context, listen: false)
+  //           .setScheduleDetail(value);
+  //       Map<dynamic, dynamic> mapdata = setRouteData(value);
+
+  //       Provider.of<HomeProvider>(context, listen: false).setGeom(mapdata);
+  //     } else {
+  //       //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
+  //       Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
+  //     }
+  //   }).catchError((onError) {
+  //     Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
+  //   });
+  // }
 }

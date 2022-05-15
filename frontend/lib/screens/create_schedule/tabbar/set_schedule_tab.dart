@@ -5,11 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/class/schedule_class.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/buttons.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/notification_text.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
-import 'package:dayplan_it/screens/create_schedule/components/class/schedule_class.dart';
 
 class SetScheduleTab extends StatefulWidget {
   const SetScheduleTab({Key? key}) : super(key: key);
