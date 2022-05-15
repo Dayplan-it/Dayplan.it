@@ -115,7 +115,7 @@ class HomeRepository {
   }
 
   //userid로 사용자의 일정정보 조회  API 요청
-  Future<bool> getScheduleList(context) async {
+  static Future<bool> getScheduleList(context) async {
     DateTime today = DateTime.now();
     bool hasTodaySchedule = false;
     var dio = Dio();
@@ -180,5 +180,17 @@ class HomeRepository {
     }).catchError((onError) {
       Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
     });
+  }
+
+  static Future<String> deleteSchedule(date) async {
+    var dio = Dio();
+    var url = '$commonUrl/schedules/delete';
+    var prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('apiToken');
+    dio.options.headers['Authorization'] = token.toString();
+    int dateString = ((date.millisecondsSinceEpoch / 1000).toInt());
+    var response = await dio.delete(url, data: {'date': dateString});
+    var res = response.data;
+    return res["message"];
   }
 }
