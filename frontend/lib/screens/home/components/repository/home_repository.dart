@@ -12,6 +12,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
 class HomeRepository {
   Future<ScheduleCreated> getScheduleDetail(DateTime date) async {
@@ -49,7 +50,7 @@ class HomeRepository {
   }
 
   //userid로 사용자의 일정정보 조회  API 요청
-  Future<bool> getScheduleList(context) async {
+  static Future<bool> getScheduleList(context) async {
     DateTime today = DateTime.now();
     bool hasTodaySchedule = false;
     var dio = Dio();
@@ -134,31 +135,15 @@ class HomeRepository {
     });
   }
 
-  // //일정상세정보 새로고침
-  // Future<void> setSchedule(date, context) async {
-  //   ///provider 현재날짜설정
-  //   DateTime datetime = DateTime(date.year, date.month, date.day);
-
-  //   ///선택일정의 일정상세정보 불러오기
-  //   Future<Map<String, List<dynamic>>> responseDetail =
-  //       getScheduleDetail(datetime);
-
-  //   responseDetail.then((value) {
-  //     if (value.length > 2) {
-  //       //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
-  //       Provider.of<HomeProvider>(context, listen: false).setNoSchedult(false);
-
-  //       Provider.of<HomeProvider>(context, listen: false)
-  //           .setScheduleDetail(value);
-  //       Map<dynamic, dynamic> mapdata = setRouteData(value);
-
-  //       Provider.of<HomeProvider>(context, listen: false).setGeom(mapdata);
-  //     } else {
-  //       //스케줄디테일 부분에서 일정이없습니다 메세지 출력을 위해!
-  //       Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
-  //     }
-  //   }).catchError((onError) {
-  //     Provider.of<HomeProvider>(context, listen: false).setNoSchedult(true);
-  //   });
-  // }
+  static Future<String> deleteSchedule(date) async {
+    var dio = Dio();
+    var url = '$commonUrl/schedules/delete';
+    var prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('apiToken');
+    dio.options.headers['Authorization'] = token.toString();
+    int dateString = ((date.millisecondsSinceEpoch / 1000).toInt());
+    var response = await dio.delete(url, data: {'date': dateString});
+    var res = response.data;
+    return res["message"];
+  }
 }

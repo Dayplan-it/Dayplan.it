@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_network/image_network.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/create_schedule/components/api/fetch.dart';
@@ -164,27 +165,22 @@ class PlaceDetail extends StatelessWidget {
                                         top: (index - 1 == 0 ? 0 : 5)),
                                     child: ClipRRect(
                                       borderRadius: defaultBoxRadius,
-                                      child: Image.network(
-                                        data["photo"][index - 1],
-                                        loadingBuilder: (context, imgWidget,
-                                            loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return imgWidget;
-                                          }
-                                          return Center(
-                                            child: CircularProgressIndicator(
-                                              color: primaryColor,
-                                              value: loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? loadingProgress
-                                                          .cumulativeBytesLoaded /
-                                                      loadingProgress
-                                                          .expectedTotalBytes!
-                                                  : null,
-                                            ),
-                                          );
-                                        },
+                                      child: FittedBox(
+                                        fit: BoxFit.fitWidth,
+                                        child: ImageNetwork(
+                                          image: data["photo"][index - 1],
+                                          height: 200,
+                                          width: 250,
+                                          fitWeb: BoxFitWeb.cover,
+                                          onLoading:
+                                              const CircularProgressIndicator(
+                                            color: primaryColor,
+                                          ),
+                                          onError: const Icon(
+                                            Icons.error,
+                                            color: Colors.red,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   );
