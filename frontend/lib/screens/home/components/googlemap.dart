@@ -66,18 +66,20 @@ class GoogleMapBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-        onMapCreated: (controller) =>
-            (context.read<HomeProvider>().mainMapController = controller),
-        mapToolbarEnabled: false,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        rotateGesturesEnabled: false,
-        tiltGesturesEnabled: false,
-        markers: Set<Marker>.of(context.watch<HomeProvider>().markers.values),
-        polylines:
-            Set<Polyline>.of(context.watch<HomeProvider>().polylines.values),
-        initialCameraPosition: CameraPosition(
-            target: context.read<HomeProvider>().userLocation, zoom: 15));
+    return Consumer<HomeProvider>(builder: (context, provider, widget) {
+      return GoogleMap(
+          onMapCreated: (controller) =>
+              (context.read<HomeProvider>().mainMapController = controller),
+          mapToolbarEnabled: false,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: true,
+          rotateGesturesEnabled: false,
+          tiltGesturesEnabled: false,
+          markers: Set<Marker>.of(context.watch<HomeProvider>().markers.values),
+          polylines:
+              Set<Polyline>.of(context.watch<HomeProvider>().polylines.values),
+          initialCameraPosition: CameraPosition(
+              target: context.read<HomeProvider>().userLocation, zoom: 15));
+    });
   }
 }
