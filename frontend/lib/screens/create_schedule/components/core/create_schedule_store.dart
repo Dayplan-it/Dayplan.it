@@ -892,6 +892,7 @@ class CreateScheduleStore with ChangeNotifier {
     }
     setConvexType(convexHullIndex);
     setConvexHullVisibility(convex, convexHullIndex);
+
     notifyListeners();
   }
 
