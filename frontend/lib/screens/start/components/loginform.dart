@@ -25,23 +25,27 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return showProgress
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 50,
-              ),
-              const CircularProgressIndicator(
-                color: primaryColor,
-              ),
-              Text(
-                "착륙중...🚀",
-                style: mainFont(
-                    color: primaryColor,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12),
-              )
-            ],
+        ? Center(
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 50,
+                ),
+                const CircularProgressIndicator(
+                  color: primaryColor,
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  "착륙중...🚀",
+                  style: mainFont(
+                      color: primaryColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15),
+                )
+              ],
+            ),
           )
         : Form(
             key: formkey,

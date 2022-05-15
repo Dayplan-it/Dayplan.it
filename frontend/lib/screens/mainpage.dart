@@ -1,8 +1,10 @@
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dayplan_it/screens/home/home_screen.dart';
 import 'package:dayplan_it/screens/profile/profile_screen.dart';
 import 'package:dayplan_it/components/bottom_nav_bar.dart';
+import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -16,6 +18,7 @@ class _MainPageState extends State<MainPage> {
   List<Widget> screenList = [const HomeScreen(), const ProfileScreen()];
 
   void _onItemTapped(int index) {
+    context.read<HomeProvider>().setNoSchedule(true);
     setState(() {
       _selectedIndex = index;
     });

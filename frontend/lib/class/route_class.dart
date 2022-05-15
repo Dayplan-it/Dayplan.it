@@ -53,7 +53,7 @@ abstract class RouteStep {
         departStopLatLng = privLatLng,
         arrivalStopLatLng = nextLatLng,
         polyline = json['polyline'],
-        instruction = json['instruction'];
+        instruction = (json['instruction'] as String).replaceFirst("대한민국 ", "");
 
   Map toJson();
 }

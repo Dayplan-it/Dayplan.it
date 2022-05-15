@@ -43,6 +43,7 @@ class _CreateScheduleScreenState extends State<CreateScheduleScreen> {
         return true;
       },
       child: Scaffold(
+          resizeToAvoidBottomInset: false,
           appBar: DayplanitAppBar(
             title: "일정 생성하기",
             subtitle:
@@ -250,6 +251,9 @@ class _CreateScheduleScreenRightSideState
         vsync: this,
         animationDuration: tabResizeAnimationDuration));
     context.read<CreateScheduleStore>().tabController.addListener(() {
+      if (FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+      }
       _onTabChange();
     });
 

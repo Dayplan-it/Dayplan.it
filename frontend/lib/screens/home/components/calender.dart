@@ -44,7 +44,7 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
           pressedDateBackgroundColor: primaryColor,
           todayDateStyle:
               mainFont(color: Colors.white, fontWeight: FontWeight.w600),
-          todayBackgroundColor: Color.fromARGB(181, 1, 87, 141),
+          todayBackgroundColor: const Color.fromARGB(181, 1, 87, 141),
           dateStyle: mainFont(
               color: const Color.fromARGB(255, 68, 68, 68),
               fontWeight: FontWeight.w600),
@@ -59,7 +59,7 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
                 .selectDate(datetime);
             Provider.of<HomeProvider>(context, listen: false).deleteData();
 
-            context.read<HomeProvider>().onDateNewlySelectedStrart();
+            context.read<HomeProvider>().onDateNewlySelectedStart();
             await _homeRepository.setSchedule(date, context);
             context.read<HomeProvider>().onDateNewlySelectedEnd();
           },

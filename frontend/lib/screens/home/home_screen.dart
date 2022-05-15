@@ -1,3 +1,4 @@
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dayplan_it/constants.dart';
@@ -8,6 +9,7 @@ import 'package:dayplan_it/screens/home/components/calender.dart';
 import 'package:dayplan_it/screens/home/components/schedule.dart';
 import 'package:dayplan_it/screens/home/components/googlemap.dart';
 import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

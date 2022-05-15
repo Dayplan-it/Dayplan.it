@@ -22,7 +22,7 @@ class HomeProvider extends ChangeNotifier {
 
   /// 지도 로딩여부 확인용 변수
   bool isDateNewlySelected = false;
-  void onDateNewlySelectedStrart() {
+  void onDateNewlySelectedStart() {
     isDateNewlySelected = true;
     notifyListeners();
   }

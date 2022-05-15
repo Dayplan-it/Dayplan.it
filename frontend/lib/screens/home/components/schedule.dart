@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/home/components/detailroutepopup.dart';
 import 'package:dayplan_it/components/route_card.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
@@ -18,8 +17,6 @@ class Schedule extends StatefulWidget {
 class _ScheduleState extends State<Schedule> {
   @override
   Widget build(BuildContext context) {
-    //Detailpopup detailPopup = Detailpopup();
-
     return Consumer<HomeProvider>(builder: (context, provider, widget) {
       if (Provider.of<HomeProvider>(context, listen: false)
           .isDateNewlySelected) {
