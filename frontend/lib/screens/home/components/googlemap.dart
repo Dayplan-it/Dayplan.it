@@ -78,7 +78,7 @@ class _GooglemapState extends State<Googlemap> {
             LatLng(tempUserPosition.latitude, tempUserPosition.longitude));
       }
     });
-    return GoogleMapBody();
+    return const GoogleMapBody();
   }
 
   late Widget

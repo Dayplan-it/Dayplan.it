@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 
 import 'package:provider/provider.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/settings/settings_screen.dart';
-import 'package:dayplan_it/screens/home/components/notificationpage.dart';
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_store.dart';
 
 class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -79,17 +77,6 @@ class DayplanitAppBar extends StatelessWidget implements PreferredSizeWidget {
         centerTitle: false,
         actions: isHomePage
             ? [
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const NotificationPage()),
-                    );
-                  },
-                  icon: const Icon(CupertinoIcons.bell_fill),
-                  color: primaryColor,
-                ),
                 IconButton(
                   onPressed: () {
                     Navigator.push(

@@ -26,7 +26,7 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
       _homeRepository.setSchedule(today, context);
     }
     return SizedBox(
-        height: 120,
+        height: 130,
         child: CalendarWeek(
           controller: CalendarWeekController(),
           showMonth: true,
@@ -36,8 +36,10 @@ class _WeeklyCalanderState extends State<WeeklyCalander> {
           maxDate: today.add(
             const Duration(days: 30),
           ),
-          dayOfWeekStyle:
-              mainFont(color: subTextColor, fontWeight: FontWeight.w600),
+          dayOfWeekStyle: mainFont(
+            color: subTextColor,
+            fontWeight: FontWeight.w600,
+          ),
           weekendsStyle: mainFont(
               color: const Color.fromARGB(255, 135, 17, 17),
               fontWeight: FontWeight.w600),

@@ -1,15 +1,12 @@
-import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/components/app_bar.dart';
-import 'package:dayplan_it/notification/notification.dart';
 import 'package:dayplan_it/components/floating_btn.dart';
 import 'package:dayplan_it/screens/home/components/calender.dart';
 import 'package:dayplan_it/screens/home/components/schedule.dart';
 import 'package:dayplan_it/screens/home/components/googlemap.dart';
 import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
-import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -19,8 +16,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final HomeRepository _homeRepository = HomeRepository();
-
   late Widget weekCalendar;
 
   @override
@@ -31,8 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           //해당 부분은 data를 아직 받아 오지 못했을때 실행되는 부분을 의미한다.
           if (snapshot.hasData == false) {
-            return SizedBox(
-              height: 120,
+            return FittedBox(
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -51,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
             return const WeeklyCalander();
           }
         });
-    initNotification();
   }
 
   @override
