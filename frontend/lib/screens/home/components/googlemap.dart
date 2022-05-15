@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
@@ -38,46 +37,16 @@ class _GooglemapState extends State<Googlemap> {
     super.initState();
   }
 
-  Future<void> _getUserLocPermission() async {
-    var status = await Permission.location.status;
-
-    if (status.isDenied) {
-      status = await Permission.location.request();
-
-      if (status.isDenied) {
-        // 위치정보 사용 거절당했을 경우 필요하다는 다이얼로그 띄우기
-        await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) => CupertinoAlertDialog(
-                  title: const Text('데이플래닛에 착륙🚀하기'),
-                  content: const Text('데이플래닛을 사용하기 위해서는 위치 권한이 필요합니다.'),
-                  actions: <Widget>[
-                    CupertinoDialogAction(
-                      child: const Text('앱 종료'),
-                      onPressed: () => exit(0),
-                    ),
-                    CupertinoDialogAction(
-                      child: const Text('설정'),
-                      onPressed: () => openAppSettings(),
-                    ),
-                  ],
-                ));
-      }
-    }
-  }
-
   Future<Widget> _buildGoogleMap() async {
-    await _getUserLocPermission().then((value) async {
-      Position tempUserPosition;
-      tempUserPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+    Position tempUserPosition;
+    tempUserPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
 
-      if (mounted) {
-        context.read<HomeProvider>().setUserLocation(
-            LatLng(tempUserPosition.latitude, tempUserPosition.longitude));
-      }
-    });
+    if (mounted) {
+      context.read<HomeProvider>().setUserLocation(
+          LatLng(tempUserPosition.latitude, tempUserPosition.longitude));
+    }
+
     return const GoogleMapBody();
   }
 
