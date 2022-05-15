@@ -30,12 +30,9 @@ Map<String, LatLng> _findBoundary(List<LatLng> points) {
       listLng.sort();
 
       // 안드로이드는 다르게 넣어줘야 함 (Google Map Bug)
-      southWest = Platform.isAndroid
-          ? LatLng(listLat[0], listLng[0])
-          : LatLng(listLat[0], listLng[2]);
-      northEast = Platform.isAndroid
-          ? LatLng(listLat[2], listLng[2])
-          : LatLng(listLat[2], listLng[0]);
+      southWest = LatLng(listLat[0], listLng[0]);
+
+      northEast = LatLng(listLat[2], listLng[2]);
     }
   }
 
@@ -68,6 +65,11 @@ CameraUpdate moveToSchedule({required List scheduleOrder}) {
   }
 
   Map<String, LatLng> boundary = _findBoundary(points);
+
+  CameraUpdate cm = CameraUpdate.newLatLngBounds(
+      LatLngBounds(
+          southwest: boundary['southWest']!, northeast: boundary['northEast']!),
+      50);
 
   return CameraUpdate.newLatLngBounds(
       LatLngBounds(
