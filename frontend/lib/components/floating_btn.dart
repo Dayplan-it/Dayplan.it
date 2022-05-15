@@ -46,9 +46,8 @@ class DayplanitFloatingBtn extends StatelessWidget {
             onPressed: () {
               DateTime.now().isBefore(date) || selectedDate == todayDate
                   ? _getDeleteAlertDialog(
-                      context, "일정 삭제", "일정을 삭제하시겠습니?", date)
-                  : _getImpossibleAlertDialog(
-                      context, "삭제 불가", "지난 알람은 삭제가 불가능 합니다.");
+                      context, "일정 삭제", "일정을 삭제하시겠습니까?", date)
+                  : null;
             },
             child: const Icon(
               CupertinoIcons.delete,
@@ -72,7 +71,9 @@ class DayplanitFloatingBtn extends StatelessWidget {
                 onPressed: () async {
                   String message = await HomeRepository.deleteSchedule(date);
                   Navigator.pop(context);
-                  _getImpossibleAlertDialog(context, "일정삭제", message);
+
+                  _getImpossibleAlertDialog(context, "일정삭제",
+                      "${(date as DateTime).year}년 ${date.month}월 ${date.day}일 일정이 삭제됐습니다.");
                 },
               ),
               CupertinoDialogAction(
@@ -104,6 +105,8 @@ class DayplanitFloatingBtn extends StatelessWidget {
                 child: Text("확인", style: mainFont()),
                 onPressed: () async {
                   await HomeRepository.getScheduleList(context);
+                  context.read<HomeProvider>().setNoSchedule(true);
+                  context.read<HomeProvider>().deleteData();
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(

@@ -72,7 +72,6 @@ class HomeProvider extends ChangeNotifier {
 
   ///비어있는 날짜를 선택시 삭제
   deleteData() {
-    //_scheduLedetail = {};
     _markers = {};
     _polylines = {};
     mainMapController
@@ -104,6 +103,7 @@ class HomeProvider extends ChangeNotifier {
 
   ///캘린더에 마커표시
   addCalanderDeco(schedulelist) {
+    _decorationList = [];
     for (int i = 0; i < schedulelist.length; i++) {
       _decorationList.add(DecorationItem(
           date: schedulelist[i],
