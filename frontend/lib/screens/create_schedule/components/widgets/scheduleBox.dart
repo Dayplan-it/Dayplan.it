@@ -10,13 +10,13 @@ import 'package:dayplan_it/screens/create_schedule/components/core/create_schedu
 import 'package:dayplan_it/screens/create_schedule/components/core/create_schedule_constants.dart';
 
 class ScheduleBox extends StatelessWidget {
-  const ScheduleBox(
-      {Key? key,
-      required this.place,
-      required this.index,
-      this.isLongPress = false,
-      this.isFeedBack = false})
-      : super(key: key);
+  const ScheduleBox({
+    Key? key,
+    required this.place,
+    required this.index,
+    this.isLongPress = false,
+    this.isFeedBack = false,
+  }) : super(key: key);
 
   final Place place;
   final int index;
@@ -91,7 +91,7 @@ class ScheduleBox extends StatelessWidget {
                         ),
                         overflow: TextOverflow.ellipsis),
                   Visibility(
-                    visible: place.toHeight() > 60,
+                    visible: isEmpty || place.toHeight() > 60,
                     child: FittedBox(
                       fit: BoxFit.fitWidth,
                       child: Column(
@@ -405,161 +405,49 @@ class _ScheduleBoxDragTargetState extends State<ScheduleBoxDragTarget> {
   }
 }
 
-// class ScheduleBoxForCreatedSchedule extends StatelessWidget {
-//   const ScheduleBoxForCreatedSchedule({
-//     Key? key,
-//     required this.place,
-//   }) : super(key: key);
+// class EmptyScheduleBoxDragTarget extends StatefulWidget {
+//   const EmptyScheduleBoxDragTarget({Key? key, required this.index})
+//       : super(key: key);
 
-//   final Place place;
-
-//   // Widget _fixedToggle(String title) {
-//   //   return Positioned(
-//   //     top: itemHeight / 10,
-//   //     right: itemHeight / 10,
-//   //     child: Container(
-//   //       padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
-//   //       alignment: Alignment.center,
-//   //       height: durationToHeight(minimumScheduleBoxDuration) / 2,
-//   //       decoration: BoxDecoration(
-//   //           color: const Color.fromARGB(83, 255, 255, 255),
-//   //           borderRadius: BorderRadius.circular(30)),
-//   //       child: Text(
-//   //         title,
-//   //         style: mainFont(
-//   //             color: const Color.fromARGB(255, 255, 255, 255),
-//   //             fontSize: durationToHeight(minimumScheduleBoxDuration) / 3.5,
-//   //             fontWeight: FontWeight.w800),
-//   //       ),
-//   //     ),
-//   //   );
-//   // }
-
+//   final int index;
 //   @override
-//   Widget build(BuildContext context) {
-//     bool isEmpty = (place.placeType == "empty");
-
-//     return Container(
-//         decoration: BoxDecoration(
-//             color: place.color,
-//             borderRadius: defaultBoxRadius,
-//             boxShadow: defaultBoxShadow),
-//         height: place.toHeight(),
-//         width: double.infinity,
-//         clipBehavior: Clip.antiAlias,
-//         child: Stack(children: [
-//           Padding(
-//             padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-//             child: Center(
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   if (!isEmpty)
-//                     Text(
-//                         place.placeType == 'custom'
-//                             ? place.nameKor
-//                             : place.placeName ?? place.nameKor,
-//                         style: mainFont(
-//                             fontWeight: FontWeight.w700,
-//                             color: Colors.white,
-//                             fontSize: itemHeight / 6,
-//                             letterSpacing: 1),
-//                         overflow: TextOverflow.ellipsis),
-//                   Visibility(
-//                     visible: place.toHeight() > 60,
-//                     child: FittedBox(
-//                       fit: BoxFit.fitWidth,
-//                       child: Column(
-//                         children: [
-//                           const SizedBox(
-//                             height: 5,
-//                           ),
-//                           Text(
-//                             "${place.startsAt?.hour.toString().padLeft(2, "0")}:${place.startsAt?.minute.toString().padLeft(2, "0")} ~ ${place.endsAt?.hour.toString().padLeft(2, "0")}:${place.endsAt?.minute.toString().padLeft(2, "0")}",
-//                             style: mainFont(
-//                                 fontWeight: FontWeight.w500,
-//                                 color: Colors.white,
-//                                 fontSize: itemHeight / 7,
-//                                 letterSpacing: 1),
-//                           ),
-//                           Text(
-//                             ((place.duration.inMinutes >= 60)
-//                                     ? place.duration.inHours.toString() + "시간 "
-//                                     : "") +
-//                                 ((place.duration.inMinutes % 60) != 0
-//                                     ? (place.duration.inMinutes % 60)
-//                                             .toString() +
-//                                         "분"
-//                                     : ""),
-//                             style: mainFont(
-//                                 fontWeight: FontWeight.w500,
-//                                 color: Colors.white,
-//                                 fontSize: itemHeight / 7,
-//                                 letterSpacing: 1),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   )
-//                 ],
-//               ),
-//             ),
-//           ),
-//           // place.isFixed ? _fixedToggle('고정') : _fixedToggle('유동')
-//         ]));
-//   }
+//   State<EmptyScheduleBoxDragTarget> createState() =>
+//       _EmptyScheduleBoxDragTargetState();
 // }
 
-// class RouteBox extends StatelessWidget {
-//   const RouteBox({Key? key, required this.route}) : super(key: key);
-
-//   final RouteOrder route;
+// class _EmptyScheduleBoxDragTargetState
+//     extends State<EmptyScheduleBoxDragTarget> {
+//   bool _isHovered = false;
 
 //   @override
 //   Widget build(BuildContext context) {
-//     bool _isTransitRoute = route.isTransitRoute();
-//     String transitType = route.getType();
-//     IconData icon = (_isTransitRoute
-//         ? (transitType == 'BUS'
-//             ? CupertinoIcons.bus
-//             : (transitType == 'SUB'
-//                 ? CupertinoIcons.train_style_one
-//                 : Icons.directions_rounded))
-//         : Icons.directions_walk);
-//     return GestureDetector(
-//       onTap: () {},
-//       child: Container(
-//           decoration: BoxDecoration(
-//               color: const Color.fromARGB(206, 88, 88, 88),
-//               borderRadius: defaultBoxRadius,
-//               boxShadow: defaultBoxShadow),
-//           height: route.toHeight(),
-//           width: double.infinity,
-//           clipBehavior: Clip.antiAlias,
-//           padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-//           child: (route.toHeight() > 10)
-//               ? Center(
-//                   child: FittedBox(
-//                     fit: BoxFit.fitWidth,
-//                     child: Row(
-//                       children: [
-//                         Icon(
-//                           icon,
-//                           color: Colors.white,
-//                         ),
-//                         // Text(
-//                         //   _isTransitRoute ? "대중교통" : "도보",
-//                         //   style: mainFont(
-//                         //       fontWeight: FontWeight.w700,
-//                         //       color: Colors.white,
-//                         //       fontSize: itemHeight / 5,
-//                         //       letterSpacing: 1),
-//                         // ),
-//                       ],
-//                     ),
-//                   ),
-//                 )
-//               : const SizedBox.shrink()),
+//     final List _scheduleList = context.read<CreateScheduleStore>().scheduleList;
+
+//     return DragTarget(builder: (context, candidateData, rejectedData) {
+//       return Container(
+//         color: _isHovered
+//             ? const Color.fromARGB(126, 255, 255, 255)
+//             : const Color.fromARGB(0, 0, 0, 0),
+//         height: (_scheduleList[widget.index] as Place).toHeight(),
+//         width: double.infinity,
+//       );
+//     },
+//     onWillAccept: (data) {
+//         setState(() {
+//           _isHovered = true;
+//         });
+//         return true;
+//       },
+//       onLeave: (data) => setState(() {
+//           _isHovered = false;
+//         })
+//       ,
+//       onAcceptWithDetails: (DragTargetDetails details) {
+//         context
+//             .read<CreateScheduleStore>()
+//             .onChangeScheduleOrder(details.data, (widget.index / 2).floor());
+//         context.read<CreateScheduleStore>().onScheduleBoxDragEnd();
+//       },
 //     );
 //   }
 // }

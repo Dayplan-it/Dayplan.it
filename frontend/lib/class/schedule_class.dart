@@ -24,8 +24,8 @@ class Place {
       this.placeId});
 
   String nameKor;
-  final String placeType;
-  final Color color;
+  String placeType;
+  Color color;
   Duration duration;
   bool isFixed;
   DateTime? startsAt;
@@ -74,6 +74,23 @@ class Place {
     this.place = place;
     this.placeName = placeName;
     this.placeId = placeId;
+  }
+
+  void setEmptyPlace(Place newPlace) {
+    if (placeType == "empty") {
+      nameKor = newPlace.nameKor;
+      placeType = newPlace.placeType;
+      color = newPlace.color;
+      duration = newPlace.duration;
+      isFixed = newPlace.isFixed;
+      startsAt = newPlace.startsAt;
+      endsAt = newPlace.endsAt;
+      place = newPlace.place;
+      placeName = newPlace.placeName;
+      placeId = newPlace.placeId;
+    } else {
+      throw 'This is not a Empty Place Order';
+    }
   }
 
   Map<String, String> getInstruction() {

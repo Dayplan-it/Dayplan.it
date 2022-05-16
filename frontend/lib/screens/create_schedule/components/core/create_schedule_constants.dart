@@ -17,7 +17,7 @@ const double reorderDragTargetHeight = itemHeight / 5;
 const Duration minimumScheduleBoxDuration = Duration(minutes: 30);
 
 /// 스케줄박스 위아래 핸들
-const double upDownHandleHeight = 14;
+const double upDownHandleHeight = 18;
 
 /// BorderRadius 기본값
 BorderRadius defaultBoxRadius = BorderRadius.circular(20);
