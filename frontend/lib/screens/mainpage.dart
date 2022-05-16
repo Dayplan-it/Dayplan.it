@@ -19,6 +19,7 @@ class _MainPageState extends State<MainPage> {
 
   void _onItemTapped(int index) {
     context.read<HomeProvider>().setNoSchedule(true);
+    context.read<HomeProvider>().deleteData();
     setState(() {
       _selectedIndex = index;
     });

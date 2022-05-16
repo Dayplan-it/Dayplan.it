@@ -99,32 +99,6 @@ class _TimeLineState extends State<TimeLine> {
     if (scheduleList.isEmpty) {
       return const SizedBox.shrink();
     } else {
-      // if (context.watch<CreateScheduleStore>().isCreateRouteTabOn &&
-      //     context.watch<CreateScheduleStore>().isScheduleCreated) {
-      //   if (!context.watch<CreateScheduleStore>().isFindingRoute &&
-      //       context.watch<CreateScheduleStore>().isRouteCreateAble()) {
-      //     List<dynamic> scheduleCreatedList =
-      //         context.read<CreateScheduleStore>().scheduleCreated.list;
-      //     return Column(children: [
-      //       SizedBox(
-      //         height: reorderDragTargetHeight / 2 +
-      //             dateTimeToHeight(scheduleCreatedList[0].startsAt!),
-      //       ),
-      //       for (int i = 0; i < scheduleCreatedList.length; i++)
-      //         if (scheduleCreatedList[i].runtimeType == Place) ...[
-      //           ScheduleBoxForCreatedSchedule(
-      //             place: scheduleCreatedList[i],
-      //           ),
-      //         ] else ...[
-      //           RouteBox(
-      //             route: scheduleCreatedList[i],
-      //           )
-      //         ],
-      //     ]);
-      //   } else {
-      //     return const SizedBox.shrink();
-      //   }
-      // }
       return Column(children: [
         SizedBox(
           height: reorderDragTargetHeight / 2 +
@@ -200,7 +174,7 @@ class _TimeLineState extends State<TimeLine> {
               child: Row(
             children: [
               const SizedBox(
-                width: 42,
+                width: 40,
               ),
               Expanded(
                 key: _timeLineBoxAreaKey,

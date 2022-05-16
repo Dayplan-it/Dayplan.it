@@ -31,20 +31,17 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           //해당 부분은 data를 아직 받아 오지 못했을때 실행되는 부분을 의미한다.
           if (snapshot.hasData == false) {
-            return SizedBox(
-              height: 120,
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text("일정을 불러오는 중입니다!",
-                        style: mainFont(
-                            textStyle: const TextStyle(color: subTextColor),
-                            fontSize: 12)),
-                    const CircularProgressIndicator(
-                      color: primaryColor,
-                    )
-                  ]),
-            );
+            return Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text("일정을 불러오는 중입니다!",
+                      style: mainFont(
+                          textStyle: const TextStyle(color: subTextColor),
+                          fontSize: 12)),
+                  const CircularProgressIndicator(
+                    color: primaryColor,
+                  )
+                ]);
           }
           // 데이터를 정상적으로 받아오게 되면 다음 부분을 실행하게 되는 것이다.
           else {
