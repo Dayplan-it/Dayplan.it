@@ -15,7 +15,11 @@ class HomeProvider extends ChangeNotifier {
   late ScheduleCreated schedule;
 
   /// 구글맵 컨트롤러
-  late GoogleMapController mainMapController;
+  GoogleMapController? mainMapController;
+  void setMainMapController(GoogleMapController controller) {
+    mainMapController = controller;
+    notifyListeners();
+  }
 
   /// 유저위치
   late LatLng _userLocation;
@@ -66,7 +70,7 @@ class HomeProvider extends ChangeNotifier {
   setGeom(data) {
     _markers = data["PL"];
     _polylines = data["RO"];
-    mainMapController.animateCamera(data["camera"] as CameraUpdate);
+    mainMapController!.animateCamera(data["camera"] as CameraUpdate);
     notifyListeners();
   }
 
@@ -74,7 +78,7 @@ class HomeProvider extends ChangeNotifier {
   deleteData() {
     _markers = {};
     _polylines = {};
-    mainMapController
+    mainMapController!
         .animateCamera(CameraUpdate.newLatLngZoom(_userLocation, 15));
 
     notifyListeners();

@@ -38,18 +38,22 @@ class _ScheduleState extends State<Schedule> {
                     style: mainFont(color: subTextColor, fontSize: 12)),
               ],
             )
-          : ClipRRect(
-              borderRadius: defaultBoxRadius,
-              child: ScheduleOrderCardListView(
-                scheduleOrderList:
-                    Provider.of<HomeProvider>(context, listen: false)
-                        .schedule
-                        .list,
-                routeMapController:
-                    Provider.of<HomeProvider>(context, listen: false)
-                        .mainMapController,
-              ),
-            );
+          : (Provider.of<HomeProvider>(context, listen: true)
+                      .mainMapController !=
+                  null
+              ? ClipRRect(
+                  borderRadius: defaultBoxRadius,
+                  child: ScheduleOrderCardListView(
+                    scheduleOrderList:
+                        Provider.of<HomeProvider>(context, listen: false)
+                            .schedule
+                            .list,
+                    routeMapController:
+                        Provider.of<HomeProvider>(context, listen: false)
+                            .mainMapController!,
+                  ),
+                )
+              : SizedBox.shrink());
     });
   }
 }

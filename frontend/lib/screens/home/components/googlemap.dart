@@ -69,7 +69,7 @@ class GoogleMapBody extends StatelessWidget {
     return Consumer<HomeProvider>(builder: (context, provider, widget) {
       return GoogleMap(
           onMapCreated: (controller) =>
-              (context.read<HomeProvider>().mainMapController = controller),
+              (context.read<HomeProvider>().setMainMapController(controller)),
           mapToolbarEnabled: false,
           myLocationEnabled: true,
           myLocationButtonEnabled: true,
