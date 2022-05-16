@@ -1,18 +1,19 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
+import 'package:dio/dio.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:dayplan_it/class/route_class.dart';
 import 'package:dayplan_it/class/schedule_class.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/functions/google_map_move_to.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:dayplan_it/screens/create_schedule/components/widgets/google_map.dart';
 import 'package:dayplan_it/screens/create_schedule/exceptions/exceptions.dart';
 import 'package:dayplan_it/screens/start/landingpage.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
 class HomeRepository {
   Future<ScheduleCreated> getScheduleDetail(DateTime date) async {

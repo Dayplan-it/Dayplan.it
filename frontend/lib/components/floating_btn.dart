@@ -69,7 +69,7 @@ class DayplanitFloatingBtn extends StatelessWidget {
               CupertinoDialogAction(
                 child: Text("확인", style: mainFont(color: pointColor)),
                 onPressed: () async {
-                  String message = await HomeRepository.deleteSchedule(date);
+                  await HomeRepository.deleteSchedule(date);
                   Navigator.pop(context);
 
                   _getImpossibleAlertDialog(context, "일정삭제",

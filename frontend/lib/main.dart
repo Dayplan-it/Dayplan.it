@@ -41,11 +41,11 @@ class _MyAppState extends State<MyApp> {
       title: 'Dayplan.it',
       routes: <String, WidgetBuilder>{
         '/main': (BuildContext context) => const MainPage(),
-        '/login': (BuildContext context) => LoginPage(),
-        '/signup': (BuildContext context) => SignupPage(),
-        '/home': (BuildContext context) => HomeScreen(),
+        '/login': (BuildContext context) => const LoginPage(),
+        '/signup': (BuildContext context) => const SignupPage(),
+        '/home': (BuildContext context) => const HomeScreen(),
       },
-      home: LandingPage(),
+      home: const LandingPage(),
     );
   }
 }

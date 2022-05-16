@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_polyline_algorithm/google_polyline_algorithm.dart';
 
@@ -65,11 +63,6 @@ CameraUpdate moveToSchedule({required List scheduleOrder}) {
   }
 
   Map<String, LatLng> boundary = _findBoundary(points);
-
-  CameraUpdate cm = CameraUpdate.newLatLngBounds(
-      LatLngBounds(
-          southwest: boundary['southWest']!, northeast: boundary['northEast']!),
-      50);
 
   return CameraUpdate.newLatLngBounds(
       LatLngBounds(

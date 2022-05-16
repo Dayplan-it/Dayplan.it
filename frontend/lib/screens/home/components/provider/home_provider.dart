@@ -2,7 +2,6 @@ import 'package:dayplan_it/class/schedule_class.dart';
 import 'package:dayplan_it/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_calendar_week/flutter_calendar_week.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class HomeProvider extends ChangeNotifier {

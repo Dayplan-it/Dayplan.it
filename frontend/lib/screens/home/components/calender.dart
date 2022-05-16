@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_calendar_week/flutter_calendar_week.dart';
-import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
+
 import 'package:provider/provider.dart';
+import 'package:flutter_calendar_week/flutter_calendar_week.dart';
+
 import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
 import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
 
 class WeeklyCalander extends StatefulWidget {

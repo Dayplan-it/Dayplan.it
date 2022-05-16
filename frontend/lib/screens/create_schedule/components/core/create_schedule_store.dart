@@ -1064,7 +1064,6 @@ class CreateScheduleStore with ChangeNotifier {
                           _scheduleListPlace.startsAt ||
                       _nextRouteOrder.endsAt != _scheduleListPlace.endsAt) {
                     _isScheduleChanged = true;
-                    print('dd');
                     break;
                   }
                 }
