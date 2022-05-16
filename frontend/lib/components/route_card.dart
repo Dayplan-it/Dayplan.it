@@ -84,13 +84,17 @@ class _ScheduleOrderCardListViewState extends State<ScheduleOrderCardListView> {
                             : Colors.white),
                     height: isRoute
                         ? (clickedRouteState[(index / 2).floor()]
-                            ? steps!.length * 40 + 55
+                            ? steps!.length * 42 +
+                                40 +
+                                (steps.isNotEmpty ? 10 : 0)
                             : 40)
                         : 70,
                     child: isRoute
                         ? SizedBox(
                             height: clickedRouteState[(index / 2).floor()]
-                                ? steps!.length * 30 + 55
+                                ? steps!.length * 42 +
+                                    40 +
+                                    (steps.isNotEmpty ? 10 : 0)
                                 : 40,
                             child: Column(
                               children: [
@@ -135,7 +139,8 @@ class _ScheduleOrderCardListViewState extends State<ScheduleOrderCardListView> {
                                 ),
                                 if (clickedRouteState[(index / 2).floor()])
                                   SizedBox(
-                                    height: steps!.length * 30 + 30,
+                                    height: steps!.length * 42 +
+                                        (steps.isNotEmpty ? 10 : 0),
                                     child: Column(
                                       children: [
                                         for (RouteStep step
@@ -153,70 +158,78 @@ class _ScheduleOrderCardListViewState extends State<ScheduleOrderCardListView> {
                                                             polyLineStr:
                                                                 step.polyline));
                                               },
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        defaultBoxRadius,
-                                                    boxShadow:
-                                                        defaultBoxShadow),
-                                                width: double.infinity,
-                                                height: 37,
-                                                padding:
-                                                    const EdgeInsets.fromLTRB(
-                                                        10, 0, 10, 0),
-                                                child: Align(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          step.instruction,
-                                                          style: mainFont(
-                                                            color: (step
-                                                                    is TransitStep)
-                                                                ? step.color
-                                                                : const Color
-                                                                        .fromARGB(
-                                                                    255,
-                                                                    141,
-                                                                    141,
-                                                                    141),
-                                                            fontWeight:
-                                                                FontWeight.w500,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 2),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          defaultBoxRadius,
+                                                      boxShadow:
+                                                          defaultBoxShadow),
+                                                  width: double.infinity,
+                                                  height: 40,
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          10, 0, 10, 0),
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            step.instruction,
+                                                            style: mainFont(
+                                                              color: (step
+                                                                      is TransitStep)
+                                                                  ? step.color
+                                                                  : const Color
+                                                                          .fromARGB(
+                                                                      255,
+                                                                      141,
+                                                                      141,
+                                                                      141),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                      Icon(
-                                                        (step.runtimeType ==
-                                                                TransitStep
-                                                            ? ((step as TransitStep)
-                                                                        .transitType ==
-                                                                    'BUS'
-                                                                ? CupertinoIcons
-                                                                    .bus
-                                                                : CupertinoIcons
-                                                                    .train_style_one)
-                                                            : Icons
-                                                                .directions_walk),
-                                                        color: (step
-                                                                is TransitStep)
-                                                            ? step.color
-                                                            : const Color
-                                                                    .fromARGB(
-                                                                255,
-                                                                141,
-                                                                141,
-                                                                141),
-                                                        size: 18,
-                                                      )
-                                                    ],
+                                                        Icon(
+                                                          (step.runtimeType ==
+                                                                  TransitStep
+                                                              ? ((step as TransitStep)
+                                                                          .transitType ==
+                                                                      'BUS'
+                                                                  ? CupertinoIcons
+                                                                      .bus
+                                                                  : CupertinoIcons
+                                                                      .train_style_one)
+                                                              : Icons
+                                                                  .directions_walk),
+                                                          color: (step
+                                                                  is TransitStep)
+                                                              ? step.color
+                                                              : const Color
+                                                                      .fromARGB(
+                                                                  255,
+                                                                  141,
+                                                                  141,
+                                                                  141),
+                                                          size: 18,
+                                                        )
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ))
+                                          )),
+                                        const SizedBox(
+                                          height: 10,
+                                        )
                                       ],
                                     ),
                                   )
