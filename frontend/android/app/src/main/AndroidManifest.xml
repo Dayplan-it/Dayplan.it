@@ -14,7 +14,7 @@
         </intent>
     </queries>
     <application
-        android:label="Dayplan.it"
+        android:label="데이플래닛"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
