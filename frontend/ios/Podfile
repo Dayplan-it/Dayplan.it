@@ -74,6 +74,5 @@ post_install do |installer|
     # dart: PermissionGroup.criticalAlerts
     # 'PERMISSION_CRITICAL_ALERTS=1'
     ]
-end
   end
 end
