@@ -53,7 +53,7 @@ class _ScheduleState extends State<Schedule> {
                             .mainMapController!,
                   ),
                 )
-              : SizedBox.shrink());
+              : const SizedBox.shrink());
     });
   }
 }
