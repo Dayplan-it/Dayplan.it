@@ -28,7 +28,6 @@ class MapWithCustomInfoWindow extends StatefulWidget {
 class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
   @override
   Widget build(BuildContext context) {
-    print('build');
     return GoogleMap(
         onMapCreated: widget.onMapCreated,
         onTap: (position) async {
@@ -38,11 +37,6 @@ class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
         },
         onLongPress: (position) async {},
         myLocationEnabled: true,
-        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-          Factory<OneSequenceGestureRecognizer>(
-            () => EagerGestureRecognizer(),
-          ),
-        },
         mapToolbarEnabled: false,
         rotateGesturesEnabled: false,
         tiltGesturesEnabled: false,
