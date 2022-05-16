@@ -243,8 +243,10 @@ class TimelineBackground extends StatelessWidget {
                 height: reorderDragTargetHeight / 2,
               ),
               Container(
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: skyBlue,
+                ),
                 width: double.infinity,
                 clipBehavior: Clip.hardEdge,
                 child: Column(

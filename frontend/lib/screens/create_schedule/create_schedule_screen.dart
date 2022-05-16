@@ -79,25 +79,10 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
   bool _isHandleBeingDragged = false;
   double _timelineLeftMarginWhenBeingDragged = 0;
 
-  // late Animation<double> timelineHandleAnimation;
-  // late AnimationController timelineHandleController;
-
   @override
   void initState() {
     super.initState();
-    // final double screenWidth = MediaQuery.of(context).size.width;
 
-    // timelineHandleController =
-    //     AnimationController(duration: const Duration(seconds: 1), vsync: this);
-    // timelineHandleAnimation =
-    //     Tween<double>(begin: 0, end: -(screenWidth - 18) * 0.37)
-    //         .animate(timelineHandleController)
-    //       ..addListener(() {
-    //         setState(() {
-    //           // The State that has changed here is the animation object's value.
-    //         });
-    //       });
-    // timelineHandleController.forward();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       context
           .read<CreateScheduleStore>()
@@ -121,12 +106,6 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
               }));
     });
   }
-
-  // @override
-  // void dispose() {
-  //   timelineHandleController.dispose();
-  //   super.dispose();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +153,7 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
                   left: _isHandleBeingDragged
                       ? _timelineLeftMarginWhenBeingDragged
                       : (_isTimelineOn ? 0 : -(screenWidth - 18) * 0.37),
-                  width: (screenWidth - 18) * 0.47,
+                  width: (screenWidth - 18) * 0.47 + (_isHandleNeeded ? 30 : 0),
                   // duration: const Duration(milliseconds: 500),
                   // curve: Curves.easeInOut,
                   child: Row(
@@ -223,24 +202,38 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
                                   });
                                 }
                               },
-                              child: Container(
-                                  width: 20,
-                                  height: 70,
-                                  alignment: Alignment.center,
-                                  decoration: const BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                          topRight: Radius.circular(10),
-                                          bottomRight: Radius.circular(10)),
-                                      color: Colors.white,
-                                      boxShadow: defaultBoxShadow),
-                                  child: Transform.rotate(
-                                    angle: 90 * pi / 180,
-                                    child: const Icon(
-                                      Icons.unfold_more_rounded,
-                                      color: subTextColor,
-                                      size: 20,
-                                    ),
-                                  )),
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    color: const Color.fromARGB(0, 0, 0, 0),
+                                    width: 45,
+                                    height: 74,
+                                  ),
+                                  Positioned(
+                                    top: 2,
+                                    left: 0,
+                                    child: Container(
+                                        width: 30,
+                                        height: 70,
+                                        alignment: Alignment.center,
+                                        decoration: const BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                                topRight: Radius.circular(10),
+                                                bottomRight:
+                                                    Radius.circular(10)),
+                                            color: Color.fromARGB(133, 0, 0, 0),
+                                            boxShadow: defaultBoxShadow),
+                                        child: Transform.rotate(
+                                          angle: 90 * pi / 180,
+                                          child: const Icon(
+                                            Icons.unfold_more_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        )),
+                                  ),
+                                ],
+                              ),
                             )
                           : const SizedBox.shrink()
                     ],
