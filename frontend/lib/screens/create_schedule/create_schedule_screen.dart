@@ -76,10 +76,28 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
   bool _isTimelineOn = true;
   bool _isHandleNeeded = false;
   bool _isTimelineVisiable = true;
+  bool _isHandleBeingDragged = false;
+  double _timelineLeftMarginWhenBeingDragged = 0;
+
+  // late Animation<double> timelineHandleAnimation;
+  // late AnimationController timelineHandleController;
 
   @override
   void initState() {
     super.initState();
+    // final double screenWidth = MediaQuery.of(context).size.width;
+
+    // timelineHandleController =
+    //     AnimationController(duration: const Duration(seconds: 1), vsync: this);
+    // timelineHandleAnimation =
+    //     Tween<double>(begin: 0, end: -(screenWidth - 18) * 0.37)
+    //         .animate(timelineHandleController)
+    //       ..addListener(() {
+    //         setState(() {
+    //           // The State that has changed here is the animation object's value.
+    //         });
+    //       });
+    // timelineHandleController.forward();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       context
           .read<CreateScheduleStore>()
@@ -103,6 +121,12 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
               }));
     });
   }
+
+  // @override
+  // void dispose() {
+  //   timelineHandleController.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -144,13 +168,15 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
           if (_isTimelineVisiable)
             Positioned.fill(
               child: Stack(clipBehavior: Clip.none, children: [
-                AnimatedPositioned(
+                Positioned(
                   top: -reorderDragTargetHeight / 2,
                   bottom: 0,
-                  left: _isTimelineOn ? 0 : -(screenWidth - 18) * 0.37,
+                  left: _isHandleBeingDragged
+                      ? _timelineLeftMarginWhenBeingDragged
+                      : (_isTimelineOn ? 0 : -(screenWidth - 18) * 0.37),
                   width: (screenWidth - 18) * 0.47,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
+                  // duration: const Duration(milliseconds: 500),
+                  // curve: Curves.easeInOut,
                   child: Row(
                     children: [
                       const Expanded(child: TimeLine()),
@@ -163,6 +189,40 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
                               onTap: () => setState(() {
                                 _isTimelineOn = !_isTimelineOn;
                               }),
+                              onHorizontalDragStart: (details) => setState(() {
+                                _isHandleBeingDragged = true;
+                                _timelineLeftMarginWhenBeingDragged =
+                                    _isTimelineOn
+                                        ? 0
+                                        : -(screenWidth - 18) * 0.37;
+                              }),
+                              onHorizontalDragUpdate: (details) {
+                                double tempXpos = details.delta.dx +
+                                    _timelineLeftMarginWhenBeingDragged;
+                                if (tempXpos > -(screenWidth - 18) * 0.37 &&
+                                    tempXpos < 0) {
+                                  setState(() {
+                                    _timelineLeftMarginWhenBeingDragged =
+                                        tempXpos;
+                                  });
+                                }
+                              },
+                              onHorizontalDragEnd: (details) {
+                                double halfMoveablePos =
+                                    -(screenWidth - 18) * 0.37 / 2;
+                                if (halfMoveablePos >
+                                    _timelineLeftMarginWhenBeingDragged) {
+                                  setState(() {
+                                    _isTimelineOn = false;
+                                    _isHandleBeingDragged = false;
+                                  });
+                                } else {
+                                  setState(() {
+                                    _isTimelineOn = true;
+                                    _isHandleBeingDragged = false;
+                                  });
+                                }
+                              },
                               child: Container(
                                   width: 20,
                                   height: 70,

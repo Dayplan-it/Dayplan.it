@@ -202,30 +202,39 @@ class TimelineBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SizedBox(
-            width: 35,
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: reorderDragTargetHeight / 2,
-                ),
-                for (int i = 0; i < hours + 1; i++)
-                  SizedBox(
-                    height: i != 0 && i != hours ? itemHeight : itemHeight / 2,
-                    child: i != 0 && i != hours
-                        ? Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              (i.toString() + (i < 12 ? 'AM' : 'PM')),
-                              style:
-                                  mainFont(color: subTextColor, fontSize: 12),
-                            ))
-                        : null,
-                  )
-              ],
-            )),
-        const SizedBox(
-          width: 5,
+        Container(
+          color: Colors.white,
+          child: Row(
+            children: [
+              SizedBox(
+                  width: 35,
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: reorderDragTargetHeight / 2,
+                      ),
+                      for (int i = 0; i < hours + 1; i++)
+                        SizedBox(
+                          height: i != 0 && i != hours
+                              ? itemHeight
+                              : itemHeight / 2,
+                          child: i != 0 && i != hours
+                              ? Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    (i.toString() + (i < 12 ? 'AM' : 'PM')),
+                                    style: mainFont(
+                                        color: subTextColor, fontSize: 12),
+                                  ))
+                              : null,
+                        )
+                    ],
+                  )),
+              const SizedBox(
+                width: 5,
+              ),
+            ],
+          ),
         ),
         Expanded(
           child: Column(

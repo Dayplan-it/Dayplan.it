@@ -55,7 +55,7 @@ class _LandingPageState extends State<LandingPage> {
             children: [
               Image.asset(
                 'assets/icons/dayplanit_icon_white.png',
-                width: 120,
+                width: 60,
                 fit: BoxFit.fitWidth,
               ),
               const SizedBox(
@@ -67,7 +67,7 @@ class _LandingPageState extends State<LandingPage> {
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
                     fontStyle: FontStyle.italic,
-                    fontSize: 30),
+                    fontSize: 20),
               ),
               const SizedBox(
                 height: 30,
