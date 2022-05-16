@@ -1,7 +1,8 @@
+import 'package:dayplan_it/components/week_calander/src/calendar_week.dart';
+import 'package:dayplan_it/components/week_calander/src/models/decoration_item.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-import 'package:flutter_calendar_week/flutter_calendar_week.dart';
 
 import 'package:dayplan_it/constants.dart';
 import 'package:dayplan_it/screens/home/components/provider/home_provider.dart';
