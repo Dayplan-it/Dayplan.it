@@ -17,7 +17,47 @@ const DayplanitLogoFont = GoogleFonts.poppins; // 로고용 폰트
 //   super.fontFamily = 'Noto_Sans_KR';
 // }
 
-const mainFont = GoogleFonts.notoSans;
+TextStyle mainFont(
+    {Paint? background,
+    Color? backgroundColor,
+    Color? color,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+    double? decorationThickness,
+    double? fontSize,
+    FontStyle? fontStyle,
+    FontWeight? fontWeight,
+    Paint? foreground,
+    double? height,
+    double? letterSpacing,
+    Locale? locale,
+    List<Shadow>? shadows,
+    TextBaseline? textBaseline,
+    TextStyle? textStyle,
+    double? wordSpacing}) {
+  return TextStyle(
+    fontFamily: 'Noto_Sans_KR',
+    background: background,
+    backgroundColor: backgroundColor,
+    color: color,
+    decoration: decoration,
+    decorationColor: decorationColor,
+    decorationStyle: decorationStyle,
+    decorationThickness: decorationThickness,
+    fontSize: fontSize,
+    fontStyle: fontStyle,
+    fontWeight: fontWeight,
+    foreground: foreground,
+    height: height,
+    letterSpacing: letterSpacing,
+    locale: locale,
+    shadows: shadows,
+    textBaseline: textBaseline,
+    wordSpacing: wordSpacing,
+  );
+}
+
 const double dafaultPadding = 20.0;
 
 /// 공통컴포넌트 스타일

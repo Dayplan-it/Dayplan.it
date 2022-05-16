@@ -28,22 +28,25 @@ class MapWithCustomInfoWindow extends StatefulWidget {
 class _MapWithCustomInfoWindowState extends State<MapWithCustomInfoWindow> {
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-        onMapCreated: widget.onMapCreated,
-        onTap: (position) async {
-          if (FocusScope.of(context).hasFocus) {
-            FocusScope.of(context).unfocus();
-          }
-        },
-        onLongPress: (position) async {},
-        myLocationEnabled: true,
-        mapToolbarEnabled: false,
-        rotateGesturesEnabled: false,
-        tiltGesturesEnabled: false,
-        markers:
-            Set<Marker>.of(context.watch<CreateScheduleStore>().markers.values),
-        initialCameraPosition:
-            CameraPosition(target: widget.initPosition, zoom: 15));
+    return Stack(
+      children: [
+        GoogleMap(
+            onMapCreated: widget.onMapCreated,
+            onTap: (position) async {
+              if (FocusScope.of(context).hasFocus) {
+                FocusScope.of(context).unfocus();
+              }
+            },
+            myLocationEnabled: true,
+            mapToolbarEnabled: false,
+            rotateGesturesEnabled: false,
+            tiltGesturesEnabled: false,
+            markers: Set<Marker>.of(
+                context.watch<CreateScheduleStore>().markers.values),
+            initialCameraPosition:
+                CameraPosition(target: widget.initPosition, zoom: 15)),
+      ],
+    );
   }
 }
 

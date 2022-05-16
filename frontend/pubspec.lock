@@ -423,7 +423,7 @@ packages:
     source: hosted
     version: "2.1.2"
   pointer_interceptor:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pointer_interceptor
       url: "https://pub.dartlang.org"

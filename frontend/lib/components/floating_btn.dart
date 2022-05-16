@@ -1,11 +1,13 @@
-import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
-import 'package:dayplan_it/screens/mainpage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:dayplan_it/constants.dart';
-import 'package:dayplan_it/screens/create_schedule/create_schedule_screen.dart';
+
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 
+import 'package:dayplan_it/constants.dart';
+import 'package:dayplan_it/screens/create_schedule/create_schedule_screen.dart';
+import 'package:dayplan_it/screens/home/components/repository/home_repository.dart';
+import 'package:dayplan_it/screens/mainpage.dart';
 import '../screens/home/components/provider/home_provider.dart';
 
 class DayplanitFloatingBtn extends StatelessWidget {
@@ -20,39 +22,41 @@ class DayplanitFloatingBtn extends StatelessWidget {
     DateTime selectedDate = DateTime(date.year, date.month, date.day);
     DateTime todayDate =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    return showNoSchedule
-        ? FloatingActionButton(
-            backgroundColor:
-                DateTime.now().isBefore(date) ? primaryColor : subTextColor,
-            onPressed: () {
-              if (DateTime.now().isBefore(date)) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => CreateScheduleScreen(
-                              date: date,
-                            )));
-              }
-            },
-            child: const Icon(
-              CupertinoIcons.calendar_badge_plus,
-              color: backgroundColor,
-            ))
-        : FloatingActionButton(
-            backgroundColor:
+    return PointerInterceptor(
+      child: (showNoSchedule
+          ? FloatingActionButton(
+              backgroundColor:
+                  DateTime.now().isBefore(date) ? primaryColor : subTextColor,
+              onPressed: () {
+                if (DateTime.now().isBefore(date)) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CreateScheduleScreen(
+                                date: date,
+                              )));
+                }
+              },
+              child: const Icon(
+                CupertinoIcons.calendar_badge_plus,
+                color: backgroundColor,
+              ))
+          : FloatingActionButton(
+              backgroundColor:
+                  DateTime.now().isBefore(date) || selectedDate == todayDate
+                      ? pointColor
+                      : subTextColor,
+              onPressed: () {
                 DateTime.now().isBefore(date) || selectedDate == todayDate
-                    ? pointColor
-                    : subTextColor,
-            onPressed: () {
-              DateTime.now().isBefore(date) || selectedDate == todayDate
-                  ? _getDeleteAlertDialog(
-                      context, "일정 삭제", "일정을 삭제하시겠습니까?", date)
-                  : null;
-            },
-            child: const Icon(
-              CupertinoIcons.delete,
-              color: backgroundColor,
-            ));
+                    ? _getDeleteAlertDialog(
+                        context, "일정 삭제", "일정을 삭제하시겠습니까?", date)
+                    : null;
+              },
+              child: const Icon(
+                CupertinoIcons.delete,
+                color: backgroundColor,
+              ))),
+    );
   }
 
   _getDeleteAlertDialog(context, title, content, date) {
