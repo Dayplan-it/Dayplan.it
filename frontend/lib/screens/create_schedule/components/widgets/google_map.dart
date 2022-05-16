@@ -59,7 +59,7 @@ Future<Uint8List> _widgetToUint8List(Widget widget) async {
   ScreenshotController screenshotController = ScreenshotController();
 
   return await screenshotController.captureFromWidget(widget,
-      delay: const Duration(seconds: 0));
+      delay: const Duration(seconds: 0), pixelRatio: 1);
 }
 
 Future<Marker> markerWithCustomInfoWindow(
