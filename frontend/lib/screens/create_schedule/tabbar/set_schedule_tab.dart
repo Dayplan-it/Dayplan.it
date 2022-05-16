@@ -123,31 +123,31 @@ class RecommendedSchedulesGrid extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: Column(
             children: [
-              ElevatedButton.icon(
-                  onPressed: () {
-                    context.read<CreateScheduleStore>().addSchedule(Place(
-                        nameKor: "",
-                        placeType: "empty",
-                        color: const Color.fromARGB(150, 72, 72, 72),
-                        duration: Duration.zero));
-                  },
-                  style: ElevatedButton.styleFrom(
-                      primary: primaryColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: defaultBoxRadius),
-                      minimumSize: const Size(double.maxFinite, 40)),
-                  icon: const Icon(
-                    Icons.add_circle_outline,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  label: Text(
-                    '빈 블록 추가',
-                    style: mainFont(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13),
-                  )),
+              // ElevatedButton.icon(
+              //     onPressed: () {
+              //       context.read<CreateScheduleStore>().addSchedule(Place(
+              //           nameKor: "",
+              //           placeType: "empty",
+              //           color: const Color.fromARGB(150, 72, 72, 72),
+              //           duration: Duration.zero));
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //         primary: primaryColor,
+              //         shape: RoundedRectangleBorder(
+              //             borderRadius: defaultBoxRadius),
+              //         minimumSize: const Size(double.maxFinite, 40)),
+              //     icon: const Icon(
+              //       Icons.add_circle_outline,
+              //       color: Colors.white,
+              //       size: 20,
+              //     ),
+              //     label: Text(
+              //       '빈 블록 추가',
+              //       style: mainFont(
+              //           color: Colors.white,
+              //           fontWeight: FontWeight.w600,
+              //           fontSize: 13),
+              //     )),
               ElevatedButton.icon(
                   onPressed: () => context
                       .read<CreateScheduleStore>()
