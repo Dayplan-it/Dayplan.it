@@ -76,10 +76,13 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
   bool _isTimelineOn = true;
   bool _isHandleNeeded = false;
   bool _isTimelineVisiable = true;
+  bool _isHandleBeingDragged = false;
+  double _timelineLeftMarginWhenBeingDragged = 0;
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       context
           .read<CreateScheduleStore>()
@@ -144,13 +147,15 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
           if (_isTimelineVisiable)
             Positioned.fill(
               child: Stack(clipBehavior: Clip.none, children: [
-                AnimatedPositioned(
+                Positioned(
                   top: -reorderDragTargetHeight / 2,
                   bottom: 0,
-                  left: _isTimelineOn ? 0 : -(screenWidth - 18) * 0.37,
-                  width: (screenWidth - 18) * 0.47,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
+                  left: _isHandleBeingDragged
+                      ? _timelineLeftMarginWhenBeingDragged
+                      : (_isTimelineOn ? 0 : -(screenWidth - 18) * 0.37),
+                  width: (screenWidth - 18) * 0.47 + (_isHandleNeeded ? 30 : 0),
+                  // duration: const Duration(milliseconds: 500),
+                  // curve: Curves.easeInOut,
                   child: Row(
                     children: [
                       const Expanded(child: TimeLine()),
@@ -163,24 +168,72 @@ class _CreateScheduleScreenBodyState extends State<CreateScheduleScreenBody>
                               onTap: () => setState(() {
                                 _isTimelineOn = !_isTimelineOn;
                               }),
-                              child: Container(
-                                  width: 20,
-                                  height: 70,
-                                  alignment: Alignment.center,
-                                  decoration: const BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                          topRight: Radius.circular(10),
-                                          bottomRight: Radius.circular(10)),
-                                      color: Colors.white,
-                                      boxShadow: defaultBoxShadow),
-                                  child: Transform.rotate(
-                                    angle: 90 * pi / 180,
-                                    child: const Icon(
-                                      Icons.unfold_more_rounded,
-                                      color: subTextColor,
-                                      size: 20,
-                                    ),
-                                  )),
+                              onHorizontalDragStart: (details) => setState(() {
+                                _isHandleBeingDragged = true;
+                                _timelineLeftMarginWhenBeingDragged =
+                                    _isTimelineOn
+                                        ? 0
+                                        : -(screenWidth - 18) * 0.37;
+                              }),
+                              onHorizontalDragUpdate: (details) {
+                                double tempXpos = details.delta.dx +
+                                    _timelineLeftMarginWhenBeingDragged;
+                                if (tempXpos > -(screenWidth - 18) * 0.37 &&
+                                    tempXpos < 0) {
+                                  setState(() {
+                                    _timelineLeftMarginWhenBeingDragged =
+                                        tempXpos;
+                                  });
+                                }
+                              },
+                              onHorizontalDragEnd: (details) {
+                                double halfMoveablePos =
+                                    -(screenWidth - 18) * 0.37 / 2;
+                                if (halfMoveablePos >
+                                    _timelineLeftMarginWhenBeingDragged) {
+                                  setState(() {
+                                    _isTimelineOn = false;
+                                    _isHandleBeingDragged = false;
+                                  });
+                                } else {
+                                  setState(() {
+                                    _isTimelineOn = true;
+                                    _isHandleBeingDragged = false;
+                                  });
+                                }
+                              },
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    color: const Color.fromARGB(0, 0, 0, 0),
+                                    width: 45,
+                                    height: 74,
+                                  ),
+                                  Positioned(
+                                    top: 2,
+                                    left: 0,
+                                    child: Container(
+                                        width: 30,
+                                        height: 70,
+                                        alignment: Alignment.center,
+                                        decoration: const BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                                topRight: Radius.circular(10),
+                                                bottomRight:
+                                                    Radius.circular(10)),
+                                            color: Color.fromARGB(133, 0, 0, 0),
+                                            boxShadow: defaultBoxShadow),
+                                        child: Transform.rotate(
+                                          angle: 90 * pi / 180,
+                                          child: const Icon(
+                                            Icons.unfold_more_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        )),
+                                  ),
+                                ],
+                              ),
                             )
                           : const SizedBox.shrink()
                     ],
