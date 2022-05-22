@@ -20,6 +20,7 @@ polyline = "*"
 drf-extra-fields = "*"
 django-cors-headers = "*"
 pyJWT = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 awsebcli = "*"
