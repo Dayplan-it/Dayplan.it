@@ -52,7 +52,7 @@ pyrsistent==0.18.1
 python-dateutil==2.8.2
 pytz==2022.1
 PyYAML==5.4.1
-requests==2.27.1
+requests==2.26
 semantic-version==2.8.5
 Shapely==1.8.2
 six==1.16.0
